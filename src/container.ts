@@ -23,7 +23,6 @@ export class Container {
 
   static async destroy(): Promise<void> {
     await Promise.all([
-      //
       this.closeDatabase(),
     ]);
   }

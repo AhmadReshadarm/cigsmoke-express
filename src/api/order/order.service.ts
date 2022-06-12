@@ -2,7 +2,8 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../domain/error/custom.external.error';
 import { ErrorCode } from '../../domain/error/error.code';
-import { Order } from '../../entities/order';
+import { Order } from '../../entities/order.entity';
+import { HttpStatus } from '../../lib/http-status';
 
 @singleton()
 export class OrderService {
@@ -25,7 +26,7 @@ export class OrderService {
     });
       return order;
     } catch {
-      throw new CustomExternalError([ErrorCode.ORDER_NOT_FOUND], 404);
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
@@ -33,17 +34,19 @@ export class OrderService {
     return this.orderRepository.save(newOrder);
   }
 
-  async updateOrder(id: string) {
+  async updateOrder(id: string, orderDTO: Order) {
     try {
       const order = await this.orderRepository.findOneOrFail({
         where: {
             id: Equal(id),
         }
       });
-      console.log(order);
-      return this.orderRepository.update(id, order);
+      return this.orderRepository.update(id, {
+        ...order,
+        ...orderDTO
+      });
     } catch {
-      throw new CustomExternalError([ErrorCode.ORDER_NOT_FOUND], 404);
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
@@ -56,7 +59,7 @@ export class OrderService {
       });
       return this.orderRepository.delete(id);
     } catch {
-      throw new CustomExternalError([ErrorCode.ORDER_NOT_FOUND], 404);
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 }

@@ -17,10 +17,9 @@ export class App {
 
   constructor({ routes }: AppRouter) {
     const { server } = this;
-
     const env = server.get('env');
-    logger.info(`environment: ${env}`);
 
+    logger.info(`environment: ${env}`);
     server.use(helmet());
     server.use(
       env === 'production'
@@ -34,7 +33,6 @@ export class App {
         : morgan('dev'),
     );
     server.use(cors({ exposedHeaders: ['Content-Disposition'] }));
-
     server.use(json());
     server.use(urlencoded({ extended: false }));
     server.use(compression());

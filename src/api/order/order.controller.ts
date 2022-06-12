@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
-import { STATUS_CODES } from 'http';
 import { singleton } from 'tsyringe';
-import { Order } from '../../entities/order';
+import { Order } from '../../entities/order.entity';
 import { asyncHandler } from '../../lib/error.handlers';
 import { HttpStatus } from '../../lib/http-status';
 import { validation } from '../../lib/validator';
@@ -41,7 +40,7 @@ export class OrderController {
 
   private updateOrder = asyncHandler(async (req: Request, resp: Response) => {
     const { id } = req.params;
-    const updated = await this.orderService.updateOrder(id);
+    const updated = await this.orderService.updateOrder(id, req.body);
 
     resp.status(HttpStatus.OK).json(updated);
   });
