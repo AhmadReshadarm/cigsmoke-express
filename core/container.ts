@@ -1,37 +1,37 @@
 import { container } from 'tsyringe';
 import type { constructor } from 'tsyringe/dist/typings/types';
 import { DataSource } from 'typeorm';
-import { OrderController } from './api/order/order.controller';
 import { App } from './app';
 import appDataSource from './app-data-source';
 import { Controller } from './app.router';
 import { logger } from './lib/logger';
 
-const controllers = [
-  OrderController,
-]
-
 export class Container {
-  static async create(): Promise<App> {
+  controllers: ArrayLike<constructor<Controller>>;
+  constructor(controllers: ArrayLike<constructor<Controller>>) {
+    this.controllers = controllers;
+  }
+
+  async create(appClass: any): Promise<App> {
     await Promise.all([
       this.initController(),
       this.initDatabase(),
     ]);
 
-    return container.resolve(App);
+    return container.resolve(appClass);
   }
 
-  static async destroy(): Promise<void> {
+  async destroy(): Promise<void> {
     await Promise.all([
       this.closeDatabase(),
     ]);
   }
 
-  private static initController() {
-    Array.from<constructor<Controller>>(controllers).map(cls => container.registerType(Controller, cls));
+  private initController() {
+    Array.from<constructor<Controller>>(this.controllers).map(cls => container.registerType(Controller, cls));
   }
 
-  private static async initDatabase() {
+  private async initDatabase() {
     try {
       await appDataSource.initialize();
       container.registerInstance(DataSource, appDataSource);
@@ -42,7 +42,7 @@ export class Container {
     }
   }
 
-  private static async closeDatabase() {
+  private async closeDatabase() {
     await container.resolve(DataSource).destroy();
     logger.info('database connection is closed');
   }
