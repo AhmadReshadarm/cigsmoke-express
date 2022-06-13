@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Order } from '../../entities/order.entity';
-import { asyncHandler } from '../../lib/error.handlers';
-import { HttpStatus } from '../../lib/http-status';
-import { validation } from '../../lib/validator';
+import { Order } from '../common/entities/order.entity';
+import { asyncHandler } from '../common/lib/error.handlers';
+import { HttpStatus } from '../common/lib/http-status';
+import { validation } from '../common/lib/validator';
 import { OrderService } from './order.service';
 
 @singleton()

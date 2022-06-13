@@ -1,9 +1,9 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../../domain/error/custom.external.error';
-import { ErrorCode } from '../../domain/error/error.code';
-import { Order } from '../../entities/order.entity';
-import { HttpStatus } from '../../lib/http-status';
+import { CustomExternalError } from '../common/domain/error/custom.external.error';
+import { ErrorCode } from '../common/domain/error/error.code';
+import { Order } from '../common/entities/order.entity';
+import { HttpStatus } from '../common/lib/http-status';
 
 @singleton()
 export class OrderService {

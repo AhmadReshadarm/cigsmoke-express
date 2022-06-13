@@ -4,8 +4,8 @@ import { Container } from './container';
 
 dotenv.config();
 
-function handleExit(error?: Error): void {
-  Container.destroy()
+function handleExit(error: Error | undefined, container: Container): void {
+  container.destroy()
     .then(() => {
       if (error) {
         console.error('fatal error 🔥', error);
@@ -20,24 +20,20 @@ function handleExit(error?: Error): void {
     });
 }
 
-async function bootstrap(): Promise<void> {
-  const { PORT } = process.env;
-  const port = Number(PORT ?? 8080);
+export async function bootstrap(container: Container, port: number): Promise<void> {
+  const app = await container.create();
 
-  const app = await Container.create();
   const server = app.server
     .listen(port, () => {
       console.log(`listening on port ${port} 🚀`);
     })
-    .on('error', handleExit);
+    .on('error', (error) => handleExit(error, container));
 
   const shutdownHandler = () => {
     app.close();
-    server.close(handleExit);
+    server.close((error) => handleExit(error, container));
   };
 
   process.once('SIGINT', shutdownHandler);
   process.once('SIGTERM', shutdownHandler);
 }
-
-bootstrap();

@@ -1,2 +1,4 @@
 /dist
 /node_modules
+/orders/node_modules
+/orders/dist

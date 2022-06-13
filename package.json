@@ -6,6 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/main.js",
+    "order:dev": "cd ./order && npm run dev",
     "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "dev:ts": "nodemon --watch src --exec 'ts-node' src/main.ts",
     "dev:kill": "pgrep -fl nodemon | awk '{print $1}' | xargs -r -I{} kill -2 {} && lsof -ti :8080 | xargs -r -I{} kill {}",
