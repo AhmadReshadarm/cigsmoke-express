@@ -20,8 +20,8 @@ function handleExit(error: Error | undefined, container: Container): void {
     });
 }
 
-export async function bootstrap(container: Container, port: number): Promise<void> {
-  const app = await container.create();
+export async function bootstrap(container: Container, port: number, appClass: any): Promise<void> {
+  const app = await container.create(appClass);
 
   const server = app.server
     .listen(port, () => {

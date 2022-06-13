@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import { bootstrap } from "../common/bootstrap";
+import { bootstrap } from "../core/bootstrap";
+import { OrderApp } from "./order.app";
 import { OrderContainer } from "./order.container";
 import { OrderController } from "./order.controller";
 
@@ -9,4 +10,4 @@ const controllers = [
 const container = new OrderContainer(controllers);
 const { PORT } = process.env;
 
-bootstrap(container, Number(PORT ?? 8080));
+bootstrap(container, Number(PORT ?? 8080), OrderApp);

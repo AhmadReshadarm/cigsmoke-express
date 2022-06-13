@@ -12,7 +12,7 @@
     "dev:kill": "pgrep -fl nodemon | awk '{print $1}' | xargs -r -I{} kill -2 {} && lsof -ti :8080 | xargs -r -I{} kill {}",
     "typecheck": "tsc --noEmit --incremental false --tsBuildInfoFile null",
     "circular": "pnpm run prestart && madge --circular dist/",
-    "lint": "eslint 'src/**/*'",
+    "lint": "eslint 'core/**/*'",
     "lint:fix": "eslint --fix 'src/**/*'",
     "test": "jest",
     "test:watch": "jest --watch",

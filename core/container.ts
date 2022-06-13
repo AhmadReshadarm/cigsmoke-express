@@ -12,13 +12,13 @@ export class Container {
     this.controllers = controllers;
   }
 
-  async create(): Promise<App> {
+  async create(appClass: any): Promise<App> {
     await Promise.all([
       this.initController(),
       this.initDatabase(),
     ]);
 
-    return container.resolve(App);
+    return container.resolve(appClass);
   }
 
   async destroy(): Promise<void> {

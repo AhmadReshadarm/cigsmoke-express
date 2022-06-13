@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Order } from '../common/entities/order.entity';
-import { asyncHandler } from '../common/lib/error.handlers';
-import { HttpStatus } from '../common/lib/http-status';
-import { validation } from '../common/lib/validator';
+import { Order } from '../core/entities/order.entity';
+import { asyncHandler } from '../core/lib/error.handlers';
+import { HttpStatus } from '../core/lib/http-status';
+import { validation } from '../core/lib/validator';
 import { OrderService } from './order.service';
 
 @singleton()
@@ -11,11 +11,11 @@ export class OrderController {
   readonly routes = Router();
 
   constructor(private orderService: OrderService) {
-    this.routes.get('/order', this.getOrders);
-    this.routes.get('/order/:id', this.getOrder);
-    this.routes.post('/order', this.createOrder);
-    this.routes.put('/order/:id', this.updateOrder);
-    this.routes.delete('/order/:id', this.removeOrder);
+    this.routes.get('/orders', this.getOrders);
+    this.routes.get('/orders/:id', this.getOrder);
+    this.routes.post('/orders', this.createOrder);
+    this.routes.put('/orders/:id', this.updateOrder);
+    this.routes.delete('/orders/:id', this.removeOrder);
   }
 
   private getOrders = asyncHandler(async (req: Request, resp: Response) => {

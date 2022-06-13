@@ -2,62 +2,62 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { Order } from '../core/entities/order.entity';
+import { User } from '../core/entities/user.entity';
 import { HttpStatus } from '../core/lib/http-status';
 
 @singleton()
-export class OrderService {
-  private orderRepository: Repository<Order>;
+export class UserService {
+  private userRepository: Repository<User>;
 
   constructor(appDataSource: DataSource) {
-    this.orderRepository = appDataSource.getRepository(Order);
+    this.userRepository = appDataSource.getRepository(User);
   }
 
-  async getOrders(): Promise<Order[]> {
-    return await this.orderRepository.find();
+  async getUsers(): Promise<User[]> {
+    return await this.userRepository.find();
   }
 
-  async getOrder(id: string): Promise<Order> {
+  async getUser(id: string): Promise<User> {
     try {
-      const order = await this.orderRepository.findOneOrFail({
+      const user = await this.userRepository.findOneOrFail({
         where: {
             id: Equal(id),
         }
     });
-      return order;
+      return user;
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
-  async createOrder(newOrder: Order): Promise<Order> {
-    return this.orderRepository.save(newOrder);
+  async createUser(newUser: User): Promise<User> {
+    return this.userRepository.save(newUser);
   }
 
-  async updateOrder(id: string, orderDTO: Order) {
+  async updateUser(id: string, userDTO: User) {
     try {
-      const order = await this.orderRepository.findOneOrFail({
+      const user = await this.userRepository.findOneOrFail({
         where: {
             id: Equal(id),
         }
       });
-      return this.orderRepository.update(id, {
-        ...order,
-        ...orderDTO
+      return this.userRepository.update(id, {
+        ...user,
+        ...userDTO
       });
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
-  async removeOrder(id: string) {
+  async removeUser(id: string) {
     try {
-      await this.orderRepository.findOneOrFail({
+      await this.userRepository.findOneOrFail({
         where: {
             id: Equal(id),
         }
       });
-      return this.orderRepository.delete(id);
+      return this.userRepository.delete(id);
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
