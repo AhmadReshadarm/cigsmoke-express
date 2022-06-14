@@ -3,6 +3,13 @@
 
 /orders/node_modules
 /orders/dist
+/orders/.env
 
 /users/node_modules
 /users/dist
+/users/.env
+
+/core/node_modules
+/core/dist
+
+.env
