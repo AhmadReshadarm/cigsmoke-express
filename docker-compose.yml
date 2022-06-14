@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  orders:
+    build: ./orders
+    ports:
+      - "4000:4000"
+    depends_on:
+      - core
+  users:
+    build: ./users
+    ports:
+      - "4001:4001"
+    depends_on:
+      - core
+  core:
+    image: core
