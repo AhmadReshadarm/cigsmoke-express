@@ -12,5 +12,4 @@
 /core/node_modules
 /core/dist
 
-ormconfig.json
 .env
