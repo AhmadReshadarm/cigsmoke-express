@@ -1,13 +1,13 @@
 {
-  "name": "users-microservice",
+  "name": "сatalog-microservice",
   "version": "1.0.0",
   "description": "",
   "main": "./main.ts",
   "scripts": {
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/users/main.js",
-    "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q dist/users/main.js\""
+    "start": "node dist/catalog/main.js",
+    "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q dist/catalog/main.js\""
   },
   "keywords": [],
   "author": "",

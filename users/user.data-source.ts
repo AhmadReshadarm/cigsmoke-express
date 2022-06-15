@@ -1,10 +1,10 @@
 import { DataSource } from "typeorm"
-import { Order } from "./entities/order.entity";
-import { User } from "./entities/user.entity";
+import { User } from '../core/entities';
 
-const appDataSource = new DataSource({
+
+const dataSource = new DataSource({
     type: "mysql",
-    host: "db",
+    host: process.env.MYSQL_HOST,
     port: 3306,
     username: "root",
     password: process.env.MYSQL_ROOT_PASSWORD,
@@ -12,7 +12,7 @@ const appDataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Order, User],
+    entities: [User],
 });
 
-export default appDataSource;
+export default dataSource;

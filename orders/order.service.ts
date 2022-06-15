@@ -9,8 +9,8 @@ import { HttpStatus } from '../core/lib/http-status';
 export class OrderService {
   private orderRepository: Repository<Order>;
 
-  constructor(appDataSource: DataSource) {
-    this.orderRepository = appDataSource.getRepository(Order);
+  constructor(dataSource: DataSource) {
+    this.orderRepository = dataSource.getRepository(Order);
   }
 
   async getOrders(): Promise<Order[]> {

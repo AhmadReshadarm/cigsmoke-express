@@ -9,8 +9,8 @@ import { HttpStatus } from '../core/lib/http-status';
 export class UserService {
   private userRepository: Repository<User>;
 
-  constructor(appDataSource: DataSource) {
-    this.userRepository = appDataSource.getRepository(User);
+  constructor(dataSource: DataSource) {
+    this.userRepository = dataSource.getRepository(User);
   }
 
   async getUsers(): Promise<User[]> {
