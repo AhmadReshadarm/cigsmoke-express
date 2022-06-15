@@ -7,10 +7,10 @@ RUN mkdir -p /app
 
 WORKDIR /app/
 RUN mkdir -p core
-RUN mkdir -p users
+RUN mkdir -p catalog
 
-WORKDIR /app/users/
-COPY ./users .
+WORKDIR /app/catalog/
+COPY ./catalog .
 RUN npm install
 
 WORKDIR /app/core/
@@ -23,5 +23,5 @@ COPY ./.env .
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm install
 
-WORKDIR /app/users
+WORKDIR /app/catalog
 RUN npm run build

@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { Container } from './container';
+import { DataSource } from 'typeorm';
 
 dotenv.config();
 
@@ -20,8 +21,8 @@ function handleExit(error: Error | undefined, container: Container): void {
     });
 }
 
-export async function bootstrap(container: Container, port: number, appClass: any): Promise<void> {
-  const app = await container.create(appClass);
+export async function bootstrap(container: Container, port: number, appClass: any, dataSource: DataSource): Promise<void> {
+  const app = await container.create(appClass, dataSource)
 
   const server = app.server
     .listen(port, () => {

@@ -7,7 +7,6 @@ export class Order {
   id: string;
 
   @Column()
-  @IsNotEmpty()
   title: string;
 
   constructor(args?: { title: string }) {

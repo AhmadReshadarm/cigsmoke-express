@@ -2,7 +2,6 @@ import { container } from 'tsyringe';
 import type { constructor } from 'tsyringe/dist/typings/types';
 import { DataSource } from 'typeorm';
 import { App } from './app';
-import appDataSource from './app-data-source';
 import { Controller } from './app.router';
 import { logger } from './lib/logger';
 
@@ -12,10 +11,10 @@ export class Container {
     this.controllers = controllers;
   }
 
-  async create(appClass: any): Promise<App> {
+  async create(appClass: any, dataSource: DataSource): Promise<App> {
     await Promise.all([
       this.initController(),
-      this.initDatabase(),
+      this.initDatabase(dataSource),
     ]);
 
     return container.resolve(appClass);
@@ -31,12 +30,12 @@ export class Container {
     Array.from<constructor<Controller>>(this.controllers).map(cls => container.registerType(Controller, cls));
   }
 
-  private async initDatabase() {
+  private async initDatabase(dataSource: DataSource) {
     try {
-      await appDataSource.initialize();
-      container.registerInstance(DataSource, appDataSource);
+      await dataSource.initialize();
+      container.registerInstance(DataSource, dataSource);
       logger.info('Data Source has been initialized!');
-      
+
     } catch (error) {
       console.error("Error during Data Source initialization:", error);
     }

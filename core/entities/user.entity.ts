@@ -7,15 +7,12 @@ export class User {
   id: string;
 
   @Column()
-  @IsNotEmpty()
   firstName: string;
 
   @Column()
-  @IsNotEmpty()
   lastName: string;
 
   @Column()
-  @IsNotEmpty()
   email: string;
 
   constructor(args?: { firstName: string, lastName: string, email: string }) {
