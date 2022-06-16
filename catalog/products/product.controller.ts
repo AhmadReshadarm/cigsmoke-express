@@ -5,12 +5,18 @@ import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { ProductService } from './product.service';
 import { Product } from '../../core/entities/product.entity';
+import { ColorService } from '../colors/color.service';
+import { Color } from '../../core/entities';
+
 
 @singleton()
 export class ProductController {
   readonly routes = Router();
 
-  constructor(private productService: ProductService) {
+  constructor(
+    private productService: ProductService,
+    private colorService: ColorService
+  ) {
     this.routes.get('/products', this.getProducts);
     this.routes.get('/products/:id', this.getProduct);
     this.routes.get('/productsByName/:productName', this.getProductsByName);
@@ -59,7 +65,10 @@ export class ProductController {
   });
 
   private createProduct = asyncHandler(async (req: Request, resp: Response) => {
+    const { colors } = req.body;
     const newProduct = await validation(new Product(req.body));
+
+    colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
     const created = await this.productService.createProduct(newProduct);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
@@ -67,7 +76,11 @@ export class ProductController {
 
   private updateProduct = asyncHandler(async (req: Request, resp: Response) => {
     const { id } = req.params;
-    const updated = await this.productService.updateProduct(id, req.body);
+    const { colors } = req.body;
+    const newProduct = await validation(new Product(req.body));
+
+    colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
+    const updated = await this.productService.updateProduct(id, newProduct);
 
     resp.status(HttpStatus.OK).json(updated);
   });

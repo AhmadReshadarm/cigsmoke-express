@@ -31,6 +31,15 @@ export class ColorService {
     }
   }
 
+  async getColorsByIds(ids: string[]): Promise<Color[]> {
+
+    const colorsPromises = ids.map(async colorId => {
+      return this.getColor(colorId);
+    })
+
+    return Promise.all(colorsPromises);
+  }
+
   async createColor(colorDTO: Color): Promise<Color> {
     const newColor = await validation(new Color(colorDTO));
     return this.colorRepository.save(newColor);

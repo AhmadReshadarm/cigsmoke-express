@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm"
 import { Category, Color, Product, Brand} from '../core/entities';
+import { Parameter } from '../core/entities/parameter.entity';
 
 
 const dataSource = new DataSource({
@@ -12,7 +13,7 @@ const dataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Product, Category, Color, Brand],
+    entities: [Product, Category, Color, Brand, Parameter],
 });
 
 export default dataSource;
