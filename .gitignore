@@ -1,0 +1,15 @@
+/dist
+/node_modules
+
+/**/node_modules
+/**/dist
+/**/.env
+
+.env
+docker-compose.local.yml
+
+.idea
+
+images/files/
+
+test.http
