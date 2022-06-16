@@ -5,8 +5,7 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { Category } from '../../core/entities/category.entity';
 import { HttpStatus } from '../../core/lib/http-status';
 import { CategoryDto } from './category.dto';
-import { validation } from '../../core/lib/validator';
-import { Color } from '../../core/entities';
+
 
 @singleton()
 export class CategoryService {
@@ -42,23 +41,7 @@ export class CategoryService {
   }
 
   async createCategory(categoryDTO: CategoryDto): Promise<Category> {
-    let categoryParent;
-
-    if (categoryDTO.parentId) {
-      categoryParent = await this.categoryRepository.findOneOrFail({
-        where: {
-          id: Equal(categoryDTO.parentId),
-        }
-      });
-    }
-
-    const newCategory = await validation(new Category({
-      name: categoryDTO.name,
-      url: categoryDTO.url,
-      parent: categoryParent
-    }));
-
-    return this.categoryRepository.save(newCategory);
+    return this.categoryRepository.save(categoryDTO);
   }
 
   async updateCategory(id: string, categoryDTO: Category) {
@@ -69,7 +52,7 @@ export class CategoryService {
         }
       });
 
-      return this.categoryRepository.update(id, {
+      return this.categoryRepository.save( {
         ...category,
         ...categoryDTO
       });

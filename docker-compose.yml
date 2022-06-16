@@ -55,6 +55,17 @@ services:
       - "4002"
     depends_on:
       - db
+  images:
+    build:
+      context: .
+      dockerfile: ./images/Dockerfile
+    command: sh -c 'wait-for db:3306 -- npm run start'
+    ports:
+      - "4003:4003"
+    expose:
+      - "4003"
+    depends_on:
+      - db
 
 volumes:
     db_data:

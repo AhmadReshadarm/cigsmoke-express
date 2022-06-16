@@ -28,7 +28,7 @@ export class Product {
   desc: string;
 
   @Column()
-  available: string;
+  available: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -36,9 +36,13 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Color)
+  @ManyToMany(
+    () => Color,
+    (color) => color.products,
+    { cascade: true },
+  )
   @JoinTable()
-  colors: Color[];
+  colors?: Color[];
 
   @ManyToOne(() => Category, category => category.id)
   category: Category;
@@ -49,10 +53,10 @@ export class Product {
   @ManyToOne(() => Brand, brand => brand.id)
   brand: Brand;
 
-  @Column()
+  @Column({unique: true})
   url: string;
 
-  constructor(args?: { name: string, price: number, desc: string, available: string, colors: Color[], category: Category, images: string, url: string }) {
+  constructor(args?: { name: string, price: number, desc: string, available: boolean, colors?: Color[], category: Category, images: string, url: string, brand: Brand}) {
     if (args) {
       this.name = args.name;
       this.price = args.price;
@@ -62,6 +66,7 @@ export class Product {
       this.category = args.category;
       this.images = args.images;
       this.url = args.url;
+      this.brand = args.brand;
     }
   }
 }

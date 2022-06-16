@@ -5,6 +5,7 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { Product } from '../../core/entities/product.entity';
 import { HttpStatus } from '../../core/lib/http-status';
 
+
 @singleton()
 export class ProductService {
   private productRepository: Repository<Product>;
@@ -22,7 +23,8 @@ export class ProductService {
       const product = await this.productRepository.findOneOrFail({
         where: {
             id: Equal(id),
-        }
+        },
+        relations: ['category', 'brand'],
     });
       return product;
     } catch {
@@ -62,9 +64,10 @@ export class ProductService {
             id: Equal(id),
         }
       });
-      return this.productRepository.update(id, {
+
+      return this.productRepository.save({
         ...product,
-        ...productDTO
+        ...productDTO,
       });
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);

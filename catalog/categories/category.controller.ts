@@ -4,13 +4,17 @@ import { asyncHandler } from '../../core/lib/error.handlers';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { CategoryService } from './category.service';
-import { Category } from '../../core/entities/category.entity';
+import { Category } from '../../core/entities';
+import { ParameterService } from '../parameters/parameter.service';
 
 @singleton()
 export class CategoryController {
   readonly routes = Router();
 
-  constructor(private categoryService: CategoryService) {
+  constructor(
+    private categoryService: CategoryService,
+    private parameterService: ParameterService,
+    ) {
     this.routes.get('/categories', this.getCategories);
     this.routes.get('/categories/:id', this.getCategory);
     this.routes.get('/categoriesTree', this.getCategoriesTree)
@@ -39,14 +43,24 @@ export class CategoryController {
   })
 
   private createCategory = asyncHandler(async (req: Request, resp: Response) => {
-    const created = await this.categoryService.createCategory(req.body);
+    const { parentId } = req.body
+    const newCategory = await validation(new Category(req.body));
+
+    parentId ? newCategory.parent = await this.categoryService.getCategory(parentId) : null;
+    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters.map(parameter => String(parameter)))
+    const created = await this.categoryService.createCategory(newCategory);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   });
 
   private updateCategory = asyncHandler(async (req: Request, resp: Response) => {
     const { id } = req.params;
-    const updated = await this.categoryService.updateCategory(id, req.body);
+    const { parentId } = req.body
+    const newCategory = await validation(new Category(req.body));
+
+    parentId ? newCategory.parent = await this.categoryService.getCategory(parentId) : null;
+    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters.map(parameter => String(parameter)))
+    const updated = await this.categoryService.updateCategory(id, newCategory);
 
     resp.status(HttpStatus.OK).json(updated);
   });
