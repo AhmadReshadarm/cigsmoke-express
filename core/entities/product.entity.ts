@@ -1,4 +1,3 @@
-import { IsNotEmpty } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -39,18 +38,18 @@ export class Product {
   @ManyToMany(
     () => Color,
     (color) => color.products,
-    { cascade: true },
+    { cascade: true, nullable: false },
   )
   @JoinTable()
   colors?: Color[];
 
-  @ManyToOne(() => Category, category => category.id)
+  @ManyToOne(() => Category, category => category.id, { nullable: false })
   category: Category;
 
   @Column({ nullable: true })
   images: string;
 
-  @ManyToOne(() => Brand, brand => brand.id)
+  @ManyToOne(() => Brand, brand => brand.id, { nullable: false })
   brand: Brand;
 
   @Column({unique: true})

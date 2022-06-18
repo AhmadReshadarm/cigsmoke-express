@@ -7,6 +7,7 @@ import { ProductService } from './product.service';
 import { Product } from '../../core/entities/product.entity';
 import { ColorService } from '../colors/color.service';
 import { Color } from '../../core/entities';
+import { ProductDto } from './product.dto';
 
 
 @singleton()
@@ -28,7 +29,7 @@ export class ProductController {
   }
 
   private getProducts = asyncHandler(async (req: Request, resp: Response) => {
-    const products = await this.productService.getProducts();
+    const products = await this.productService.getProducts(req.query);
 
     resp.json(products);
   });
