@@ -4,7 +4,7 @@ import { CustomExternalError } from '../../core/domain/error/custom.external.err
 import { ErrorCode } from '../../core/domain/error/error.code';
 import { Product } from '../../core/entities/product.entity';
 import { HttpStatus } from '../../core/lib/http-status';
-import { ProductDto } from './product.dto';
+import { ProductDTO } from './productDTO';
 
 @singleton()
 export class ProductService {
@@ -14,7 +14,7 @@ export class ProductService {
     this.productRepository = dataSource.getRepository(Product);
   }
 
-  async getProducts(queryParams: ProductDto): Promise<Product[]> {
+  async getProducts(queryParams: ProductDTO): Promise<Product[]> {
     const {
       name,
       minPrice,

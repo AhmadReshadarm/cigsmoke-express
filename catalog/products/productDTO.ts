@@ -1,6 +1,4 @@
-import { Brand, Category } from '../../core/entities';
-
-export interface ProductDto {
+export interface ProductDTO {
   name?: string,
   minPrice?: number,
   maxPrice?: number,
