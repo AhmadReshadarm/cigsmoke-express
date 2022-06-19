@@ -55,7 +55,21 @@ export class Product {
   @Column({unique: true})
   url: string;
 
-  constructor(args?: { name: string, price: number, desc: string, available: boolean, colors?: Color[], category: Category, images: string, url: string, brand: Brand}) {
+  @Column( {nullable: true})
+  tags?: string;
+
+  constructor(args?: {
+    name: string,
+    price: number,
+    desc: string,
+    available: boolean,
+    colors?: Color[],
+    category: Category,
+    images: string,
+    url: string,
+    brand: Brand,
+    tags?: string,
+  }) {
     if (args) {
       this.name = args.name;
       this.price = args.price;
@@ -66,6 +80,7 @@ export class Product {
       this.images = args.images;
       this.url = args.url;
       this.brand = args.brand;
+      this.tags = args.tags;
     }
   }
 }

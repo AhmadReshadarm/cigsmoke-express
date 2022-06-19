@@ -1,13 +1,15 @@
-import { Brand, Category, Color } from '../../core/entities';
+import { Brand, Category } from '../../core/entities';
 
 export interface ProductDto {
   name?: string,
-  price?: number,
+  minPrice?: number,
+  maxPrice?: number,
   desc?: string,
   available?: boolean,
-  colors?: Color[],
-  category?: Category,
-  brand?: Brand,
+  colors?: string,
+  categories?: string,
+  brands?: string,
   sortBy?: string,
   orderBy?: 'DESC' | 'ASC';
+  limit?: number;
 }

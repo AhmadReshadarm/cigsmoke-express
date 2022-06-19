@@ -17,28 +17,35 @@ export class ProductService {
   async getProducts(queryParams: ProductDto): Promise<Product[]> {
     const {
       name,
-      price,
+      minPrice,
+      maxPrice,
       desc,
       available,
       colors,
-      category,
-      brand,
+      categories,
+      brands,
       sortBy='name',
-      orderBy='DESC'
+      orderBy='DESC',
+      limit=10,
     } = queryParams;
     const queryBuilder = this.productRepository.createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
-      .leftJoinAndSelect('product.brand', 'brand');
+      .leftJoinAndSelect('product.brand', 'brand')
+      .leftJoinAndSelect('product.colors', 'color');
 
     if (name) { queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` }); }
-    if (price) { queryBuilder.andWhere('product.price = :price', { price: price }); }
+    if (minPrice) { queryBuilder.andWhere('product.price >= :minPrice', { minPrice: minPrice }); }
+    if (maxPrice) { queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice: maxPrice }); }
     if (desc) { queryBuilder.andWhere('product.desc LIKE :desc', { desc: `%${desc}%` }); }
     if (available) { queryBuilder.andWhere('product.available EQUAL :available', { available: `%${available}%` }); }
-    if (colors) { queryBuilder.andWhere('product.colors LIKE :colors', { colors: `%${colors}%` }); }
-    if (category) { queryBuilder.andWhere('category.url LIKE :category', { category: `%${category}%` }); }
-    if (brand) { queryBuilder.andWhere('brand.name LIKE :brand', { brand: `%${brand}%` }); }
+    if (colors) { queryBuilder.andWhere('color.url IN (:...colors)', { colors: JSON.parse(colors) })}
+    if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) }); }
+    if (brands) { queryBuilder.andWhere('brand.name IN (:...brands)', { brands: JSON.parse(brands) }); }
 
-    return queryBuilder.orderBy(`product.${sortBy}`, orderBy).getMany();
+    return queryBuilder
+      .orderBy(`product.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
   }
 
   async getProduct(id: string): Promise<Product> {
