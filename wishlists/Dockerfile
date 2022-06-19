@@ -7,10 +7,10 @@ RUN mkdir -p /app
 
 WORKDIR /app/
 RUN mkdir -p core
-RUN mkdir -p reviews
+RUN mkdir -p wishlists
 
-WORKDIR /app/reviews/
-COPY ./reviews .
+WORKDIR /app/wishlists/
+COPY ./wishlists .
 RUN npm install
 
 WORKDIR /app/core/
@@ -23,5 +23,5 @@ COPY ./.env .
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm install
 
-WORKDIR /app/reviews
+WORKDIR /app/wishlists
 RUN npm run build

@@ -14,15 +14,13 @@ export interface ProductDTO {
   updatedAt: Date,
 }
 
-export interface ReviewDTO {
+export interface WishlistDTO {
   id: string,
-  rating: number,
-  comment: string,
   product: ProductDTO | undefined,
   user:  UserDTO | undefined,
 }
 
-export interface ReviewQueryDTO {
+export interface WishlistQueryDTO {
   id?: string,
   productId?: string,
   userId?: string,

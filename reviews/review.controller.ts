@@ -5,7 +5,7 @@ import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
 import { ReviewService } from './review.service';
-import { ReviewDTO } from './reviews.dtos';
+
 
 @singleton()
 export class ReviewController {
@@ -20,7 +20,7 @@ export class ReviewController {
   }
 
   private getReviews = asyncHandler(async (req: Request, resp: Response) => {
-    const reviews = await this.reviewService.getReviews();
+    const reviews = await this.reviewService.getReviews(req.query);
     console.log(reviews);
 
     resp.json(reviews);

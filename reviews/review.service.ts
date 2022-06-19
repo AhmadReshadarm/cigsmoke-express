@@ -4,9 +4,9 @@ import { CustomExternalError } from '../core/domain/error/custom.external.error'
 import { ErrorCode } from '../core/domain/error/error.code';
 import { Review } from '../core/entities/review.entity';
 import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, ReviewDTO, UserDTO } from './reviews.dtos';
-import axios, { AxiosRequestConfig, AxiosPromise } from 'axios';
-import { REVIEW_MAXRATING, REVIEW_MINRATING } from './review.config';
+import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserDTO } from './reviews.dtos';
+import axios from 'axios';
+import { REVIEW_MAX_RATING, REVIEW_MIN_RATING } from './review.config';
 
 
 @singleton()
@@ -17,8 +17,18 @@ export class ReviewService {
     this.reviewRepository = dataSource.getRepository(Review);
   }
 
-  async getReviews(): Promise<ReviewDTO[]> {
-    const reviews = await this.reviewRepository.find()
+  async getReviews(queryParams: ReviewQueryDTO): Promise<ReviewDTO[]> {
+    const { productId, userId, sortBy='productId', orderBy='DESC', limit=10, } = queryParams;
+
+    const queryBuilder = this.reviewRepository.createQueryBuilder('review');
+    if (productId) { queryBuilder.andWhere('review.productId = :productId', { productId: productId }); }
+    if (userId) { queryBuilder.andWhere('review.userId = :userId', { userId: userId }); }
+
+    const reviews = await queryBuilder
+      .orderBy(`review.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
+
     const result = reviews.map(async (review) => await this.mergeReviewUserId(review))
 
     return Promise.all(result)
@@ -39,19 +49,23 @@ export class ReviewService {
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`)
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+
       return res.data
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    } catch (e) {
+      console.error(e)
+      throw new CustomExternalError([ErrorCode.USER_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
   async getProductById(id: string): Promise<ProductDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.PRODUCTS_DB}/products/${id}`)
+      const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
+
       return res.data;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    } catch (e) {
+      console.error(e)
+      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }
 
@@ -60,7 +74,6 @@ export class ReviewService {
       order: { id: 'DESC' },
       take: 1
     })
-    console.log(lastElement);
 
     return lastElement[0]? String(+lastElement[0].id + 1) : String(1);
   }
@@ -112,17 +125,14 @@ export class ReviewService {
   }
 
   async validateReview(review: Review) {
-    if (! await this.getUserById(review.userId)) {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    await this.getUserById(review.userId);
+    await this.getProductById(review.productId)
+
+    if (review.rating > REVIEW_MAX_RATING) {
+      throw new CustomExternalError([`${ErrorCode.RATING_CANNOT_BE_GT}:${REVIEW_MAX_RATING}`], HttpStatus.BAD_REQUEST);
     }
-    if (! await this.getProductById(review.productId)) {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
-    if (review.rating > REVIEW_MAXRATING) {
-      throw new CustomExternalError([`rating cannot be greater than ${REVIEW_MAXRATING}`], HttpStatus.BAD_REQUEST);
-    }
-    if (review.rating < REVIEW_MINRATING) {
-      throw new CustomExternalError([`rating cannot be less than ${REVIEW_MINRATING}`], HttpStatus.BAD_REQUEST);
+    if (review.rating < REVIEW_MIN_RATING) {
+      throw new CustomExternalError([`${ErrorCode.RATING_CANNOT_BE_LT}:${REVIEW_MIN_RATING}`], HttpStatus.BAD_REQUEST);
     }
   }
 

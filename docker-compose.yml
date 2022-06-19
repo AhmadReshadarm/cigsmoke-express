@@ -66,6 +66,28 @@ services:
       - "4003"
     depends_on:
       - db
+  reviews:
+    build:
+      context: .
+      dockerfile: ./reviews/Dockerfile
+    command: sh -c 'wait-for db:3306 -- npm run start'
+    ports:
+      - "4004:4004"
+    expose:
+      - "4004"
+    depends_on:
+      - db
+  wishlists:
+    build:
+      context: .
+      dockerfile: ./wishlists/Dockerfile
+    command: sh -c 'wait-for db:3306 -- npm run start'
+    ports:
+      - "4005:4005"
+    expose:
+      - "4005"
+    depends_on:
+      - db
 
 volumes:
     db_data:

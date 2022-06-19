@@ -7,7 +7,6 @@ import { ProductService } from './product.service';
 import { Product } from '../../core/entities/product.entity';
 import { ColorService } from '../colors/color.service';
 import { Color } from '../../core/entities';
-import { ProductDTO } from './productDTO';
 
 
 @singleton()
