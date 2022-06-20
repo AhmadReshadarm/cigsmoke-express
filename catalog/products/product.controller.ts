@@ -22,6 +22,7 @@ export class ProductController {
     this.routes.get('/productsByName/:productName', this.getProductsByName);
     this.routes.get('/productsByName/:productName/:categoryUrl', this.getProductsByName);
     this.routes.get('/productsByCategory/:categoryUrl', this.getProductsByCategory);
+    this.routes.get('/ProductsUnderOneThousand', this.getProductsUnderOneThousand)
     this.routes.post('/products', this.createProduct);
     this.routes.put('/products/:id', this.updateProduct);
     this.routes.delete('/products/:id', this.removeProduct);
@@ -43,7 +44,6 @@ export class ProductController {
   private getProductsByCategory = asyncHandler(async (req: Request, resp: Response) => {
     const { categoryUrl } = req.params;
     const products = await this.productService.getProductsByCategory(categoryUrl);
-    console.log(products);
 
     resp.status(HttpStatus.OK).json(products.map(product => ({
       id: product.id,
@@ -63,6 +63,12 @@ export class ProductController {
     const products = await this.productService.getProductsByName(productName, categoryUrl);
     resp.json(products);
   });
+
+  private getProductsUnderOneThousand = asyncHandler(async (req: Request, resp: Response) => {
+    const products = await this.productService.getProducts({minPrice: 1000});
+
+    resp.json(products);
+  })
 
   private createProduct = asyncHandler(async (req: Request, resp: Response) => {
     const { colors } = req.body;
