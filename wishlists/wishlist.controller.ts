@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Wishlist } from '../core/entities/wishlist.entity';
+import { Wishlist } from '../core/entities/wishlist/wishlist.entity';
 import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';

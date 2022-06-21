@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { User } from '../core/entities/user.entity';
+import { User } from '../core/entities/user/user.entity';
 import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';

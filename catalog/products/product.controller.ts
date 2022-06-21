@@ -4,7 +4,7 @@ import { asyncHandler } from '../../core/lib/error.handlers';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { ProductService } from './product.service';
-import { Product } from '../../core/entities/product.entity';
+import { Product } from '../../core/entities/catalog/product.entity';
 import { ColorService } from '../colors/color.service';
 import { Color } from '../../core/entities';
 

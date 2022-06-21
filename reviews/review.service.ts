@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { Review } from '../core/entities/review.entity';
+import { Review } from '../core/entities/review/review.entity';
 import { HttpStatus } from '../core/lib/http-status';
 import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserDTO } from './reviews.dtos';
 import axios from 'axios';
@@ -106,7 +106,10 @@ export class ReviewService {
         .where('productId = :productId', {productId: review.productId})
         .andWhere('userId = :userId', {userId: review.userId})
         .execute()
-    } catch {
+    } catch (e) {
+      if (e instanceof CustomExternalError) {
+        throw new CustomExternalError(e.messages, e.statusCode)
+      }
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }

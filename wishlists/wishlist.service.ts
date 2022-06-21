@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { Wishlist } from '../core/entities/wishlist.entity';
+import { Wishlist } from '../core/entities/wishlist/wishlist.entity';
 import { HttpStatus } from '../core/lib/http-status';
 import { ProductDTO, WishlistDTO, UserDTO, WishlistQueryDTO } from './wishlist.dtos';
 import axios from 'axios';
@@ -104,7 +104,10 @@ export class WishlistService {
         .where('productId = :productId', {productId: wishlist.productId})
         .andWhere('userId = :userId', {userId: wishlist.userId})
         .execute()
-    } catch {
+    } catch (e) {
+      if (e instanceof CustomExternalError) {
+        throw new CustomExternalError(e.messages, e.statusCode)
+      }
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
   }

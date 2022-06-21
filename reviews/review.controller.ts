@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Review } from '../core/entities/review.entity';
+import { Review } from '../core/entities';
 import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
@@ -21,7 +21,6 @@ export class ReviewController {
 
   private getReviews = asyncHandler(async (req: Request, resp: Response) => {
     const reviews = await this.reviewService.getReviews(req.query);
-    console.log(reviews);
 
     resp.json(reviews);
   });
