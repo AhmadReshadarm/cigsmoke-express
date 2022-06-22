@@ -2,21 +2,24 @@ import { container } from 'tsyringe';
 import type { constructor } from 'tsyringe/dist/typings/types';
 import { DataSource } from 'typeorm';
 import { App } from './app';
-import { Controller } from './app.router';
+import { AbstractController } from './abstract-controller';
 import { logger } from './lib/logger';
+import { OrderApp } from '../orders/order.app';
 
 export class Container {
-  controllers: ArrayLike<constructor<Controller>>;
-  constructor(controllers: ArrayLike<constructor<Controller>>) {
-    this.controllers = controllers;
+  controllerPaths: string;
+  constructor(controllerPaths: string) {
+    this.controllerPaths = controllerPaths;
   }
+    
+  async create(appClass: any, dataSource: DataSource): Promise<OrderApp> {
+    await this.initDatabase(dataSource);
 
-  async create(appClass: any, dataSource: DataSource): Promise<App> {
-    await Promise.all([
-      this.initController(),
-      this.initDatabase(dataSource),
-    ]);
+    const path = this.controllerPaths;
+    const { default: loadControllers } = await import(path);
 
+    await this.initController(loadControllers());
+  
     return container.resolve(appClass);
   }
 
@@ -26,8 +29,8 @@ export class Container {
     ]);
   }
 
-  private initController() {
-    Array.from<constructor<Controller>>(this.controllers).map(cls => container.registerType(Controller, cls));
+  private initController(controllers: ArrayLike<constructor<AbstractController>>) {
+    Array.from<constructor<AbstractController>>(controllers).map(cls =>  container.registerType(typeof AbstractController, cls));
   }
 
   private async initDatabase(dataSource: DataSource) {

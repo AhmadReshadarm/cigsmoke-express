@@ -22,7 +22,7 @@ function handleExit(error: Error | undefined, container: Container): void {
 }
 
 export async function bootstrap(container: Container, port: number, appClass: any, dataSource: DataSource): Promise<void> {
-  const app = await container.create(appClass, dataSource)
+  const app = await container.create(appClass, dataSource);
 
   const server = app.server
     .listen(port, () => {

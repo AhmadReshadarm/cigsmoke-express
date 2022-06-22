@@ -15,7 +15,7 @@ export class App {
 
   private isKeepAliveDisabled = false;
 
-  constructor({ routes }: AppRouter) {
+  constructor() {
     const { server } = this;
     const env = server.get('env');
 
@@ -43,7 +43,7 @@ export class App {
       next();
     });
 
-    server.use(routes);
+    server.use(AppRouter.router);
     server.use(errorHandler);
   }
 

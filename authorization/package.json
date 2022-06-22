@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/authentication/main.js",
-    "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q dist/authentication/main.js\""
+    "start": "node dist/authorization/main.js",
+    "dev": "npm run build && concurrently \"npx tsc --watch\" \"nodemon -q dist/authorization/main.js\""
   },
   "keywords": [],
   "author": "",

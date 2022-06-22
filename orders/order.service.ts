@@ -1,11 +1,11 @@
-import { singleton } from 'tsyringe';
+import { injectable, singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
 import { Order } from '../core/entities/order.entity';
 import { HttpStatus } from '../core/lib/http-status';
 
-@singleton()
+@injectable()
 export class OrderService {
   private orderRepository: Repository<Order>;
 
