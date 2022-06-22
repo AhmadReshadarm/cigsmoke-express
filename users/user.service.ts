@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { User } from '../core/entities/user.entity';
+import { User } from '../core/entities/user/user.entity';
 import { HttpStatus } from '../core/lib/http-status';
 
 @singleton()

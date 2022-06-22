@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm"
-import { Order } from '../core/entities';
+import { Address, Basket, Checkout, OrderProduct, PaymentCard } from '../core/entities';
 
 
 const dataSource = new DataSource({
@@ -12,7 +12,7 @@ const dataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Order],
+    entities: [OrderProduct, Basket, Address, Checkout, PaymentCard],
 });
 
 export default dataSource;

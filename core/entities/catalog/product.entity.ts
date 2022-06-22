@@ -1,4 +1,3 @@
-import { IsNotEmpty } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -39,24 +38,38 @@ export class Product {
   @ManyToMany(
     () => Color,
     (color) => color.products,
-    { cascade: true },
+    { cascade: true, nullable: false },
   )
   @JoinTable()
   colors?: Color[];
 
-  @ManyToOne(() => Category, category => category.id)
+  @ManyToOne(() => Category, category => category.id, { nullable: false })
   category: Category;
 
   @Column({ nullable: true })
   images: string;
 
-  @ManyToOne(() => Brand, brand => brand.id)
+  @ManyToOne(() => Brand, brand => brand.id, { nullable: false })
   brand: Brand;
 
   @Column({unique: true})
   url: string;
 
-  constructor(args?: { name: string, price: number, desc: string, available: boolean, colors?: Color[], category: Category, images: string, url: string, brand: Brand}) {
+  @Column( {nullable: true})
+  tags?: string;
+
+  constructor(args?: {
+    name: string,
+    price: number,
+    desc: string,
+    available: boolean,
+    colors?: Color[],
+    category: Category,
+    images: string,
+    url: string,
+    brand: Brand,
+    tags?: string,
+  }) {
     if (args) {
       this.name = args.name;
       this.price = args.price;
@@ -67,6 +80,7 @@ export class Product {
       this.images = args.images;
       this.url = args.url;
       this.brand = args.brand;
+      this.tags = args.tags;
     }
   }
 }

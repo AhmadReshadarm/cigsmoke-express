@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Image } from '../core/entities/image.entity';
+import { Image } from '../core/entities/images/image.entity';
 import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { ImageService } from './image.service';

@@ -1,4 +1,4 @@
-import { Parameter } from '../../core/entities/parameter.entity';
+import { Parameter } from '../../core/entities/catalog/parameter.entity';
 
 export interface CategoryDto {
   readonly name: string,
