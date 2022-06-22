@@ -54,7 +54,6 @@ export class BasketService {
 
       if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
 
-      this.getTotalAmount(queryBuilder.orderProducts)
       return this.mergeBasket(queryBuilder)
     }
 
