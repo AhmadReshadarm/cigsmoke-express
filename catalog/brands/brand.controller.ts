@@ -37,8 +37,7 @@ export class BrandController {
   private getBrandsByCategory = asyncHandler(async (req: Request, resp: Response) => {
     const { categoryUrl } = req.params;
 
-    const products = await this.productService.getProductsByCategory(categoryUrl);
-    console.log(products)
+    const products = await this.productService.getProducts({ categories: JSON.stringify([categoryUrl]) });
     const brands =  await this.brandService.getUniqueBrandsFromProducts(products);
     resp.json(brands);
   })

@@ -7,6 +7,7 @@ export interface ProductDTO {
   colors?: string,
   categories?: string,
   brands?: string,
+  tags?: string,
   sortBy?: string,
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
