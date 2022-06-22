@@ -9,21 +9,42 @@ import { HttpStatus } from '../core/lib/http-status';
 export class UserService {
   private userRepository: Repository<User>;
 
-  constructor(dataSource: DataSource) {
-    this.userRepository = dataSource.getRepository(User);
+  constructor(appDataSource: DataSource) {
+    this.userRepository = appDataSource.getRepository(User);
   }
 
   async getUsers(): Promise<User[]> {
     return await this.userRepository.find();
   }
 
+  async getUserNames(): Promise<User[]> {
+    const users = await this.userRepository
+      .createQueryBuilder('User')
+      .select(['User.id', 'User.firstName', 'User.lastName'])
+      .getRawMany();
+    return users;
+  }
+
   async getUser(id: string): Promise<User> {
     try {
       const user = await this.userRepository.findOneOrFail({
         where: {
-            id: Equal(id),
-        }
-    });
+          id: Equal(id),
+        },
+      });
+      return user;
+    } catch {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async getEmail(email: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          email: Equal(email),
+        },
+      });
       return user;
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
@@ -38,12 +59,12 @@ export class UserService {
     try {
       const user = await this.userRepository.findOneOrFail({
         where: {
-            id: Equal(id),
-        }
+          id: Equal(id),
+        },
       });
       return this.userRepository.update(id, {
         ...user,
-        ...userDTO
+        ...userDTO,
       });
     } catch {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
@@ -54,8 +75,8 @@ export class UserService {
     try {
       await this.userRepository.findOneOrFail({
         where: {
-            id: Equal(id),
-        }
+          id: Equal(id),
+        },
       });
       return this.userRepository.delete(id);
     } catch {
