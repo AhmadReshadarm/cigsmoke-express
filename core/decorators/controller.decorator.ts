@@ -1,23 +1,24 @@
 import { HttpMethods, ControllerDecoratorParams } from "../enums";
-import { RequestHandler } from "express";
-import { Order } from "../entities";
-import { container, inject } from 'tsyringe';
+import { container } from 'tsyringe';
+import { AbstractController } from "core/abstract-controller";
+import { errorHandler, asyncHandler } from "../lib/error.handlers";
+import { App } from "../app";
 
 export function Controller(path: string): Function {
-    return function(target: any): void {
-        const router = target.routes;
-
-        for (const _action in target.prototype) {
-            if (target.prototype.hasOwnProperty(_action)) {
-                const _path: string = Reflect.getMetadata(ControllerDecoratorParams.Path, target.prototype, _action) || '';
-                const method: HttpMethods = Reflect.getMetadata(ControllerDecoratorParams.Method, target.prototype, _action);
-                const middlewares: RequestHandler[] = Reflect.getMetadata(ControllerDecoratorParams.Middleware, target.prototype, _action) || [];
-
-                setTimeout(() => {
-                    const targetObject = container.resolve(target);
-                    router[method](`${path}/${_path}`, middlewares, (target.prototype as any)[_action].bind(targetObject));
-                });
+    return function(target: typeof AbstractController): void {
+        setTimeout(() => {
+            for (const _action in target.prototype) {
+                if (target.prototype.hasOwnProperty(_action)) {
+                    const _path: string = Reflect.getMetadata(ControllerDecoratorParams.Path, target.prototype, _action) || '';
+                    const method: HttpMethods = Reflect.getMetadata(ControllerDecoratorParams.Method, target.prototype, _action);
+                    const middlewares: any[] = Reflect.getMetadata(ControllerDecoratorParams.Middleware, target.prototype, _action) || [];
+                    const targetObject = container.resolve(target as any);
+                    
+                    App.server[method](`${path}/${_path}`, middlewares, asyncHandler((target.prototype as any)[_action].bind(targetObject)));
+                }
             }
-        }
+
+            App.server.use(errorHandler);
+        });
     }
 }

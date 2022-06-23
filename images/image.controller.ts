@@ -1,8 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
-import { Image } from '../core/entities/image.entity';
 import { asyncHandler } from '../core/lib/error.handlers';
-import { HttpStatus } from '../core/lib/http-status';
 import { ImageService } from './image.service';
 import multer from './multer';
 import { ImageDto } from './image.dto';
@@ -26,7 +24,7 @@ export class ImageController {
   });
 
   private uploadImages = asyncHandler(async (req: Request, resp: Response) => {
-    const files = req.files! as unknown as ImageDto[];
+    const files = (req as any).files as ImageDto[];
     await this.imageService.uploadImages(files);
 
     resp.json(files.map(image => image.filename))

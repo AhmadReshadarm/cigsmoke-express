@@ -1,5 +1,5 @@
 {
-  "name": "сatalog-microservice",
+  "name": "catalog.microservice",
   "version": "1.0.0",
   "description": "",
   "main": "./main.ts",

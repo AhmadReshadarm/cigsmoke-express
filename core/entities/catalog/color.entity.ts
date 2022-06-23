@@ -1,5 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from './product.entity';
 
 @Entity()
@@ -11,12 +10,16 @@ export class Color {
   name: string;
 
   @ManyToMany(() => Product, (product) => product.colors)
-  products?: Product[]
+  products?: Product[];
 
-  constructor(args?: { name: string, products?: Product[] }) {
+  @Column()
+  url: string;
+
+  constructor(args?: { name: string, products?: Product[], url: string }) {
     if (args) {
       this.name = args.name;
       this.products = args.products;
+      this.url = args.url;
     }
   }
 }
