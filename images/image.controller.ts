@@ -1,10 +1,11 @@
 import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
 import { ImageService } from './image.service';
-import multer from './multer';
+import multer from './middlewares/multer';
 import { ImageDto } from './image.dto';
 import { DESTINATION } from './config';
 import { Controller, Get, Middleware, Post } from '../core/decorators';
+import { createDestination } from './middlewares/create.destination';
 
 
 @singleton()
@@ -20,7 +21,7 @@ export class ImageController {
   }
 
   @Post()
-  @Middleware([multer.array('files')])
+  @Middleware([createDestination, multer.array('files')])
   async uploadImages(req: Request, resp: Response) {
     const files: ImageDto[] = (req as any).files ?? [];
     await this.imageService.uploadImages(files);
