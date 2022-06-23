@@ -1,10 +1,11 @@
-import { Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ParameterService } from './parameter.service';
 
 @singleton()
+@Controller('/parameters')
 export class ParameterController {
   constructor(private parameterService: ParameterService) {}
 

@@ -1,11 +1,13 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from './category.entity';
+import { IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class Parameter {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column()
   name: string;
 

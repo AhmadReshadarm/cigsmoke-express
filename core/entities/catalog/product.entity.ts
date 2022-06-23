@@ -11,7 +11,7 @@ import {
 import { Color } from './color.entity';
 import { Category } from './category.entity';
 import { Brand } from './brand.entity';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, Min } from 'class-validator';
 import { Tag } from './tag.entity';
 
 @Entity()
@@ -25,11 +25,13 @@ export class Product {
 
   @IsNotEmpty()
   @Column()
+  @Min(1)
   price: number;
 
   @Column({ nullable: true })
   desc: string;
 
+  @IsNotEmpty()
   @Column()
   available: boolean;
 
@@ -39,6 +41,7 @@ export class Product {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @IsNotEmpty()
   @ManyToMany(
     () => Color,
     (color) => color.products,

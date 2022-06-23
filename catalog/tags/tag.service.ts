@@ -42,6 +42,7 @@ export class TagService {
 
   async createTag(tagDTO: Tag): Promise<Tag> {
     const newTag = await validation(new Tag(tagDTO));
+
     return this.tagRepository.save(newTag);
   }
 

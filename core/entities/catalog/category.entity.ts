@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Parameter } from './parameter.entity';
+import { IsNotEmpty } from 'class-validator';
 
 @Tree("closure-table")
 @Entity()
@@ -15,6 +16,7 @@ export class Category {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column({unique: true})
   name: string;
 
@@ -34,6 +36,7 @@ export class Category {
   @JoinTable()
   parameters: Parameter[];
 
+  @IsNotEmpty()
   @Column({unique: true})
   url: string;
 

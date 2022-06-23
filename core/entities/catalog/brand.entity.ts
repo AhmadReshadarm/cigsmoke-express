@@ -6,6 +6,7 @@ export class Brand {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column()
   name: string;
 
