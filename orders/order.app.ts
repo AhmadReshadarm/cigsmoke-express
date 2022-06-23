@@ -1,4 +1,4 @@
-import { injectable, singleton } from "tsyringe";
+import { injectable } from "tsyringe";
 import { App } from "../core/app";
 
 @injectable()

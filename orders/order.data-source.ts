@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm"
 import { Address, Basket, Checkout, OrderProduct, PaymentCard } from '../core/entities';
 
-
 const dataSource = new DataSource({
     type: "mysql",
     host: process.env.MYSQL_HOST ?? 'localhost',

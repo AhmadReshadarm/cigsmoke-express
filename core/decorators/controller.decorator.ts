@@ -13,7 +13,6 @@ export function Controller(path: string): Function {
                     const method: HttpMethods = Reflect.getMetadata(ControllerDecoratorParams.Method, target.prototype, _action);
                     const middlewares: any[] = Reflect.getMetadata(ControllerDecoratorParams.Middleware, target.prototype, _action) || [];
                     const targetObject = container.resolve(target as any);
-                    console.log(middlewares);
                     
                     App.server[method](`${path}/${_path}`, middlewares, asyncHandler((target.prototype as any)[_action].bind(targetObject)));
                 }
