@@ -2,7 +2,6 @@ import { DataSource } from "typeorm"
 import { Category, Color, Product, Brand, Tag } from '../core/entities';
 import { Parameter } from '../core/entities/catalog/parameter.entity';
 
-
 const dataSource = new DataSource({
     type: "mysql",
     host: process.env.MYSQL_HOST,

@@ -5,18 +5,20 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { singleton } from 'tsyringe';
-import { AppRouter } from './app.router';
-import { errorHandler } from './lib/error.handlers';
 import { logger } from './lib/logger';
 
 @singleton()
 export class App {
-  readonly server = express();
+ static readonly server = express();
+
+  get appServer() {
+    return App.server;
+  }
 
   private isKeepAliveDisabled = false;
-
-  constructor({ routes }: AppRouter) {
-    const { server } = this;
+  
+  constructor() {
+    const server = this.appServer;
     const env = server.get('env');
 
     logger.info(`environment: ${env}`);
@@ -42,9 +44,6 @@ export class App {
       }
       next();
     });
-
-    server.use(routes);
-    server.use(errorHandler);
   }
 
   close(): void {

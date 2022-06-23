@@ -1,14 +1,10 @@
+import path from "path";
 import "reflect-metadata";
 import { bootstrap } from "../core/bootstrap";
 import { UserApp } from "./user.app";
-import { UserContainer } from "./user.container";
-import { UserController } from "./user.controller";
 import userDataSource from './user.data-source';
 
-const controllers = [
-  UserController,
-];
-const container = new UserContainer(controllers);
+const controllerPaths = path.resolve(__dirname, './load-controllers.js');
 const { PORT } = process.env;
 
-bootstrap(container, Number(PORT ?? 8080), UserApp, userDataSource);
+bootstrap(Number(PORT ?? 8080), UserApp, controllerPaths, userDataSource);

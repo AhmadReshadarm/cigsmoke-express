@@ -1,12 +1,12 @@
-import { singleton } from 'tsyringe';
-import { DataSource, Equal, ILike, Like, Repository } from 'typeorm';
+import { injectable } from 'tsyringe';
+import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
 import { Product } from '../../core/entities/catalog/product.entity';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductDTO } from './productDTO';
 
-@singleton()
+@injectable()
 export class ProductService {
   private productRepository: Repository<Product>;
 

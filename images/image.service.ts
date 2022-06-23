@@ -1,11 +1,7 @@
 import { singleton } from 'tsyringe';
-import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../core/domain/error/custom.external.error';
-import { ErrorCode } from '../core/domain/error/error.code';
+import { DataSource, Repository } from 'typeorm';
 import { Image } from '../core/entities/images/image.entity';
-import { HttpStatus } from '../core/lib/http-status';
 import { ImageDto } from './image.dto';
-
 
 @singleton()
 export class ImageService {

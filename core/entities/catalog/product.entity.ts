@@ -11,6 +11,7 @@ import {
 import { Color } from './color.entity';
 import { Category } from './category.entity';
 import { Brand } from './brand.entity';
+import { IsNotEmpty } from 'class-validator';
 import { Tag } from './tag.entity';
 
 @Entity()
@@ -18,9 +19,11 @@ export class Product {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column()
   name: string;
 
+  @IsNotEmpty()
   @Column()
   price: number;
 
@@ -44,15 +47,18 @@ export class Product {
   @JoinTable()
   colors?: Color[];
 
+  @IsNotEmpty()
   @ManyToOne(() => Category, category => category.id, { nullable: false })
   category: Category;
 
   @Column({ nullable: true })
   images: string;
 
+  @IsNotEmpty()
   @ManyToOne(() => Brand, brand => brand.id, { nullable: false })
   brand: Brand;
 
+  @IsNotEmpty()
   @Column({unique: true})
   url: string;
 
