@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { Controller, Delete, Get, Middleware, Put } from '../core/decorators';
 import { HttpStatus } from '../core/lib/http-status';
-import { scope } from '../middleware/access.user';
+import { scope } from '../core/middlewares/access.user';
 import { verifyToken } from '../middleware/verify.token';
 import { UserService } from './user.service';
 

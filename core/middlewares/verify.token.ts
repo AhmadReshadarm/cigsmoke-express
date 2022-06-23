@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { HttpStatus } from '../core/lib/http-status';
+import { HttpStatus } from '../lib/http-status';
 
 export async function verifyToken(req: Request, resp: Response, next: NextFunction) {
   const header = req.headers['authorization'];

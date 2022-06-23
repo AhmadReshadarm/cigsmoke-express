@@ -6,7 +6,7 @@ import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
 import { UserService } from './user.service';
 import { verifyToken } from '../middleware/verify.token';
-import { unAuthorized } from '../middleware/access.user';
+import { unAuthorized } from '../core/middlewares/access.user';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../core/decorators';
 
 @singleton()

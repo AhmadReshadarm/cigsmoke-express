@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm"
-import { Category, Color, Product, Brand} from '../core/entities';
+import { Category, Color, Product, Brand, Tag } from '../core/entities';
 import { Parameter } from '../core/entities/catalog/parameter.entity';
-
 
 const dataSource = new DataSource({
     type: "mysql",
@@ -13,7 +12,7 @@ const dataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Product, Category, Color, Brand, Parameter],
+    entities: [Product, Category, Color, Brand, Parameter, Tag],
 });
 
 export default dataSource;

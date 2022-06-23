@@ -12,6 +12,7 @@ import { Color } from './color.entity';
 import { Category } from './category.entity';
 import { Brand } from './brand.entity';
 import { IsNotEmpty } from 'class-validator';
+import { Tag } from './tag.entity';
 
 @Entity()
 export class Product {
@@ -61,8 +62,13 @@ export class Product {
   @Column({unique: true})
   url: string;
 
-  @Column( {nullable: true})
-  tags?: string;
+  @ManyToMany(
+    () => Tag,
+    (tag) => tag.products,
+    { cascade: true, nullable: true },
+  )
+  @JoinTable()
+  tags?: Tag[];
 
   constructor(args?: {
     name: string,
@@ -74,7 +80,7 @@ export class Product {
     images: string,
     url: string,
     brand: Brand,
-    tags?: string,
+    tags?: Tag[],
   }) {
     if (args) {
       this.name = args.name;
