@@ -9,12 +9,14 @@ import {
 } from 'typeorm';
 import { OrderProduct } from './orderProduct.entity';
 import { Checkout } from './checkout.entity';
+import { IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class Basket {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column()
   userId: string;
 
