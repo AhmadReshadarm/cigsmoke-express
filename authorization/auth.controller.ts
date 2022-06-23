@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
-import { User } from '../core/entities/user/user.entity';
+import { User } from '../core/entities/users/user.entity';
 import { UserService } from '../users/user.service';
 import { emailToken } from './functions/email.token';
 import { accessToken } from './functions/access.token';

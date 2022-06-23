@@ -1,20 +1,25 @@
 import { Column, Entity, Generated, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
-import { Min, Max } from 'class-validator';
+import { Min, Max, IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class Review {
   @Column({unique: true})
   id: string;
 
+  @Min(1)
+  @Max(10)
+  @IsNotEmpty()
   @Column()
   rating: number;
 
   @Column()
   comment: string;
 
+  @IsNotEmpty()
   @PrimaryColumn()
   productId: string;
 
+  @IsNotEmpty()
   @PrimaryColumn()
   userId: string;
 

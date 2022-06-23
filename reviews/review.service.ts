@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { Review } from '../core/entities/review/review.entity';
+import { Review } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
 import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserDTO } from './reviews.dtos';
 import axios from 'axios';

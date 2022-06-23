@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import { Wishlist } from '../core/entities/wishlist/wishlist.entity';
+import { Wishlist } from '../core/entities/wishlists/wishlist.entity';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
 import { WishlistService } from './wishlist.service';
