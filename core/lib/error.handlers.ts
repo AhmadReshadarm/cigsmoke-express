@@ -13,6 +13,7 @@ export const errorHandler = (error: Error, request: Request, response: Response,
       errorMessage: error.message,
       stack: error instanceof CustomInternalError ? error.stackArray : error.stack,
     });
+    console.error(error);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: ErrorCode.INTERNAL_ERROR });
   }
   next();
