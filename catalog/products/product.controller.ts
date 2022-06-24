@@ -1,94 +1,75 @@
-import { Request, Response, Router } from 'express';
+import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import { asyncHandler } from '../../core/lib/error.handlers';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { ProductService } from './product.service';
-import { Product } from '../../core/entities/product.entity';
 import { ColorService } from '../colors/color.service';
-import { Color } from '../../core/entities';
-
+import { Color, Product } from '../../core/entities';
+import { TagService } from '../tags/tag.service';
+import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
 
 @singleton()
+@Controller('/products')
 export class ProductController {
-  readonly routes = Router();
-
   constructor(
     private productService: ProductService,
-    private colorService: ColorService
-  ) {
-    this.routes.get('/products', this.getProducts);
-    this.routes.get('/products/:id', this.getProduct);
-    this.routes.get('/productsByName/:productName', this.getProductsByName);
-    this.routes.get('/productsByName/:productName/:categoryUrl', this.getProductsByName);
-    this.routes.get('/productsByCategory/:categoryUrl', this.getProductsByCategory);
-    this.routes.post('/products', this.createProduct);
-    this.routes.put('/products/:id', this.updateProduct);
-    this.routes.delete('/products/:id', this.removeProduct);
-  }
+    private colorService: ColorService,
+    private tagService: TagService,
+  ) {}
 
-  private getProducts = asyncHandler(async (req: Request, resp: Response) => {
-    const products = await this.productService.getProducts();
+  @Get()
+  async getProducts(req: Request, resp: Response) {
+    const products = await this.productService.getProducts(req.query);
 
     resp.json(products);
-  });
+  }
 
-  private getProduct = asyncHandler(async (req: Request, resp: Response) => {
+  @Get(':id')
+  async getProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const product = await this.productService.getProduct(id);
 
     resp.json(product);
-  });
+  }
 
-  private getProductsByCategory = asyncHandler(async (req: Request, resp: Response) => {
-    const { categoryUrl } = req.params;
-    const products = await this.productService.getProductsByCategory(categoryUrl);
-    console.log(products);
+  @Get('productsUnderOneThousand')
+  async getProductsUnderOneThousand(req: Request, resp: Response) {
+    const products = await this.productService.getProducts({ tags: JSON.stringify(['underOneThousand']) });
 
-    resp.status(HttpStatus.OK).json(products.map(product => ({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      desc: product.desc,
-      available: product.available,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-      url: product.url,
-    })));
-  })
-
-  private getProductsByName = asyncHandler(async (req: Request, resp: Response) => {
-    const { productName, categoryUrl } = req.params;
-
-    const products = await this.productService.getProductsByName(productName, categoryUrl);
     resp.json(products);
-  });
+  }
 
-  private createProduct = asyncHandler(async (req: Request, resp: Response) => {
-    const { colors } = req.body;
+  @Post()
+  async createProduct(req: Request, resp: Response) {
+    const { colors, tags } = req.body;
     const newProduct = await validation(new Product(req.body));
 
     colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
+    tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Color) => String(tag))) : null;
+
     const created = await this.productService.createProduct(newProduct);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
-  });
+  }
 
-  private updateProduct = asyncHandler(async (req: Request, resp: Response) => {
+  @Put(':id')
+  async updateProduct(req: Request, resp: Response) {
     const { id } = req.params;
-    const { colors } = req.body;
+    const { colors, tags } = req.body;
     const newProduct = await validation(new Product(req.body));
 
     colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
+    tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Color) => String(tag))) : null;
     const updated = await this.productService.updateProduct(id, newProduct);
 
     resp.status(HttpStatus.OK).json(updated);
-  });
+  }
 
-  private removeProduct = asyncHandler(async (req: Request, resp: Response) => {
+  @Delete(':id')
+  async removeProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.productService.removeProduct(id);
 
     resp.status(HttpStatus.OK).json(removed);
-  });
+  }
 }

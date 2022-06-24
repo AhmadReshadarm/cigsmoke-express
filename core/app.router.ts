@@ -1,15 +1,9 @@
 import { Router } from 'express';
-import { injectAll, singleton } from 'tsyringe';
 
-export class Controller {
-  routes: Router;
-}
+export abstract class AppRouter {
+    protected static instance: Router = Router();
 
-@singleton()
-export class AppRouter {
-  readonly routes = Router();
-
-  constructor(@injectAll(Controller) controllers: Controller[]) {
-    this.routes.use(...controllers.map(({ routes }) => routes));
-  }
+    static get router(): Router {
+        return AppRouter.instance;
+    }
 }

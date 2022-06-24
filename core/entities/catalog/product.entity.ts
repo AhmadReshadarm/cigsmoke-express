@@ -1,4 +1,3 @@
-import { IsNotEmpty } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -12,15 +11,19 @@ import {
 import { Color } from './color.entity';
 import { Category } from './category.entity';
 import { Brand } from './brand.entity';
+import { IsNotEmpty } from 'class-validator';
+import { Tag } from './tag.entity';
 
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @Column()
   name: string;
 
+  @IsNotEmpty()
   @Column()
   price: number;
 
@@ -39,24 +42,46 @@ export class Product {
   @ManyToMany(
     () => Color,
     (color) => color.products,
-    { cascade: true },
+    { cascade: true, nullable: false },
   )
   @JoinTable()
   colors?: Color[];
 
-  @ManyToOne(() => Category, category => category.id)
+  @IsNotEmpty()
+  @ManyToOne(() => Category, category => category.id, { nullable: false })
   category: Category;
 
   @Column({ nullable: true })
   images: string;
 
-  @ManyToOne(() => Brand, brand => brand.id)
+  @IsNotEmpty()
+  @ManyToOne(() => Brand, brand => brand.id, { nullable: false })
   brand: Brand;
 
+  @IsNotEmpty()
   @Column({unique: true})
   url: string;
 
-  constructor(args?: { name: string, price: number, desc: string, available: boolean, colors?: Color[], category: Category, images: string, url: string, brand: Brand}) {
+  @ManyToMany(
+    () => Tag,
+    (tag) => tag.products,
+    { cascade: true, nullable: true },
+  )
+  @JoinTable()
+  tags?: Tag[];
+
+  constructor(args?: {
+    name: string,
+    price: number,
+    desc: string,
+    available: boolean,
+    colors?: Color[],
+    category: Category,
+    images: string,
+    url: string,
+    brand: Brand,
+    tags?: Tag[],
+  }) {
     if (args) {
       this.name = args.name;
       this.price = args.price;
@@ -67,6 +92,7 @@ export class Product {
       this.images = args.images;
       this.url = args.url;
       this.brand = args.brand;
+      this.tags = args.tags;
     }
   }
 }

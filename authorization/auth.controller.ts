@@ -2,31 +2,24 @@ import { Request, Response, Router } from 'express';
 import { singleton } from 'tsyringe';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import { asyncHandler } from '../core/lib/error.handlers';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
-import { User } from '../core/entities/user.entity';
+import { User } from '../core/entities/user/user.entity';
 import { UserService } from '../users/user.service';
 import { emailToken } from './functions/email.token';
 import { accessToken } from './functions/access.token';
 import { refreshToken } from './functions/refresh.token';
-import { resetPasswordLimiter } from './functions/rate.limit';
 import { sendMail } from './functions/send.mail';
+import { Controller, Get, Middleware, Post, Put } from '../core/decorators';
+import { resetPasswordLimiter } from './functions/rate.limit';
 
 @singleton()
+@Controller('/auth')
 export class AuthController {
-  readonly routes = Router();
+  constructor(private userService: UserService) {}
 
-  constructor(private userService: UserService) {
-    this.routes.post('/signup', this.signUp);
-    this.routes.post('/signin', this.signIn);
-    this.routes.post('/token', this.createToken);
-    this.routes.post('/reset', resetPasswordLimiter, this.reset);
-    this.routes.put('/updatepassword', this.updatePassword);
-    this.routes.get('/authorize/:token', this.authorize);
-  }
-
-  private signUp = asyncHandler(async (req: Request, resp: Response) => {
+  @Post('signup')
+  async signUp(req: Request, resp: Response) {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(req.body.password, salt);
     const payload = {
@@ -51,9 +44,10 @@ export class AuthController {
     const token = emailToken({ id: created.id, email: created.email });
     sendMail(token, created.email);
     resp.status(HttpStatus.CREATED).json({ others });
-  });
+  }
 
-  private signIn = asyncHandler(async (req: Request, resp: Response) => {
+  @Post('signin')
+  async signIn(req: Request, resp: Response) {
     const { email, userPassword } = req.body;
 
     const user = await this.userService.getEmail(email);
@@ -80,9 +74,10 @@ export class AuthController {
     resp
       .status(HttpStatus.CREATED)
       .json({ accessToken: accessTokenCreated, refreshToken: refreshTokenCreated, others });
-  });
+  }
 
-  private createToken = asyncHandler(async (req: Request, resp: Response) => {
+  @Post('token')
+  async createToken(req: Request, resp: Response) {
     const { token } = req.body;
     if (token === null) {
       resp.status(HttpStatus.UNAUTHORIZED);
@@ -97,9 +92,10 @@ export class AuthController {
       const accessTokenCreated = accessToken({ id: user.id, email: user.email });
       resp.status(HttpStatus.CREATED).json({ accessTokenCreated });
     });
-  });
+  }
 
-  private reset = asyncHandler(async (req: Request, resp: Response) => {
+  @Post('reset')
+  async reset(req: Request, resp: Response) {
     const { email } = req.body;
 
     const user = await this.userService.getEmail(email);
@@ -114,9 +110,11 @@ export class AuthController {
     const emailTokenCreated = emailToken({ id: user.id, email: user.email });
     sendMail(emailTokenCreated, email);
     resp.status(HttpStatus.OK).json(`we sent you an email to ${email}`);
-  });
+  }
 
-  private updatePassword = asyncHandler(async (req: Request, resp: Response) => {
+  @Put('updatepassword')
+  @Middleware([resetPasswordLimiter])
+  async updatePassword(req: Request, resp: Response) {
     const { token, userPassword } = req.body;
     if (token === null) {
       resp.status(HttpStatus.UNAUTHORIZED);
@@ -153,9 +151,10 @@ export class AuthController {
       const { password, ...others } = payload;
       resp.status(HttpStatus.OK).json({ others, accessTokenCreated, refreshTokenCreated });
     });
-  });
+  }
 
-  private authorize = asyncHandler(async (req: Request, resp: Response) => {
+  @Get('authorize/:token')
+  async authorize(req: Request, resp: Response) {
     const { token } = req.params;
     if (token === null) {
       resp.status(HttpStatus.UNAUTHORIZED);
@@ -187,5 +186,5 @@ export class AuthController {
       const { password, ...others } = payload;
       resp.status(HttpStatus.OK).json({ others, accessTokenCreated, refreshTokenCreated });
     });
-  });
+  }
 }

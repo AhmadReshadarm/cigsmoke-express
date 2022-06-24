@@ -1,7 +1,6 @@
-export { Order } from "./order.entity";
-export { User } from "./user.entity";
-export { Product } from './product.entity';
-export { Category } from './category.entity';
-export { Color } from './color.entity';
-export { Brand } from './brand.entity';
-export { Image } from './image.entity';
+export { User } from "./user/user.entity";
+export { Image } from './images/image.entity';
+export { Review } from './review/review.entity';
+export { Wishlist } from './wishlist/wishlist.entity';
+export { Basket, OrderProduct, PaymentCard, Address, Checkout } from './orders'
+export { Brand, Category, Color, Product, Parameter, Tag } from './catalog'
