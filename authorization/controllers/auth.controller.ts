@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express';
+import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
