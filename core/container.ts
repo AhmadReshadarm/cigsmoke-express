@@ -12,7 +12,7 @@ export class Container {
     this.controllerPaths = controllerPaths;
   }
     
-  async create(appClass: any, dataSource: DataSource): Promise<OrderApp> {
+  async create(appClass: any, dataSource?: DataSource): Promise<OrderApp> {
     await this.initDatabase(dataSource);
 
     const path = this.controllerPaths;
@@ -33,7 +33,10 @@ export class Container {
     Array.from<constructor<AbstractController>>(controllers).map(cls =>  container.registerType(typeof AbstractController, cls));
   }
 
-  private async initDatabase(dataSource: DataSource) {
+  private async initDatabase(dataSource?: DataSource) {
+    if (!dataSource) {
+      return;
+    }
     try {
       await dataSource.initialize();
       container.registerInstance(DataSource, dataSource);

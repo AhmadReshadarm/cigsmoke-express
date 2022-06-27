@@ -10,6 +10,7 @@
     "reviews:dev": "cd ./reviews && npm run dev",
     "users:dev": "cd ./users && npm run dev",
     "wishlists:dev": "cd ./wishlists && npm run dev",
+    "swagger:dev": "cd ./swagger && npm run dev",
     "typecheck": "tsc --noEmit --incremental false --tsBuildInfoFile null",
     "circular": "pnpm run prestart && madge --circular dist/",
     "lint": "eslint 'core/**/*'",

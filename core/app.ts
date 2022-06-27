@@ -9,14 +9,14 @@ import { logger } from './lib/logger';
 
 @singleton()
 export class App {
- static readonly server = express();
+  static readonly server = express();
 
   get appServer() {
     return App.server;
   }
 
   private isKeepAliveDisabled = false;
-  
+
   constructor() {
     const server = this.appServer;
     const env = server.get('env');
@@ -26,12 +26,12 @@ export class App {
     server.use(
       env === 'production'
         ? morgan('combined', {
-            stream: {
-              write(message: string): void {
-                logger.info(message);
-              },
+          stream: {
+            write(message: string): void {
+              logger.info(message);
             },
-          })
+          },
+        })
         : morgan('dev'),
     );
     server.use(cors({ exposedHeaders: ['Content-Disposition'] }));
