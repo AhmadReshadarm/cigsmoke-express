@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import { Wishlist } from '../core/entities/wishlist/wishlist.entity';
+import { Wishlist } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
 import { validation } from '../core/lib/validator';
 import { WishlistService } from './wishlist.service';
@@ -28,8 +28,7 @@ export class WishlistController {
 
   @Post()
   async createWishlist(req: Request, resp: Response) {
-    const newWishlist = await validation(new Wishlist(req.body));
-    const created = await this.wishlistService.createWishlist(newWishlist);
+    const created = await this.wishlistService.createWishlist(new Wishlist(req.body));
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }

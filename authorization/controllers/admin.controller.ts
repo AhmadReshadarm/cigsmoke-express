@@ -1,14 +1,14 @@
+import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import * as bcrypt from 'bcrypt';
-import { User } from '../../core/entities/user/user.entity';
-import { HttpStatus } from '../../core/lib/http-status';
-import { validation } from '../../core/lib/validator';
-import { UserService } from '../user.service';
-import { Role } from '../../core/lib/roles.enum';
-import { verifyToken } from '../../core/middlewares/verify.token';
-import { unAuthorized } from '../../core/middlewares/access.user';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { User } from '../../core/entities';
+import { HttpStatus } from '../../core/lib/http-status';
+import { Role } from '../../core/lib/roles.enum';
+import { validation } from '../../core/lib/validator';
+import { unAuthorized } from '../../core/middlewares/access.user';
+import { verifyToken } from '../../core/middlewares/verify.token';
+import { UserService } from '../user.service';
 
 @singleton()
 @Controller('/admin')

@@ -2,18 +2,22 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
 import { Address } from './address.entity';
 import { PaymentCard } from './payment.card.entity';
 import { Basket } from './basket.entity';
+import { IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class Checkout {
   @PrimaryGeneratedColumn()
   id: string;
 
+  @IsNotEmpty()
   @ManyToOne(() => Address, address => address.checkouts)
   address: Address;
 
+  @IsNotEmpty()
   @ManyToOne(() => PaymentCard, paymentCard => paymentCard.checkouts)
   payment: PaymentCard;
 
+  @IsNotEmpty()
   @OneToOne(() => Basket, basket => basket.checkout)
   @JoinColumn()
   basket: Basket;

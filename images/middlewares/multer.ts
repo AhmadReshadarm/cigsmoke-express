@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { DESTINATION } from './config';
+import { DESTINATION } from '../config';
 import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 

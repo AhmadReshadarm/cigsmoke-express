@@ -11,6 +11,6 @@ docker-compose.local.yml
 
 .idea
 
-images/files/
+images/files
 
 test.http

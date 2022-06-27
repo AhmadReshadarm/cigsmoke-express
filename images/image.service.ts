@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Repository } from 'typeorm';
-import { Image } from '../core/entities/images/image.entity';
+import { Image } from '../core/entities';
 import { ImageDto } from './image.dto';
 
 @singleton()

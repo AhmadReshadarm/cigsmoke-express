@@ -1,18 +1,18 @@
-import { Request, Response } from 'express';
-import { singleton } from 'tsyringe';
-import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
+import * as jwt from 'jsonwebtoken';
+import { singleton } from 'tsyringe';
+import { Controller, Get, Middleware, Post, Put } from '../../core/decorators';
+import { User } from '../../core/entities/users/user.entity';
 import { HttpStatus } from '../../core/lib/http-status';
 import { Role } from '../../core/lib/roles.enum';
 import { validation } from '../../core/lib/validator';
-import { User } from '../../core/entities/user/user.entity';
-import { UserService } from '../user.service';
-import { emailToken } from '../functions/email.token';
 import { accessToken } from '../functions/access.token';
+import { emailToken } from '../functions/email.token';
+import { resetPasswordLimiter } from '../functions/rate.limit';
 import { refreshToken } from '../functions/refresh.token';
 import { sendMail } from '../functions/send.mail';
-import { Controller, Get, Middleware, Post, Put } from '../../core/decorators';
-import { resetPasswordLimiter } from '../functions/rate.limit';
+import { UserService } from '../user.service';
 
 @singleton()
 @Controller('/auth')
