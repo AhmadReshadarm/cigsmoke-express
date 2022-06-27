@@ -1,18 +1,35 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import * as bcrypt from 'bcrypt';
-import { User } from '../core/entities';
-import { HttpStatus } from '../core/lib/http-status';
-import { validation } from '../core/lib/validator';
-import { UserService } from './user.service';
-import { verifyToken } from '../middleware/verify.token';
-import { unAuthorized } from '../core/middlewares/access.user';
-import { Controller, Delete, Get, Middleware, Post, Put } from '../core/decorators';
+import { User } from '../../core/entities/user/user.entity';
+import { HttpStatus } from '../../core/lib/http-status';
+import { validation } from '../../core/lib/validator';
+import { UserService } from '../user.service';
+import { Role } from '../../core/lib/roles.enum';
+import { verifyToken } from '../../core/middlewares/verify.token';
+import { unAuthorized } from '../../core/middlewares/access.user';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 
 @singleton()
 @Controller('/admin')
 export class AdminController {
   constructor(private userService: UserService) {}
+
+  @Get('user/:adminId')
+  @Middleware([verifyToken])
+  async getUser(req: Request, resp: Response) {
+    const { adminId } = req.params;
+    const { jwt } = resp.locals;
+    const { id } = req.body;
+    const admin = await this.userService.getUser(adminId);
+    if (unAuthorized(admin.role, jwt.id, admin.id)) {
+      resp.status(HttpStatus.UNAUTHORIZED).send();
+      return;
+    }
+
+    const user = await this.userService.getUser(id);
+    resp.status(HttpStatus.OK).send(user);
+  }
 
   @Get(':adminId')
   @Middleware([verifyToken])
@@ -20,13 +37,13 @@ export class AdminController {
     const { adminId } = req.params;
     const { jwt } = resp.locals;
     const user = await this.userService.getUser(adminId);
-    if (unAuthorized(user.adminSecret, jwt.id, user.id)) {
+    if (unAuthorized(user.role, jwt.id, user.id)) {
       resp.status(HttpStatus.UNAUTHORIZED).send();
       return;
     }
 
     const users = await this.userService.getUsers();
-    resp.json(users);
+    resp.status(HttpStatus.OK).json(users);
   }
 
   @Post(':adminId')
@@ -35,7 +52,7 @@ export class AdminController {
     const { adminId } = req.params;
     const { jwt } = resp.locals;
     const user = await this.userService.getUser(adminId);
-    if (unAuthorized(user.adminSecret, jwt.id, user.id)) {
+    if (unAuthorized(user.role, jwt.id, user.id)) {
       resp.status(HttpStatus.UNAUTHORIZED).send();
       return;
     }
@@ -48,7 +65,7 @@ export class AdminController {
       email: req.body.email,
       isVerified: true,
       password: hashedPass,
-      adminSecret: req.body.isAdmin ? 'admin secret' : '',
+      role: req.body.isAdmin ? Role.Admin : Role.User,
     };
     const newUser = await validation(new User(payload));
     const created = await this.userService.createUser(newUser);
@@ -58,12 +75,12 @@ export class AdminController {
 
   @Put(':adminId')
   @Middleware([verifyToken])
-  async adminUpdateUser(req: Request, resp: Response) {
+  async UpdateUser(req: Request, resp: Response) {
     const { adminId } = req.params;
     const { jwt } = resp.locals;
     const { id } = req.body;
     const user = await this.userService.getUser(adminId);
-    if (unAuthorized(user.adminSecret, jwt.id, user.id)) {
+    if (unAuthorized(user.role, jwt.id, user.id)) {
       resp.status(HttpStatus.UNAUTHORIZED).send();
       return;
     }
@@ -73,12 +90,12 @@ export class AdminController {
 
   @Delete(':adminId')
   @Middleware([verifyToken])
-  async adminRemoveUser(req: Request, resp: Response) {
+  async RemoveUser(req: Request, resp: Response) {
     const { adminId } = req.params;
     const { jwt } = resp.locals;
     const { id } = req.body;
     const user = await this.userService.getUser(adminId);
-    if (unAuthorized(user.adminSecret, jwt.id, user.id)) {
+    if (unAuthorized(user.role, jwt.id, user.id)) {
       resp.status(HttpStatus.UNAUTHORIZED).send();
       return;
     }

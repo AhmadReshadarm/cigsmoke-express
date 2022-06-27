@@ -1,17 +1,18 @@
-import { Request, Response, Router } from 'express';
+import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import { HttpStatus } from '../core/lib/http-status';
-import { validation } from '../core/lib/validator';
-import { User } from '../core/entities/user/user.entity';
-import { UserService } from '../users/user.service';
-import { emailToken } from './functions/email.token';
-import { accessToken } from './functions/access.token';
-import { refreshToken } from './functions/refresh.token';
-import { sendMail } from './functions/send.mail';
-import { Controller, Get, Middleware, Post, Put } from '../core/decorators';
-import { resetPasswordLimiter } from './functions/rate.limit';
+import { HttpStatus } from '../../core/lib/http-status';
+import { Role } from '../../core/lib/roles.enum';
+import { validation } from '../../core/lib/validator';
+import { User } from '../../core/entities/user/user.entity';
+import { UserService } from '../user.service';
+import { emailToken } from '../functions/email.token';
+import { accessToken } from '../functions/access.token';
+import { refreshToken } from '../functions/refresh.token';
+import { sendMail } from '../functions/send.mail';
+import { Controller, Get, Middleware, Post, Put } from '../../core/decorators';
+import { resetPasswordLimiter } from '../functions/rate.limit';
 
 @singleton()
 @Controller('/auth')
@@ -29,7 +30,7 @@ export class AuthController {
       email: req.body.email,
       isVerified: false,
       password: hashedPass,
-      adminSecret: '',
+      role: Role.User,
     };
 
     const isUser = await this.userService.getEmail(payload.email);
@@ -73,7 +74,7 @@ export class AuthController {
     const { password, ...others } = user;
     resp
       .status(HttpStatus.CREATED)
-      .json({ accessToken: accessTokenCreated, refreshToken: refreshTokenCreated, others });
+      .json({ others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
   }
 
   @Post('token')
@@ -83,14 +84,14 @@ export class AuthController {
       resp.status(HttpStatus.UNAUTHORIZED);
       return;
     }
-
-    jwt.verify(token, 'REFRESH_SECRET_TOKEN', async (error: any, user: any) => {
+    const { REFRESH_SECRET_TOKEN } = process.env;
+    jwt.verify(token, REFRESH_SECRET_TOKEN, async (error: any, user: any) => {
       if (error) {
         resp.status(HttpStatus.FORBIDDEN).json('token is expired');
         return;
       }
       const accessTokenCreated = accessToken({ id: user.id, email: user.email });
-      resp.status(HttpStatus.CREATED).json({ accessTokenCreated });
+      resp.status(HttpStatus.CREATED).json({ accessToken: accessTokenCreated });
     });
   }
 
@@ -123,8 +124,8 @@ export class AuthController {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(userPassword, salt);
-
-    jwt.verify(token, 'EMAIL_SECRET_TOKEN', async (error: any, decoded: any) => {
+    const { EMAIL_SECRET_TOKEN } = process.env;
+    jwt.verify(token, EMAIL_SECRET_TOKEN, async (error: any, decoded: any) => {
       if (error) {
         resp.status(HttpStatus.FORBIDDEN).json('token is expired');
         return;
@@ -143,13 +144,13 @@ export class AuthController {
         email: user.email,
         password: hashedPass,
         isVerified: true,
-        adminSecret: '',
+        role: Role.User,
       };
       await this.userService.updateUser(decoded.id, payload);
       const accessTokenCreated = accessToken({ id: user.id, email: user.email });
       const refreshTokenCreated = refreshToken({ id: user.id, email: user.email });
       const { password, ...others } = payload;
-      resp.status(HttpStatus.OK).json({ others, accessTokenCreated, refreshTokenCreated });
+      resp.status(HttpStatus.OK).json({ others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     });
   }
 
@@ -160,8 +161,8 @@ export class AuthController {
       resp.status(HttpStatus.UNAUTHORIZED);
       return;
     }
-
-    jwt.verify(token, 'EMAIL_SECRET_TOKEN', async (error: any, decoded: any) => {
+    const { EMAIL_SECRET_TOKEN } = process.env;
+    jwt.verify(token, EMAIL_SECRET_TOKEN, async (error: any, decoded: any) => {
       if (error) {
         resp.status(HttpStatus.FORBIDDEN).json('token is expired');
         return;
@@ -178,13 +179,13 @@ export class AuthController {
         email: user.email,
         password: user.password,
         isVerified: true,
-        adminSecret: '',
+        role: Role.User,
       };
       await this.userService.updateUser(decoded.id, payload);
       const accessTokenCreated = accessToken({ id: user.id, email: user.email });
       const refreshTokenCreated = refreshToken({ id: user.id, email: user.email });
       const { password, ...others } = payload;
-      resp.status(HttpStatus.OK).json({ others, accessTokenCreated, refreshTokenCreated });
+      resp.status(HttpStatus.OK).json({ others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     });
   }
 }
