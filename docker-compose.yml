@@ -88,6 +88,14 @@ services:
       - "4005"
     depends_on:
       - db
+  swagger:
+    build:
+      context: .
+      dockerfile: ./swagger/Dockerfile
+    ports:
+      - "4006:4006"
+    expose:
+      - "4006"
 
 volumes:
     db_data:
