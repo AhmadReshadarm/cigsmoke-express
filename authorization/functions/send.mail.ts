@@ -8,7 +8,7 @@ export const sendMail = (token: any, email: string) => {
       pass: 'nosfoqwaokdxgqtq',
     },
   });
-  const url = `http://localhost:3000/authorize/${token}`; // TODO redirect to the frontend
+  const url = `http://localhost:3000/auth/authorize/${token}`; // TODO redirect to the frontend
   transporter.sendMail({
     to: email,
     subject: 'cigsmoke confirmation mail',

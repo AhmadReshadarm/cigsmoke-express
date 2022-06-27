@@ -1,5 +1,6 @@
 import { IsEmpty, IsNotEmpty } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from '../../lib/roles.enum';
 
 @Entity()
 export class User {
@@ -19,14 +20,14 @@ export class User {
   email: string;
 
   @Column()
-  // @IsNotEmpty() TODO validation requires to accept hashed password
+  @IsNotEmpty()
   password: string;
-
-  @Column()
-  adminSecret: string;
 
   @Column('boolean', { default: false })
   isVerified: boolean = false;
+
+  @Column({ type: 'enum', enum: Role, default: Role.User })
+  role: Role;
 
   constructor(args?: {
     firstName: string;
@@ -34,14 +35,15 @@ export class User {
     email: string;
     password: string;
     isVerified: boolean;
-    adminSecret: string;
+    role: Role;
   }) {
     if (args) {
       this.firstName = args.firstName;
       this.lastName = args.lastName;
       this.email = args.email;
+      this.password = args.password;
       this.isVerified = args.isVerified;
-      this.adminSecret = args.adminSecret;
+      this.role = args.role;
     }
   }
 }

@@ -4,6 +4,7 @@ import { CustomExternalError } from '../core/domain/error/custom.external.error'
 import { ErrorCode } from '../core/domain/error/error.code';
 import { User } from '../core/entities/users/user.entity';
 import { HttpStatus } from '../core/lib/http-status';
+import { Role } from '../core/lib/roles.enum';
 
 @singleton()
 export class UserService {
@@ -13,16 +14,18 @@ export class UserService {
     this.userRepository = appDataSource.getRepository(User);
   }
 
-  async getUsers(): Promise<User[]> {
-    return await this.userRepository.find();
-  }
-
   async getUserNames(): Promise<User[]> {
     const users = await this.userRepository
       .createQueryBuilder('User')
       .select(['User.id', 'User.firstName', 'User.lastName'])
+      // for security measures removing admins from quarry
+      .where(`User.role != :admin`, { admin: Role.Admin })
       .getRawMany();
     return users;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await this.userRepository.find();
   }
 
   async getUser(id: string): Promise<User> {
