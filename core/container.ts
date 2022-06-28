@@ -4,7 +4,6 @@ import { DataSource } from 'typeorm';
 import { App } from './app';
 import { AbstractController } from './abstract-controller';
 import { logger } from './lib/logger';
-import { OrderApp } from '../orders/order.app';
 
 export class Container {
   controllerPaths: string;
@@ -12,7 +11,7 @@ export class Container {
     this.controllerPaths = controllerPaths;
   }
     
-  async create(appClass: any, dataSource?: DataSource): Promise<OrderApp> {
+  async create(appClass: any, dataSource?: DataSource): Promise<App> {
     await this.initDatabase(dataSource);
 
     const path = this.controllerPaths;

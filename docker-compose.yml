@@ -22,17 +22,6 @@ services:
       PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       PMA_HOST: ${MYSQL_HOST}
       PMA_PORT: 3306
-  users:
-    build:
-      context: .
-      dockerfile: ./users/Dockerfile
-    command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4001:4001"
-    expose:
-      - "4001"
-    depends_on:
-      - db
   orders:
     build:
       context: .

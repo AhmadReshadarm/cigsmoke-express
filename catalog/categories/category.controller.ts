@@ -22,6 +22,13 @@ export class CategoryController {
     resp.json(categories);
   }
 
+  @Get('categoriesTree')
+  async getCategoriesTree(req: Request, resp: Response) {
+    const categories = await this.categoryService.getCategoriesTree()
+
+    resp.json(categories);
+  }
+
   @Get(':id')
   async getCategory(req: Request, resp: Response) {
     const { id } = req.params;
@@ -30,20 +37,16 @@ export class CategoryController {
     resp.json(category);
   }
 
-  @Get('categoriesTree')
-  async getCategoriesTree(req: Request, resp: Response) {
-    const categories = await this.categoryService.getCategoriesTree()
-
-    resp.json(categories);
-  }
-
   @Post()
   async createCategory(req: Request, resp: Response) {
     const { parentId } = req.body
     const newCategory = await validation(new Category(req.body));
+    
+    if (parentId) {
+      newCategory.parent = await this.categoryService.getCategory(parentId)
+    }
 
-    parentId ? newCategory.parent = await this.categoryService.getCategory(parentId) : null;
-    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters.map(parameter => String(parameter)))
+    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
     const created = await this.categoryService.createCategory(newCategory);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
@@ -56,7 +59,7 @@ export class CategoryController {
     const newCategory = await validation(new Category(req.body));
 
     parentId ? newCategory.parent = await this.categoryService.getCategory(parentId) : null;
-    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters.map(parameter => String(parameter)))
+    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
     const updated = await this.categoryService.updateCategory(id, newCategory);
 
     resp.status(HttpStatus.OK).json(updated);

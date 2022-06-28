@@ -34,11 +34,11 @@ export class ParameterService {
 
   async getParametersByIds(ids: string[]): Promise<Parameter[]> {
 
-    const parametersPromises = ids.map(async parameterId => {
+    const parametersPromises = ids?.map(async parameterId => {
       return this.getParameter(parameterId);
     })
 
-    return Promise.all(parametersPromises);
+    return Promise.all(parametersPromises ?? []);
   }
 
   async createParameter(parameterDTO: Parameter): Promise<Parameter> {

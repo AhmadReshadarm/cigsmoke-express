@@ -41,6 +41,7 @@ export class CategoryService {
   }
 
   async createCategory(categoryDTO: CategoryDto): Promise<Category> {
+    console.log(categoryDTO)
     return this.categoryRepository.save(categoryDTO);
   }
 
