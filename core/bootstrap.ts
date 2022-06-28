@@ -29,11 +29,11 @@ export async function bootstrap(port: number, appClass: any, controllerPaths: st
     .listen(port, () => {
       console.log(`listening on port ${port} 🚀`);
     })
-    .on('error', (error) => handleExit(error, container));
+    .on('error', (error: any) => handleExit(error, container));
 
   const shutdownHandler = () => {
     app.close();
-    server.close((error) => handleExit(error, container));
+    server.close((error: any) => handleExit(error, container));
   };
 
   process.once('SIGINT', shutdownHandler);
