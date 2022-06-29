@@ -1,0 +1,119 @@
+http:
+  port: ${PORT}
+admin:
+  port: 9876
+  host: localhost
+apiEndpoints:
+  auth:
+    host: localhost
+    paths: [
+      '/users*',
+      '/auth*',
+      '/admin*',
+    ]
+  catalog:
+    host: localhost
+    paths: [
+      '/products*',
+      '/tags*',
+      '/categories*',
+      '/brands*',
+      '/colors*',
+      '/parameters*'
+    ]
+  images:
+    host: localhost
+    paths: [ '/images*' ]
+  orders:
+    host: localhost
+    paths: [
+      '/addresses*',
+      '/baskets*',
+      '/checkouts*',
+      '/order-products*',
+    ]
+  reviews:
+    host: localhost
+    paths: [ '/reviews*' ]
+  swagger:
+    host: localhost
+    paths: [ '/api-docs*' ]
+  wishlists:
+    host: localhost
+    paths: [ '/wishlists*' ]
+serviceEndpoints:
+  authSrv:
+    url: ${AUTH_DB}
+  catalogSrv:
+    url: ${CATALOG_DB}
+  imagesSrv:
+    url: ${IMAGES_DB}
+  ordersSrv:
+    url: ${ORDERS_DB}
+  reviewsSrv:
+    url: ${REVIEWS_DB}
+  swaggerSrv:
+    url: ${SWAGGER_DB}
+  wishlistsSrv:
+    url: ${WISHLISTS_DB}
+policies:
+  - cors
+  - proxy
+pipelines:
+  pipeAuth:
+    apiEndpoints:
+      - auth
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: authSrv
+              changeOrigin: true
+  pipeCatalog:
+    apiEndpoints:
+      - catalog
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: catalogSrv
+              changeOrigin: true
+  pipeImages:
+    apiEndpoints:
+      - images
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: imagesSrv
+              changeOrigin: true
+  pipeOrders:
+    apiEndpoints:
+      - orders
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: ordersSrv
+              changeOrigin: true
+  pipeReviews:
+    apiEndpoints:
+      - reviews
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: reviewsSrv
+              changeOrigin: true
+  pipeSwagger:
+    apiEndpoints:
+      - swagger
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: swaggerSrv
+              changeOrigin: true
+  pipeWishlists:
+    apiEndpoints:
+      - wishlists
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: wishlistsSrv
+              changeOrigin: true
+

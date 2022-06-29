@@ -23,5 +23,5 @@ COPY ./.env .
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm install
 
-WORKDIR /app/catalog
+WORKDIR /app/authorization
 RUN npm run build
