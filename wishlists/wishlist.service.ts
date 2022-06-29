@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
-import { Wishlist } from '../core/entities/wishlists/wishlist.entity';
+import { Wishlist } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
 import { ProductDTO, WishlistDTO, UserDTO, WishlistQueryDTO } from './wishlist.dtos';
 import axios from 'axios';

@@ -97,15 +97,15 @@ services:
       - "4006:4006"
     expose:
       - "4006"
-#  gateway:
-#    build:
-#      context: .
-#      dockerfile: ./gateway/Dockerfile
-#    command: sh -c 'npm run start'
-#    ports:
-#      - "4010:4010"
-#    expose:
-#      - "4010"
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    command: sh -c 'npm run start'
+    ports:
+      - "4010:4010"
+    expose:
+      - "4010"
 
 volumes:
     db_data:

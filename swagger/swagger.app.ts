@@ -6,11 +6,11 @@ import swaggerUi from 'swagger-ui-express';
 export class SwaggerApp extends App {
   constructor() {
     super();
-    
+
     (async () => {
       const swaggerDocument = await import('./swagger.json');
 
-      this.appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+      this.appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     })()
   }
 }
