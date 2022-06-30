@@ -3,10 +3,6 @@ services:
     image: mysql
     command: mysqld --default-authentication-plugin=mysql_native_password
     restart: always
-    expose:
-      - "3306"
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -27,10 +23,6 @@ services:
       context: .
       dockerfile: ./authorization/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4001:4001"
-    expose:
-      - "4001"
     depends_on:
       - db
   orders:
@@ -38,10 +30,6 @@ services:
       context: .
       dockerfile: ./orders/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4000:4000"
-    expose:
-      - "4000"
     depends_on:
       - db
   catalog:
@@ -49,10 +37,6 @@ services:
       context: .
       dockerfile: ./catalog/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4002:4002"
-    expose:
-      - "4002"
     depends_on:
       - db
   images:
@@ -60,10 +44,6 @@ services:
       context: .
       dockerfile: ./images/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4003:4003"
-    expose:
-      - "4003"
     depends_on:
       - db
   reviews:
@@ -71,10 +51,6 @@ services:
       context: .
       dockerfile: ./reviews/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4004:4004"
-    expose:
-      - "4004"
     depends_on:
       - db
   wishlists:
@@ -82,10 +58,6 @@ services:
       context: .
       dockerfile: ./wishlists/Dockerfile
     command: sh -c 'wait-for db:3306 -- npm run start'
-    ports:
-      - "4005:4005"
-    expose:
-      - "4005"
     depends_on:
       - db
   swagger:
@@ -93,10 +65,6 @@ services:
       context: .
       dockerfile: ./swagger/Dockerfile
     command: sh -c 'npm run start'
-    ports:
-      - "4006:4006"
-    expose:
-      - "4006"
   gateway:
     build:
       context: .
