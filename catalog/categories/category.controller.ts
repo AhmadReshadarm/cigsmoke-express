@@ -6,6 +6,9 @@ import { CategoryService } from './category.service';
 import { Category } from '../../core/entities';
 import { ParameterService } from '../parameters/parameter.service';
 import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { CustomExternalError } from '../../core/domain/error/custom.external.error';
+import { ErrorCode } from '../../core/domain/error/error.code';
+import { CustomInternalError } from '../../core/domain/error/custom.internal.error';
 
 @singleton()
 @Controller('/categories')
@@ -39,17 +42,16 @@ export class CategoryController {
 
   @Post()
   async createCategory(req: Request, resp: Response) {
-    const { parentId } = req.body
-    const newCategory = await validation(new Category(req.body));
-    
-    if (parentId) {
-      newCategory.parent = await this.categoryService.getCategory(parentId)
-    }
+      const { parentId } = req.body
+      const newCategory = await validation(new Category(req.body));
 
-    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
-    const created = await this.categoryService.createCategory(newCategory);
+      if (parentId) {
+        newCategory.parent = await this.categoryService.getCategory(parentId)
+      }
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+      newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
+      const created = await this.categoryService.createCategory(newCategory);
+      resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
   @Put(':id')

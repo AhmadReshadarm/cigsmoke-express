@@ -5,10 +5,12 @@ import { ErrorCode } from '../domain/error/error.code';
 import { HttpStatus } from './http-status';
 import { logger } from './logger';
 
-export const errorHandler = (error: Error, request: Request, response: Response, next: NextFunction): void => {
-  if (error instanceof CustomExternalError) {
-    response.status(error.statusCode).json({ errors: error.messages });
-  } else {
+export const errorHandler = (error: any, request: Request, response: Response, next: NextFunction): void => {
+  if (error instanceof CustomExternalError || error.type === "entity.parse.failed") {
+    response.status(error.statusCode).json({ errors: error.messages?? error.message });
+  } else if (error.sqlMessage) {
+    response.status(HttpStatus.CONFLICT).json({ errors: error.sqlMessage });
+  } else if (error) {
     logger.error(ErrorCode.INTERNAL_ERROR, {
       errorMessage: error.message,
       stack: error instanceof CustomInternalError ? error.stackArray : error.stack,
@@ -16,7 +18,9 @@ export const errorHandler = (error: Error, request: Request, response: Response,
     console.error(error);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: ErrorCode.INTERNAL_ERROR });
   }
-  next();
+  else {
+    next();
+  }
 };
 
 type AsyncFunc = (req: Request, resp: Response, next: NextFunction) => Promise<void>;
