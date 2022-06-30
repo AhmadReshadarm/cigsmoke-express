@@ -1,6 +1,6 @@
-import { IsEmpty, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Role } from '../../lib/roles.enum';
+import { Role } from '../../enums/roles.enum';
 
 @Entity()
 export class User {
