@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository, TreeRepository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Category } from '../../core/entities/catalog/category.entity';
+import { Category } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { CategoryDto } from './category.dto';
 
@@ -41,8 +41,7 @@ export class CategoryService {
   }
 
   async createCategory(categoryDTO: CategoryDto): Promise<Category> {
-    console.log(categoryDTO)
-    return this.categoryRepository.save(categoryDTO);
+      return this.categoryRepository.save(categoryDTO);
   }
 
   async updateCategory(id: string, categoryDTO: Category) {
