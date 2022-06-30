@@ -4,11 +4,11 @@ import { singleton } from 'tsyringe';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { User } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
-import { Role } from '../../core/lib/roles.enum';
+import { Role } from '../../core/enums/roles.enum';
 import { validation } from '../../core/lib/validator';
 import { unAuthorized } from '../../core/middlewares/access.user';
-import { verifyToken } from '../../core/middlewares/verify.token';
-import { UserService } from '../user.service';
+import { verifyToken, isUser } from '../../core/middlewares';
+import { UserService } from '../services/user.service';
 
 @singleton()
 @Controller('/admin')
@@ -16,7 +16,7 @@ export class AdminController {
   constructor(private userService: UserService) {}
 
   @Get('user/:adminId')
-  @Middleware([verifyToken])
+  @Middleware([verifyToken, isUser])
   async getUser(req: Request, resp: Response) {
     const { adminId } = req.params;
     const { jwt } = resp.locals;

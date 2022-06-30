@@ -1,10 +1,10 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../core/domain/error/custom.external.error';
-import { ErrorCode } from '../core/domain/error/error.code';
-import { User } from '../core/entities/users/user.entity';
-import { HttpStatus } from '../core/lib/http-status';
-import { Role } from '../core/lib/roles.enum';
+import { CustomExternalError } from '../../core/domain/error/custom.external.error';
+import { ErrorCode } from '../../core/domain/error/error.code';
+import { User } from '../../core/entities/users/user.entity';
+import { HttpStatus } from '../../core/lib/http-status';
+import { Role } from '../../core/enums/roles.enum';
 
 @singleton()
 export class UserService {
@@ -14,18 +14,14 @@ export class UserService {
     this.userRepository = appDataSource.getRepository(User);
   }
 
-  async getUserNames(): Promise<User[]> {
+  async getUsers(): Promise<User[]> {
     const users = await this.userRepository
       .createQueryBuilder('User')
-      .select(['User.id', 'User.firstName', 'User.lastName'])
+      .select(['id', 'firstName', 'lastName', 'email'])
       // for security measures removing admins from quarry
       .where(`User.role != :admin`, { admin: Role.Admin })
       .getRawMany();
     return users;
-  }
-
-  async getUsers(): Promise<User[]> {
-    return await this.userRepository.find();
   }
 
   async getUser(id: string): Promise<User> {
