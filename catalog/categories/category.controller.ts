@@ -5,10 +5,8 @@ import { validation } from '../../core/lib/validator';
 import { CategoryService } from './category.service';
 import { Category } from '../../core/entities';
 import { ParameterService } from '../parameters/parameter.service';
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
-import { CustomExternalError } from '../../core/domain/error/custom.external.error';
-import { ErrorCode } from '../../core/domain/error/error.code';
-import { CustomInternalError } from '../../core/domain/error/custom.internal.error';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/categories')
@@ -41,6 +39,7 @@ export class CategoryController {
   }
 
   @Post()
+  @Middleware([verifyToken, isAdmin])
   async createCategory(req: Request, resp: Response) {
       const { parentId } = req.body
       const newCategory = await validation(new Category(req.body));
@@ -55,6 +54,7 @@ export class CategoryController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateCategory(req: Request, resp: Response) {
     const { id } = req.params;
     const { parentId } = req.body
@@ -68,6 +68,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeCategory(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.categoryService.removeCategory(id);

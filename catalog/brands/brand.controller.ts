@@ -3,7 +3,8 @@ import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { BrandService } from './brand.service';
 import { ProductService } from '../products/product.service';
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/brands')
@@ -38,6 +39,7 @@ export class BrandController {
   }
 
   @Post('')
+  @Middleware([verifyToken, isAdmin])
   async createBrand(req: Request, resp: Response) {
     const created = await this.brandService.createBrand(req.body);
 
@@ -45,6 +47,7 @@ export class BrandController {
   };
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateBrand(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.brandService.updateBrand(id, req.body);
@@ -53,6 +56,7 @@ export class BrandController {
   };
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeBrand(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.brandService.removeBrand(id);

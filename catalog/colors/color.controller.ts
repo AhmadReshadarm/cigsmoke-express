@@ -1,8 +1,9 @@
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ColorService } from './color.service';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/colors')
@@ -25,6 +26,7 @@ export class ColorController {
   }
 
   @Post()
+  @Middleware([verifyToken, isAdmin])
   async createColor(req: Request, resp: Response) {
     const created = await this.colorService.createColor(req.body);
 
@@ -32,6 +34,7 @@ export class ColorController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateColor(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.colorService.updateColor(id, req.body);
@@ -40,6 +43,7 @@ export class ColorController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeColor(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.colorService.removeColor(id);

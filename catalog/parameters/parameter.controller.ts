@@ -1,8 +1,9 @@
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ParameterService } from './parameter.service';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/parameters')
@@ -25,6 +26,7 @@ export class ParameterController {
   }
 
   @Post()
+  @Middleware([verifyToken, isAdmin])
   async createParameter(req: Request, resp: Response) {
     const created = await this.parameterService.createParameter(req.body);
 
@@ -32,6 +34,7 @@ export class ParameterController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateParameter(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.parameterService.updateParameter(id, req.body);
@@ -40,6 +43,7 @@ export class ParameterController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeParameter(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.parameterService.removeParameter(id);
