@@ -8,7 +8,7 @@ import { getToken } from "../lib/get-token";
 export function isUser(req: Request, res: Response, next: NextFunction): void {
     const token = getToken(req);
     const { ACCESS_SECRET_TOKEN } = process.env;
-    const tokenInfo = jwt.verify(token!, ACCESS_SECRET_TOKEN) as User;
+    const tokenInfo = jwt.verify(token!, ACCESS_SECRET_TOKEN ?? '') as any;
 
     if (tokenInfo?.role !== Role.User) {
         res.status(HttpStatus.FORBIDDEN).json({ message: 'You are forbidden to retrieve this data' });
