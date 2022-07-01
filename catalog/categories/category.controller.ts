@@ -14,9 +14,10 @@ export class CategoryController {
   constructor(
     private categoryService: CategoryService,
     private parameterService: ParameterService,
-  ) {}
+  ) { }
 
   @Get()
+  @Middleware([verifyToken, isAdmin])
   async getCategories(req: Request, resp: Response) {
     const categories = await this.categoryService.getCategories();
 
@@ -41,16 +42,16 @@ export class CategoryController {
   @Post()
   @Middleware([verifyToken, isAdmin])
   async createCategory(req: Request, resp: Response) {
-      const { parentId } = req.body
-      const newCategory = await validation(new Category(req.body));
+    const { parentId } = req.body
+    const newCategory = await validation(new Category(req.body));
 
-      if (parentId) {
-        newCategory.parent = await this.categoryService.getCategory(parentId)
-      }
+    if (parentId) {
+      newCategory.parent = await this.categoryService.getCategory(parentId)
+    }
 
-      newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
-      const created = await this.categoryService.createCategory(newCategory);
-      resp.status(HttpStatus.CREATED).json({ id: created.id });
+    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
+    const created = await this.categoryService.createCategory(newCategory);
+    resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
   @Put(':id')

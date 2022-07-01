@@ -13,7 +13,7 @@ export async function verifyToken(req: Request, resp: Response, next: NextFuncti
     return;
   }
 
-  jwt.verify(token, ACCESS_SECRET_TOKEN, (error, user) => {
+  jwt.verify(token, ACCESS_SECRET_TOKEN ?? '', (error, user) => {
     if (error) {
       return resp.status(HttpStatus.FORBIDDEN).json({ message: `Access has been expired: ${error}` });
     }
