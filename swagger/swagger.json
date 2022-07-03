@@ -2956,6 +2956,9 @@
         },
         "url": {
           "type": "string"
+        },
+        "code": {
+          "type": "string"
         }
       }
     },
