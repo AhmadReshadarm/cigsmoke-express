@@ -16,8 +16,8 @@ export interface ProductDTO {
 
 export interface WishlistDTO {
   id: string,
-  product: ProductDTO | undefined,
-  user:  UserDTO | undefined,
+  product: ProductDTO | string,
+  user:  UserDTO | string,
 }
 
 export interface WishlistQueryDTO {

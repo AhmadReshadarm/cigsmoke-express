@@ -18,8 +18,8 @@ export interface ReviewDTO {
   id: string,
   rating: number,
   comment: string,
-  product: ProductDTO | undefined,
-  user:  UserDTO | undefined,
+  product: ProductDTO | string,
+  user:  UserDTO | string,
 }
 
 export interface ReviewQueryDTO {
