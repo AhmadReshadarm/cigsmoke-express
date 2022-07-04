@@ -49,7 +49,7 @@ export class ReviewService {
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+      const res = await axios.get(`${process.env.USERS_DB}/users/notAdmin/${id}`);
 
       return res.data
     } catch (e) {
@@ -99,13 +99,9 @@ export class ReviewService {
         ...reviewDTO
       }
 
-      return this.reviewRepository
-        .createQueryBuilder()
-        .update('review')
-        .set(newReview)
-        .where('productId = :productId', {productId: review.productId})
-        .andWhere('userId = :userId', {userId: review.userId})
-        .execute()
+      await this.reviewRepository.remove(review);
+
+      return this.reviewRepository.save(newReview)
     } catch (e) {
       if (e instanceof CustomExternalError) {
         throw new CustomExternalError(e.messages, e.statusCode)

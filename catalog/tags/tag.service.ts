@@ -53,7 +53,7 @@ export class TagService {
             id: Equal(id),
         }
       });
-      return this.tagRepository.update(id, {
+      return this.tagRepository.save({
         ...tag,
         ...tagDTO
       });

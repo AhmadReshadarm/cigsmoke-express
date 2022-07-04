@@ -49,7 +49,7 @@ export class WishlistService {
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+      const res = await axios.get(`${process.env.USERS_DB}/users/notAdmin/${id}`);
 
       return res.data
     } catch {
@@ -97,13 +97,9 @@ export class WishlistService {
         ...wishlistDTO
       }
 
-      return this.wishlistRepository
-        .createQueryBuilder()
-        .update('wishlist')
-        .set(newWishlist)
-        .where('productId = :productId', {productId: wishlist.productId})
-        .andWhere('userId = :userId', {userId: wishlist.userId})
-        .execute()
+      await this.wishlistRepository.remove(wishlist);
+
+      return this.wishlistRepository.save(newWishlist)
     } catch (e) {
       if (e instanceof CustomExternalError) {
         throw new CustomExternalError(e.messages, e.statusCode)

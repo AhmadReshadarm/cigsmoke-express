@@ -90,7 +90,7 @@ export class BasketService {
       });
       await this.getUsersById(basketDTO.userId);
 
-      return this.basketRepository.update(id, {
+      return this.basketRepository.save({
         ...basket,
         ...basketDTO
       });

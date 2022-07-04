@@ -8,7 +8,7 @@ export class Parameter {
   id: string;
 
   @IsNotEmpty()
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @ManyToMany(

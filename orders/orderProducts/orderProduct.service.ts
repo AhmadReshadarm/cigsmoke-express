@@ -87,7 +87,7 @@ export class OrderProductService {
       const product = await this.getProductById(orderProductDTO.productId);
       orderProductDTO.productPrice = product!.price;
 
-      return this.orderProductRepository.update(id, {
+      return this.orderProductRepository.save({
         ...orderProduct,
         ...orderProductDTO
       });

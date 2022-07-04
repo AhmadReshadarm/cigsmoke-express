@@ -33,6 +33,16 @@ export class UserController {
     resp.json(others).status(HttpStatus.OK);
   }
 
+  @Get('notAdmin/:id')
+  async getUserNotAdmin (req: Request, resp: Response) {
+    const { id } = req.params;
+
+    const user = await this.userService.getUser(id);
+    const { password, ...others } = user;
+
+    resp.json(others).status(HttpStatus.OK);
+  }
+
   @Post(':adminId')
   @Middleware([verifyToken, isAdmin])
   async createUser(req: Request, resp: Response) {

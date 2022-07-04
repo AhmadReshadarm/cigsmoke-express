@@ -67,7 +67,7 @@ export class CheckoutService {
         }
       });
 
-      return this.checkoutRepository.update(id, {
+      return this.checkoutRepository.save({
         ...checkout,
         ...checkoutDTO
       });

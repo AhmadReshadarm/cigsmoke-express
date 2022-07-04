@@ -57,7 +57,7 @@ export class BrandService {
             id: Equal(id),
         }
       });
-      return this.brandRepository.update(id, {
+      return this.brandRepository.save( {
         ...brand,
         ...brandDTO
       });

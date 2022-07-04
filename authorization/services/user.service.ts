@@ -61,7 +61,7 @@ export class UserService {
           id: Equal(id),
         },
       });
-      return this.userRepository.update(id, {
+      return this.userRepository.save({
         ...user,
         ...userDTO,
       });

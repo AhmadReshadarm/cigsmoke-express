@@ -5,7 +5,7 @@ export class Image {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column()
+  @Column({ unique: true} )
   filename: string;
 
   @Column()

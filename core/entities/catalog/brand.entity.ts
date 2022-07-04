@@ -7,7 +7,7 @@ export class Brand {
   id: string;
 
   @IsNotEmpty()
-  @Column()
+  @Column({ unique: true} )
   name: string;
 
   @Column({ nullable: true })

@@ -53,7 +53,7 @@ export class ParameterService {
             id: Equal(id),
         }
       });
-      return this.parameterRepository.update(id, {
+      return this.parameterRepository.save({
         ...parameter,
         ...parameterDTO
       });

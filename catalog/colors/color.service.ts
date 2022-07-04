@@ -52,7 +52,7 @@ export class ColorService {
             id: Equal(id),
         }
       });
-      return this.colorRepository.update(id, {
+      return this.colorRepository.save({
         ...color,
         ...colorDTO
       });

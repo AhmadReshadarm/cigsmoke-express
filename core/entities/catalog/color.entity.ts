@@ -15,7 +15,7 @@ export class Color {
   products?: Product[];
 
   @IsNotEmpty()
-  @Column()
+  @Column({ unique: true })
   url: string;
 
   constructor(args?: { name: string, products?: Product[], url: string }) {

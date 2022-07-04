@@ -89,7 +89,7 @@ export class AddressService {
       });
       await this.getUsersById(addressDTO.userId);
 
-      return this.addressRepository.update(id, {
+      return this.addressRepository.save({
         ...address,
         ...addressDTO
       });
