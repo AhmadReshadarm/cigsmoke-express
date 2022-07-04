@@ -10,6 +10,10 @@ export class Checkout {
   id: string;
 
   @IsNotEmpty()
+  @Column()
+  userId: string;
+
+  @IsNotEmpty()
   @ManyToOne(() => Address, address => address.checkouts)
   address: Address;
 

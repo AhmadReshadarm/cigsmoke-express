@@ -24,12 +24,11 @@ export class Review {
   userId: string;
 
 
-  constructor(args?: { rating: number, comment: string, productId: string, userId: string }) {
+  constructor(args?: { rating: number, comment: string, productId: string }) {
     if (args) {
       this.rating = args.rating;
       this.comment = args.comment;
       this.productId = args.productId;
-      this.userId = args.userId;
     }
   }
 }

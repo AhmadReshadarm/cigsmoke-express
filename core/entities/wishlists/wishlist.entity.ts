@@ -14,10 +14,9 @@ export class Wishlist {
   @PrimaryColumn()
   userId: string;
 
-  constructor(args?: { productId: string, userId: string }) {
+  constructor(args?: { productId: string }) {
     if (args) {
       this.productId = args.productId;
-      this.userId = args.userId;
     }
   }
 }

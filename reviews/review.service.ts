@@ -4,7 +4,7 @@ import { CustomExternalError } from '../core/domain/error/custom.external.error'
 import { ErrorCode } from '../core/domain/error/error.code';
 import { Review } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserDTO } from './reviews.dtos';
+import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from './reviews.dtos';
 import axios from 'axios';
 import { scope } from '../core/middlewares/access.user';
 import { Role } from '../core/enums/roles.enum';
@@ -81,7 +81,6 @@ export class ReviewService {
   }
 
   async createReview(newReview: Review): Promise<Review> {
-    await this.isUserReviewOwner(newReview, { id: newReview.userId, role: Role.User });
     if (!await this.getProductById(newReview.productId)) {
       throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
@@ -91,7 +90,7 @@ export class ReviewService {
     return this.reviewRepository.save(newReview);
   }
 
-  async updateReview(id: string, reviewDTO: Review, user: { id: string, role: Role }) {
+  async updateReview(id: string, reviewDTO: Review, user: UserAuth) {
     const review = await this.reviewRepository.findOneOrFail({
       where: {
           id: Equal(id),
@@ -110,7 +109,7 @@ export class ReviewService {
     return this.reviewRepository.save(newReview)
   }
 
-  async removeReview(id: string, user: { id: string, role: Role }) {
+  async removeReview(id: string, user: UserAuth) {
     const review = await this.reviewRepository.findOneOrFail({
       where: {
           id: Equal(id),
@@ -122,7 +121,7 @@ export class ReviewService {
     return this.reviewRepository.remove(review);
   }
 
-  async isUserReviewOwner(review: Review, user: { id: string, role: Role }) {
+  isUserReviewOwner(review: Review, user: UserAuth) {
     if (scope(String(review.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }

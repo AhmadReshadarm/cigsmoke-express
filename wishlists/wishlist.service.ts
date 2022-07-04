@@ -4,7 +4,7 @@ import { CustomExternalError } from '../core/domain/error/custom.external.error'
 import { ErrorCode } from '../core/domain/error/error.code';
 import { Wishlist } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, WishlistDTO, WishlistQueryDTO, UserDTO } from './wishlist.dtos';
+import { ProductDTO, WishlistDTO, WishlistQueryDTO, UserDTO, UserAuth } from './wishlist.dtos';
 import axios from 'axios';
 import { scope } from '../core/middlewares/access.user';
 import { Role } from '../core/enums/roles.enum';
@@ -81,7 +81,6 @@ export class WishlistService {
   }
 
   async createWishlist(newWishlist: Wishlist): Promise<Wishlist> {
-    await this.isUserWishlistOwner(newWishlist, { id: newWishlist.userId, role: Role.User });
     if (!await this.getProductById(newWishlist.productId)) {
       throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
@@ -91,7 +90,7 @@ export class WishlistService {
     return this.wishlistRepository.save(newWishlist);
   }
 
-  async updateWishlist(id: string, wishlistDTO: Wishlist, user: { id: string, role: Role }) {
+  async updateWishlist(id: string, wishlistDTO: Wishlist, user: UserAuth) {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {
         id: Equal(id),
@@ -110,7 +109,7 @@ export class WishlistService {
     return this.wishlistRepository.save(newWishlist)
   }
 
-  async removeWishlist(id: string, user: { id: string, role: Role }) {
+  async removeWishlist(id: string, user: UserAuth) {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {
         id: Equal(id),
@@ -122,7 +121,7 @@ export class WishlistService {
     return this.wishlistRepository.remove(wishlist);
   }
 
-  async isUserWishlistOwner(wishlist: Wishlist, user: { id: string, role: Role } ) {
+  isUserWishlistOwner(wishlist: Wishlist, user: UserAuth ) {
     if (scope(String(wishlist.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }

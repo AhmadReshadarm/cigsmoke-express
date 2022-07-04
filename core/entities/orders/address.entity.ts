@@ -38,9 +38,8 @@ export class Address {
   @OneToMany(() => Checkout, checkout => checkout.address)
   checkouts: Checkout[];
 
-  constructor(args?: {userId: string, fistName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
+  constructor(args?: {fistName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
     if (args) {
-      this.userId = args.userId;
       this.fistName = args.fistName
       this.lastName = args.lastName
       this.address = args.address;
