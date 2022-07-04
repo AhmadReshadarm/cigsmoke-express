@@ -18,11 +18,16 @@ export class Color {
   @Column({ unique: true })
   url: string;
 
-  constructor(args?: { name: string, products?: Product[], url: string }) {
+  @IsNotEmpty()
+  @Column()
+  code: string;
+
+  constructor(args?: { name: string, products?: Product[], url: string, code: string }) {
     if (args) {
       this.name = args.name;
       this.products = args.products;
       this.url = args.url;
+      this.code = args.code;
     }
   }
 }

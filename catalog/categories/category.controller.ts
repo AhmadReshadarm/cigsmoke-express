@@ -46,11 +46,12 @@ export class CategoryController {
     const newCategory = await validation(new Category(req.body));
 
     if (parentId) {
-      newCategory.parent = await this.categoryService.getCategory(parentId)
+      newCategory.parent = await this.categoryService.getCategory(parentId);
     }
 
     newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
     const created = await this.categoryService.createCategory(newCategory);
+
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
@@ -61,7 +62,10 @@ export class CategoryController {
     const { parentId } = req.body
     const newCategory = await validation(new Category(req.body));
 
-    parentId ? newCategory.parent = await this.categoryService.getCategory(parentId) : null;
+    if (parentId) {
+      newCategory.parent = await this.categoryService.getCategory(parentId);
+    }
+
     newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
     const updated = await this.categoryService.updateCategory(id, newCategory);
 
