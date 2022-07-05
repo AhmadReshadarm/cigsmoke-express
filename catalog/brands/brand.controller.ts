@@ -16,7 +16,7 @@ export class BrandController {
 
   @Get()
   async getBrands(req: Request, resp: Response) {
-    const brands = await this.brandService.getBrands();
+    const brands = await this.brandService.getBrands(req.query);
 
     resp.json(brands);
   };

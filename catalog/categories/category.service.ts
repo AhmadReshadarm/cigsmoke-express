@@ -2,9 +2,9 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository, TreeRepository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Category } from '../../core/entities';
+import { Category, Tag } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
-import { CategoryDto } from './category.dto';
+import { CategoryDTO, CategoryQueryDTO, TagQueryDTO } from '../catalog.dtos';
 
 
 @singleton()
@@ -17,61 +17,76 @@ export class CategoryService {
     this.categoryTreeRepository = dataSource.getTreeRepository(Category);
   }
 
-  async getCategories(): Promise<Category[]> {
-    return await this.categoryRepository.find({ relations: ['parent', 'children'] });
+  async getCategories(queryParams: CategoryQueryDTO): Promise<Category[]> {
+    const {
+      name,
+      url,
+      parameters,
+      parent,
+      children,
+      sortBy='name',
+      orderBy='DESC',
+      limit=10,
+    } = queryParams;
+
+    const queryBuilder = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.parameters', 'parameter')
+      .leftJoinAndSelect('category.children', 'categoryChildren')
+      .leftJoinAndSelect('category.parent', 'categoryParent')
+
+    if (name) { queryBuilder.andWhere('category.name LIKE :name', { name: `%${name}%` }); }
+    if (url) { queryBuilder.andWhere('category.url LIKE :url', { url: `%${url}%` }); }
+    if (parameters) { queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: JSON.parse(parameters) }); }
+    if (parent) { queryBuilder.andWhere('categoryParent.id = :parent', { parent: parent }) }
+    if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: JSON.parse(children) }); }
+
+
+    return queryBuilder
+      .orderBy(`category.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
   }
 
   async getCategory(id: string): Promise<Category> {
-    try {
-      const category = await this.categoryRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        },
-        relations: ['parent', 'children'],
-      });
+    const category = await this.categoryRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      },
+      relations: ['parent', 'children'],
+    });
 
-      return category;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    return category;
   }
 
   async getCategoriesTree(): Promise<Category[]> {
     return await this.categoryTreeRepository.findTrees()
   }
 
-  async createCategory(categoryDTO: CategoryDto): Promise<Category> {
+  async createCategory(categoryDTO: CategoryDTO): Promise<Category> {
       return this.categoryRepository.save(categoryDTO);
   }
 
   async updateCategory(id: string, categoryDTO: Category) {
-    try {
-      const category = await this.categoryRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
+    const category = await this.categoryRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
 
-      return this.categoryRepository.save( {
-        ...category,
-        ...categoryDTO
-      });
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    return this.categoryRepository.save( {
+      ...category,
+      ...categoryDTO
+    });
   }
 
   async removeCategory(id: string) {
-    try {
-      await this.categoryRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
+    const category = await this.categoryRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
 
-      return this.categoryRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    return this.categoryRepository.remove(category);
   }
 }

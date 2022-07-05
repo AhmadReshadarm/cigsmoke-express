@@ -90,25 +90,6 @@ export class WishlistService {
     return this.wishlistRepository.save(newWishlist);
   }
 
-  async updateWishlist(id: string, wishlistDTO: Wishlist, user: UserAuth) {
-    const wishlist = await this.wishlistRepository.findOneOrFail({
-      where: {
-        id: Equal(id),
-      }
-    });
-
-    const { productId, ...others } = wishlistDTO;
-
-    const newWishlist = {
-      ...wishlist,
-      ...others
-    }
-    await this.isUserWishlistOwner(newWishlist, user);
-    await this.wishlistRepository.remove(wishlist);
-
-    return this.wishlistRepository.save(newWishlist)
-  }
-
   async removeWishlist(id: string, user: UserAuth) {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {

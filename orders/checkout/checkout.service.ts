@@ -83,6 +83,7 @@ export class CheckoutService {
 
   async createCheckout(newCheckout: Checkout, authToken: string): Promise<Checkout> {
     const checkout = await this.checkoutRepository.save(newCheckout);
+
     if (!await this.validation(checkout.id, authToken)) {
       await this.checkoutRepository.remove(checkout)
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);

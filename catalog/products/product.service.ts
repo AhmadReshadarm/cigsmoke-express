@@ -4,7 +4,7 @@ import { CustomExternalError } from '../../core/domain/error/custom.external.err
 import { ErrorCode } from '../../core/domain/error/error.code';
 import { Product } from '../../core/entities/catalog/product.entity';
 import { HttpStatus } from '../../core/lib/http-status';
-import { ProductDTO } from './productDTO';
+import { ProductQueryDTO } from '../catalog.dtos';
 
 @injectable()
 export class ProductService {
@@ -14,7 +14,7 @@ export class ProductService {
     this.productRepository = dataSource.getRepository(Product);
   }
 
-  async getProducts(queryParams: ProductDTO): Promise<Product[]> {
+  async getProducts(queryParams: ProductQueryDTO): Promise<Product[]> {
     const {
       name,
       minPrice,
@@ -83,11 +83,12 @@ export class ProductService {
   }
 
   async removeProduct(id: string) {
-    await this.productRepository.findOneOrFail({
+    const product = await this.productRepository.findOneOrFail({
       where: {
           id: Equal(id),
       }
     });
-    return this.productRepository.delete(id);
+
+    return this.productRepository.remove(product);
   }
 }

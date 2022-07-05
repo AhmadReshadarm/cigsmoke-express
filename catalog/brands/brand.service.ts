@@ -1,11 +1,9 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../../core/domain/error/custom.external.error';
-import { ErrorCode } from '../../core/domain/error/error.code';
-import { Brand } from '../../core/entities';
-import { HttpStatus } from '../../core/lib/http-status';
+import { Brand, Tag } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { Product } from '../../core/entities';
+import { BrandQueryDTO, TagQueryDTO } from '../catalog.dtos';
 
 @singleton()
 export class BrandService {
@@ -15,21 +13,35 @@ export class BrandService {
     this.brandRepository = dataSource.getRepository(Brand);
   }
 
-  async getBrands(): Promise<Brand[]> {
-    return await this.brandRepository.find();
+  async getBrands(queryParams: BrandQueryDTO): Promise<Brand[]> {
+    const {
+      name,
+      image,
+      sortBy='name',
+      orderBy='DESC',
+      limit=10,
+    } = queryParams;
+
+    const queryBuilder = await this.brandRepository
+      .createQueryBuilder('brand')
+
+    if (name) { queryBuilder.andWhere('brand.name LIKE :name', { name: `%${name}%` }); }
+    if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
+
+    return queryBuilder
+      .orderBy(`brand.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
   }
 
   async getBrand(id: string): Promise<Brand> {
-    try {
-      const brand = await this.brandRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return brand;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const brand = await this.brandRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    return brand;
   }
 
   async getUniqueBrandsFromProducts(products: Product[]): Promise<Brand[]> {
@@ -37,45 +49,42 @@ export class BrandService {
       if (!acc.find(brand => brand.id === product.brand.id)) {
         return acc.concat(product.brand);
       }
+
       return acc;
     }, []).sort((a, b) => {
       if (a.id < b.id) return -1;
       if (a.id > b.id) return 1;
+
       return 0
     });
   }
 
   async createBrand(brandDTO: Brand): Promise<Brand> {
     const newBrand = await validation(new Brand(brandDTO));
+
     return this.brandRepository.save(newBrand);
   }
 
   async updateBrand(id: string, brandDTO: Brand) {
-    try {
-      const brand = await this.brandRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.brandRepository.save( {
-        ...brand,
-        ...brandDTO
-      });
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const brand = await this.brandRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    return this.brandRepository.save( {
+      ...brand,
+      ...brandDTO
+    });
   }
 
   async removeBrand(id: string) {
-    try {
-      await this.brandRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.brandRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const brand = await this.brandRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    return this.brandRepository.remove(brand);
   }
 }

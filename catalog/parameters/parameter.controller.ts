@@ -12,7 +12,7 @@ export class ParameterController {
 
   @Get()
   async getParameters(req: Request, resp: Response) {
-    const parameters = await this.parameterService.getParameters();
+    const parameters = await this.parameterService.getParameters(req.query);
 
     resp.json(parameters);
   }

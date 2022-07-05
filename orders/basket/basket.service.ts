@@ -78,6 +78,7 @@ export class BasketService {
   getTotalAmount(products: OrderProduct[]): number {
     return products.reduce((accum: number, product) => {
       accum += product.qty * product.productPrice;
+
       return accum;
     }, 0)
   }

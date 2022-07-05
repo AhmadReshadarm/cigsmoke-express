@@ -17,9 +17,8 @@ export class CategoryController {
   ) { }
 
   @Get()
-  @Middleware([verifyToken, isAdmin])
   async getCategories(req: Request, resp: Response) {
-    const categories = await this.categoryService.getCategories();
+    const categories = await this.categoryService.getCategories(req.query);
 
     resp.json(categories);
   }

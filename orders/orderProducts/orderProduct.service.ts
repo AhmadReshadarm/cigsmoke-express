@@ -106,24 +106,18 @@ export class OrderProductService {
     const product = await this.getProductById(newOrderProduct.productId);
     newOrderProduct.productPrice = product!.price;
     newOrderProduct.id = await this.getNewOrderProductId()
-    console.log(newOrderProduct)
 
     const orderProduct = await this.orderProductRepository.save(newOrderProduct);
+
     if (!await this.validation(orderProduct.id, authToken)) {
       await this.orderProductRepository.remove(orderProduct)
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
+
     return orderProduct
   }
 
   async updateOrderProduct(id: string, orderProductDTO: OrderProduct, user: UserAuth) {
-    // const orderProduct = await this.orderProductRepository.findOneOrFail({
-    //   where: {
-    //       id: Equal(id),
-    //   },
-    //   relations: ['basket']
-    // });
-
     const orderProduct = await this.orderProductRepository
       .createQueryBuilder('orderProduct')
       .leftJoinAndSelect('orderProduct.inBasket', 'basket')
@@ -155,8 +149,6 @@ export class OrderProductService {
   }
 
   isUserOrderProductOwner(orderProduct: OrderProduct, user: UserAuth) {
-    console.log(orderProduct)
-    console.log(user)
     if (scope(String(orderProduct.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }

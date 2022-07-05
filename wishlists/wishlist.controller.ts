@@ -46,15 +46,6 @@ export class WishlistController {
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
-  @Put(':id')
-  @Middleware([verifyToken, isUser])
-  async updateWishlist(req: Request, resp: Response) {
-    const { id } = req.params;
-    const updated = await this.wishlistService.updateWishlist(id, req.body, resp.locals.user);
-
-    resp.status(HttpStatus.OK).json(updated);
-  }
-
   @Delete(':id')
   @Middleware([verifyToken, isUser])
   async removeWishlist(req: Request, resp: Response) {

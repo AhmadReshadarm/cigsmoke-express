@@ -13,7 +13,7 @@ export class TagController {
 
   @Get()
   async getTags(req: Request, resp: Response) {
-    const tags = await this.tagService.getTags();
+    const tags = await this.tagService.getTags(req.query);
 
     resp.json(tags);
   }
