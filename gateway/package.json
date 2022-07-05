@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.1",
-    "express-gateway": "^1.16.11"
+    "express-gateway": "^1.16.11",
+    "typeorm": "^0.3.7"
   }
 }

@@ -1,14 +1,18 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { Basket } from './basket.entity';
 import { IsNotEmpty, Min } from 'class-validator';
 
 @Entity()
 export class OrderProduct {
-  @PrimaryGeneratedColumn()
+  @Column({unique: true})
   id: string;
 
   @IsNotEmpty()
   @Column()
+  userId: string;
+
+  @IsNotEmpty()
+  @PrimaryColumn()
   productId: string;
 
   @IsNotEmpty()
@@ -17,10 +21,14 @@ export class OrderProduct {
   qty: number;
 
   @Column()
-  productPrice: number
+  productPrice: number;
 
   @IsNotEmpty()
-  @ManyToOne(() => Basket, basket => basket.orderProducts, {nullable: false})
+  @PrimaryColumn( { nullable: false })
+  basketId: string;
+
+  @IsNotEmpty()
+  @ManyToOne(() => Basket, basket => basket.orderProducts, { nullable: false })
   inBasket: Basket
 
   constructor(args?: { title: string, productId: string, qty: number, inBasket: Basket }) {

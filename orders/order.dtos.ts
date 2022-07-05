@@ -1,4 +1,5 @@
-import { Basket, Checkout, OrderProduct } from '../core/entities';
+import { Address, Basket, Checkout, OrderProduct, PaymentCard } from '../core/entities';
+import { Role } from '../core/enums/roles.enum';
 
 export interface UserDTO {
   id: string,
@@ -17,14 +18,16 @@ export interface ProductDTO {
 }
 
 export interface OrderProductDTO {
-  id: string
-  product: ProductDTO | undefined,
+  id: string,
+  user: UserDTO | string,
+  product: ProductDTO | string,
   inBasket: Basket
   qty: number,
   productPrice: number,
 }
 
 export interface OrderProductQueryDTO {
+  userId?: string,
   minQty?: number,
   maxQty?: number,
   minPrice?: number,
@@ -37,7 +40,7 @@ export interface OrderProductQueryDTO {
 
 export interface BasketDTO {
   id: string
-  user: UserDTO | undefined,
+  user: UserDTO | string,
   orderProducts: OrderProduct[],
   checkout: Checkout,
   totalAmount: number,
@@ -56,7 +59,7 @@ export interface BasketQueryDTO {
 
 export interface AddressDTO {
   id: string
-  user: UserDTO | undefined,
+  user: UserDTO | string,
   fistName: string,
   lastName: string
   address: string,
@@ -80,12 +83,28 @@ export interface AddressQueryDTO {
   limit?: number,
 }
 
+
+export interface CheckoutDTO {
+  id: string;
+  user: UserDTO | string;
+  address: Address,
+  payment: PaymentCard,
+  basket: Basket,
+  comment: string
+}
+
 export interface CheckoutQueryDTO {
   id?: string
+  userId?: string,
   addressId?: string,
   paymentId?: string,
   basketId?: string
   sortBy?: string,
   orderBy?: 'DESC' | 'ASC',
   limit?: number,
+}
+
+export interface UserAuth {
+  id: string,
+  role: Role
 }

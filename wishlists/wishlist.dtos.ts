@@ -1,3 +1,5 @@
+import { Role } from "../core/enums/roles.enum";
+
 export interface UserDTO {
   id: string,
   firstName: string,
@@ -16,8 +18,8 @@ export interface ProductDTO {
 
 export interface WishlistDTO {
   id: string,
-  product: ProductDTO | undefined,
-  user:  UserDTO | undefined,
+  product: ProductDTO | string,
+  user:  UserDTO | string,
 }
 
 export interface WishlistQueryDTO {
@@ -27,4 +29,9 @@ export interface WishlistQueryDTO {
   sortBy?: 'productId' | 'userId',
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
+}
+
+export interface UserAuth {
+  id: string,
+  role: Role
 }

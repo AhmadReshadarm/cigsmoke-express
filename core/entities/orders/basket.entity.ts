@@ -33,9 +33,8 @@ export class Basket {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  constructor(args?: { title: string, userId: string, orderProducts: OrderProduct[], checkout: Checkout }) {
+  constructor(args?: { title: string, orderProducts: OrderProduct[], checkout: Checkout }) {
     if (args) {
-      this.userId = args.userId;
       this.orderProducts = args.orderProducts;
       this.checkout = args.checkout;
     }

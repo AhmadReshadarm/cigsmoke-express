@@ -3,7 +3,8 @@ import { singleton } from 'tsyringe';
 import {  } from '../../core/lib/error.handlers';
 import { HttpStatus } from '../../core/lib/http-status';
 import { TagService } from './tag.service';
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/tags')
@@ -12,7 +13,7 @@ export class TagController {
 
   @Get()
   async getTags(req: Request, resp: Response) {
-    const tags = await this.tagService.getTags();
+    const tags = await this.tagService.getTags(req.query);
 
     resp.json(tags);
   }
@@ -26,6 +27,7 @@ export class TagController {
   }
 
   @Post('')
+  @Middleware([verifyToken, isAdmin])
   async createTag(req: Request, resp: Response) {
     const created = await this.tagService.createTag(req.body);
 
@@ -33,6 +35,7 @@ export class TagController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateTag(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.tagService.updateTag(id, req.body);
@@ -41,6 +44,7 @@ export class TagController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeTag(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.tagService.removeTag(id);

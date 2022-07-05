@@ -1,10 +1,8 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../../core/domain/error/custom.external.error';
-import { ErrorCode } from '../../core/domain/error/error.code';
 import { Tag } from '../../core/entities';
-import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
+import { TagQueryDTO } from '../catalog.dtos';
 
 @singleton()
 export class TagService {
@@ -14,21 +12,37 @@ export class TagService {
     this.tagRepository = dataSource.getRepository(Tag);
   }
 
-  async getTags(): Promise<Tag[]> {
-    return await this.tagRepository.find();
+  async getTags(queryParams: TagQueryDTO): Promise<Tag[]> {
+    const {
+      name,
+      products,
+      url,
+      sortBy='name',
+      orderBy='DESC',
+      limit=10,
+    } = queryParams;
+
+    const queryBuilder = await this.tagRepository
+      .createQueryBuilder('tag')
+      .leftJoinAndSelect('tag.products', 'product')
+
+    if (name) { queryBuilder.andWhere('tag.name LIKE :name', { name: `%${name}%` }); }
+    if (url) { queryBuilder.andWhere('tag.url LIKE :url', { url: `%${url}%` }); }
+    if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
+
+    return queryBuilder
+      .orderBy(`tag.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
   }
 
   async getTag(id: string): Promise<Tag> {
-    try {
-      const tag = await this.tagRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        },
-      });
-      return tag;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const tag = await this.tagRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      },
+    });
+    return tag;
   }
 
   async getTagsByIds(ids: string[]): Promise<Tag[]> {
@@ -47,31 +61,25 @@ export class TagService {
   }
 
   async updateTag(id: string, tagDTO: Tag) {
-    try {
-      const tag = await this.tagRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.tagRepository.update(id, {
-        ...tag,
-        ...tagDTO
-      });
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const tag = await this.tagRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    return this.tagRepository.save({
+      ...tag,
+      ...tagDTO
+    });
   }
 
   async removeTag(id: string) {
-    try {
-      await this.tagRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.tagRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const tag = await this.tagRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    return this.tagRepository.remove(tag);
   }
 }

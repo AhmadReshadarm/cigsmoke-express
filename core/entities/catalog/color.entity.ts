@@ -15,7 +15,7 @@ export class Color {
   products?: Product[];
 
   @IsNotEmpty()
-  @Column()
+  @Column({ unique: true })
   url: string;
 
   @IsNotEmpty()

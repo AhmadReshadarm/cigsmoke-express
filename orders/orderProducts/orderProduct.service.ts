@@ -2,10 +2,12 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { OrderProduct } from '../../core/entities';
+import { Basket, Checkout, OrderProduct } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
-import { OrderProductDTO, OrderProductQueryDTO, ProductDTO } from '../order.dtos';
+import { OrderProductDTO, OrderProductQueryDTO, ProductDTO, UserAuth, UserDTO } from '../order.dtos';
+import { scope } from '../../core/middlewares/access.user';
+import { Role } from '../../core/enums/roles.enum';
 
 @singleton()
 export class OrderProductService {
@@ -15,9 +17,10 @@ export class OrderProductService {
     this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
 
-  async getOrderProducts(queryParams: OrderProductQueryDTO): Promise<OrderProductDTO[]> {
+  async getOrderProducts(queryParams: OrderProductQueryDTO, authToken: string): Promise<OrderProductDTO[]> {
     const {
       productId,
+      userId,
       minQty,
       maxQty,
       minPrice,
@@ -32,6 +35,7 @@ export class OrderProductService {
       .leftJoinAndSelect('orderProduct.inBasket', 'basket');
 
     if (productId) { queryBuilder.andWhere('orderProduct.productId = :productId', {productId: productId}) }
+    if (userId) { queryBuilder.andWhere('orderProduct.userId = :userId', {userId: userId}) }
     if (minQty) { queryBuilder.andWhere('orderProduct.qty >= :qty', {qty: minQty}) }
     if (maxQty) { queryBuilder.andWhere('orderProduct.qty <= :qty', {qty: maxQty}) }
     if (minPrice) { queryBuilder.andWhere('orderProduct.productPrice >= :price', {price: minPrice}) }
@@ -42,21 +46,39 @@ export class OrderProductService {
       .limit(limit)
       .getMany();
 
-    const result = orderProducts.map(async (orderProduct) => await this.mergeOrderProduct(orderProduct))
+    const result = orderProducts.map(async (orderProduct) => await this.mergeOrderProduct(orderProduct, authToken))
 
     return Promise.all(result)
   }
 
-  async getOrderProduct(id: string): Promise<OrderProductDTO> {
+  async getOrderProduct(id: string, authToken: string): Promise<OrderProductDTO> {
     const queryBuilder = await this.orderProductRepository
       .createQueryBuilder('orderProduct')
       .leftJoinAndSelect('orderProduct.inBasket', 'basket')
       .where('orderProduct.id = :id', {id: id})
       .getOne();
 
-    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!queryBuilder) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND)
+    }
 
-    return this.mergeOrderProduct(queryBuilder)
+    return this.mergeOrderProduct(queryBuilder, authToken)
+  }
+
+  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
+    try {
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
+        headers: {
+          Authorization: authToken!
+        }
+      });
+
+      return res.data
+    } catch (e: any) {
+      if (e.name === 'AxiosError' && e.response.status === 403) {
+        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+      }
+    }
   }
 
   async getProductById(id: string): Promise<ProductDTO | undefined> {
@@ -64,58 +86,85 @@ export class OrderProductService {
       const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
 
       return res.data;
-    } catch (e) {
-      console.error(e)
-      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+    } catch (e: any) {
+      if (e.name !== 'AxiosError' && e.response.status !== 404) {
+        throw new Error(e)
+      }
     }
   }
 
-  async createOrderProduct(newOrderProduct: OrderProduct): Promise<OrderProduct> {
+  async getNewOrderProductId(): Promise<string> {
+    const lastElement =  await this.orderProductRepository.find( {
+      order: { id: 'DESC' },
+      take: 1
+    })
+
+    return lastElement[0]? String(+lastElement[0].id + 1) : String(1);
+  }
+
+  async createOrderProduct(newOrderProduct: OrderProduct, authToken: string): Promise<OrderProduct> {
     const product = await this.getProductById(newOrderProduct.productId);
     newOrderProduct.productPrice = product!.price;
+    newOrderProduct.id = await this.getNewOrderProductId()
+
+    const orderProduct = await this.orderProductRepository.save(newOrderProduct);
+
+    if (!await this.validation(orderProduct.id, authToken)) {
+      await this.orderProductRepository.remove(orderProduct)
+      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+    }
+
+    return orderProduct
+  }
+
+  async updateOrderProduct(id: string, orderProductDTO: OrderProduct, user: UserAuth) {
+    const orderProduct = await this.orderProductRepository
+      .createQueryBuilder('orderProduct')
+      .leftJoinAndSelect('orderProduct.inBasket', 'basket')
+      .where('orderProduct.id = :id', { id: id })
+      .getOne()
+
+    console.log(orderProduct)
+    const newOrderProduct = {} as OrderProduct;
+
+    Object.assign(newOrderProduct, orderProduct);
+    newOrderProduct.qty = orderProductDTO.qty;
+
+    await this.isUserOrderProductOwner(newOrderProduct, user);
+    await this.orderProductRepository.remove(orderProduct!);
 
     return this.orderProductRepository.save(newOrderProduct);
   }
 
-  async updateOrderProduct(id: string, orderProductDTO: OrderProduct) {
-    try {
-      const orderProduct = await this.orderProductRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      const product = await this.getProductById(orderProductDTO.productId);
-      orderProductDTO.productPrice = product!.price;
-
-      return this.orderProductRepository.update(id, {
-        ...orderProduct,
-        ...orderProductDTO
-      });
-    } catch (e) {
-      if (e instanceof CustomExternalError) {
-        throw new CustomExternalError(e.messages, e.statusCode)
+  async removeOrderProduct(id: string, user: UserAuth) {
+   const orderProduct = await this.orderProductRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
       }
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    });
+
+    await this.isUserOrderProductOwner(orderProduct, user);
+
+    return this.orderProductRepository.remove(orderProduct);
+  }
+
+  isUserOrderProductOwner(orderProduct: OrderProduct, user: UserAuth) {
+    if (scope(String(orderProduct.userId), String(user.id)) && user.role !== Role.Admin) {
+      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
-  async removeOrderProduct(id: string) {
-    try {
-      await this.orderProductRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.orderProductRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+  async validation(id: string, authToken: string): Promise<boolean> {
+    const orderProduct = await this.getOrderProduct(id, authToken) as any;
+
+    return String(orderProduct.user.id) === String(orderProduct.inBasket.userId);
   }
 
-  async mergeOrderProduct(orderProduct: OrderProduct): Promise<OrderProductDTO> {
+  async mergeOrderProduct(orderProduct: OrderProduct, authToken: string): Promise<OrderProductDTO> {
     return {
       id: orderProduct.id,
-      product: await this.getProductById(orderProduct.productId),
+      product: await this.getProductById(orderProduct.productId) ?? orderProduct.productId,
+      user: await this.getUserById(orderProduct.userId, authToken) ?? orderProduct.userId,
       qty: orderProduct.qty,
       productPrice: orderProduct.productPrice,
       inBasket: orderProduct.inBasket

@@ -4,10 +4,10 @@ import { CustomExternalError } from '../core/domain/error/custom.external.error'
 import { ErrorCode } from '../core/domain/error/error.code';
 import { Review } from '../core/entities';
 import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserDTO } from './reviews.dtos';
+import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from './reviews.dtos';
 import axios from 'axios';
-import { REVIEW_MAX_RATING, REVIEW_MIN_RATING } from './review.config';
-
+import { scope } from '../core/middlewares/access.user';
+import { Role } from '../core/enums/roles.enum';
 
 @singleton()
 export class ReviewService {
@@ -29,32 +29,33 @@ export class ReviewService {
       .limit(limit)
       .getMany();
 
-    const result = reviews.map(async (review) => await this.mergeReviewUserId(review))
+    const result = reviews.map(async (review) => await this.mergeReviewUserId(review, ''))
 
     return Promise.all(result)
   }
 
-  async getReview(id: string): Promise<ReviewDTO> {
-    try {
-      const review = await this.reviewRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-    });
-      return await this.mergeReviewUserId(review)
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+  async getReview(id: string, authToken: string): Promise<ReviewDTO> {
+    const review = await this.reviewRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+  });
+    return await this.mergeReviewUserId(review, authToken)
   }
 
-  async getUserById(id: string): Promise<UserDTO | undefined> {
+  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
+        headers: {
+          Authorization: authToken!
+        }
+      });
 
       return res.data
-    } catch (e) {
-      console.error(e)
-      throw new CustomExternalError([ErrorCode.USER_NOT_FOUND], HttpStatus.NOT_FOUND);
+    } catch (e: any) {
+      if (e.name === 'AxiosError' && e.response.status === 403) {
+        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+      }
     }
   }
 
@@ -63,9 +64,10 @@ export class ReviewService {
       const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
 
       return res.data;
-    } catch (e) {
-      console.error(e)
-      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+    } catch (e: any) {
+      if (e.name !== 'AxiosError' && e.response.status !== 404) {
+        throw new Error(e)
+      }
     }
   }
 
@@ -79,73 +81,59 @@ export class ReviewService {
   }
 
   async createReview(newReview: Review): Promise<Review> {
-    await this.validateReview(newReview);
+    if (!await this.getProductById(newReview.productId)) {
+      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
+
     newReview.id = await this.getNewReviewId()
 
     return this.reviewRepository.save(newReview);
   }
 
-  async updateReview(id: string, reviewDTO: Review) {
-    try {
-      const review = await this.reviewRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-
-      await this.validateReview(reviewDTO);
-      const newReview = {
-        ...review,
-        ...reviewDTO
+  async updateReview(id: string, reviewDTO: Review, user: UserAuth) {
+    const review = await this.reviewRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
       }
+    });
 
-      return this.reviewRepository
-        .createQueryBuilder()
-        .update('review')
-        .set(newReview)
-        .where('productId = :productId', {productId: review.productId})
-        .andWhere('userId = :userId', {userId: review.userId})
-        .execute()
-    } catch (e) {
-      if (e instanceof CustomExternalError) {
-        throw new CustomExternalError(e.messages, e.statusCode)
+    const { productId, ...others } = reviewDTO;
+
+    const newReview = {
+      ...review,
+      ...others
+    }
+    await this.isUserReviewOwner(newReview, user);
+    await this.reviewRepository.remove(review);
+
+    return this.reviewRepository.save(newReview)
+  }
+
+  async removeReview(id: string, user: UserAuth) {
+    const review = await this.reviewRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
       }
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    });
+
+    await this.isUserReviewOwner(review, user)
+
+    return this.reviewRepository.remove(review);
+  }
+
+  isUserReviewOwner(review: Review, user: UserAuth) {
+    if (scope(String(review.userId), String(user.id)) && user.role !== Role.Admin) {
+      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
-  async removeReview(id: string) {
-    try {
-      const review = await this.reviewRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.reviewRepository.remove(review);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
-  }
-
-  async validateReview(review: Review) {
-    await this.getUserById(review.userId);
-    await this.getProductById(review.productId)
-
-    if (review.rating > REVIEW_MAX_RATING) {
-      throw new CustomExternalError([`${ErrorCode.RATING_CANNOT_BE_GT}:${REVIEW_MAX_RATING}`], HttpStatus.BAD_REQUEST);
-    }
-    if (review.rating < REVIEW_MIN_RATING) {
-      throw new CustomExternalError([`${ErrorCode.RATING_CANNOT_BE_LT}:${REVIEW_MIN_RATING}`], HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  async mergeReviewUserId(review: Review): Promise<ReviewDTO> {
+  async mergeReviewUserId(review: Review, authToken: string): Promise<ReviewDTO> {
     return {
       id: review.id,
       rating: review.rating,
       comment: review.comment,
-      product: await this.getProductById(review.productId),
-      user: await this.getUserById(review.userId),
+      product: await this.getProductById(review.productId) ?? review.productId,
+      user: await this.getUserById(review.userId, authToken) ?? review.userId,
     }
   }
 }

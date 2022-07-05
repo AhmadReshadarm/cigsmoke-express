@@ -17,9 +17,8 @@ export class CategoryController {
   ) { }
 
   @Get()
-  @Middleware([verifyToken, isAdmin])
   async getCategories(req: Request, resp: Response) {
-    const categories = await this.categoryService.getCategories();
+    const categories = await this.categoryService.getCategories(req.query);
 
     resp.json(categories);
   }
@@ -40,6 +39,7 @@ export class CategoryController {
   }
 
   @Post()
+  @Middleware([verifyToken, isAdmin])
   async createCategory(req: Request, resp: Response) {
     const { parentId } = req.body
     const newCategory = await validation(new Category(req.body));
@@ -55,6 +55,7 @@ export class CategoryController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateCategory(req: Request, resp: Response) {
     const { id } = req.params;
     const { parentId } = req.body
@@ -71,6 +72,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeCategory(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.categoryService.removeCategory(id);

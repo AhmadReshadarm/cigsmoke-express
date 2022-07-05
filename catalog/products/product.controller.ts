@@ -6,7 +6,8 @@ import { ProductService } from './product.service';
 import { ColorService } from '../colors/color.service';
 import { Color, Product } from '../../core/entities';
 import { TagService } from '../tags/tag.service';
-import { Controller, Delete, Get, Post, Put } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { isAdmin, verifyToken } from '../../core/middlewares';
 
 @singleton()
 @Controller('/products')
@@ -40,6 +41,7 @@ export class ProductController {
   }
 
   @Post()
+  @Middleware([verifyToken, isAdmin])
   async createProduct(req: Request, resp: Response) {
     const { colors, tags } = req.body;
     const newProduct = await validation(new Product(req.body));
@@ -53,6 +55,7 @@ export class ProductController {
   }
 
   @Put(':id')
+  @Middleware([verifyToken, isAdmin])
   async updateProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const { colors, tags } = req.body;
@@ -66,6 +69,7 @@ export class ProductController {
   }
 
   @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
   async removeProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.productService.removeProduct(id);

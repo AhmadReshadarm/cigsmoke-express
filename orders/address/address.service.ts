@@ -5,7 +5,9 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { Address } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
-import { AddressDTO, AddressQueryDTO , UserDTO } from '../order.dtos';
+import { AddressDTO, AddressQueryDTO, UserAuth, UserDTO } from '../order.dtos';
+import { Role } from '../../core/enums/roles.enum';
+import { scope } from '../../core/middlewares/access.user';
 
 @singleton()
 export class AddressService {
@@ -15,7 +17,7 @@ export class AddressService {
     this.addressRepository = dataSource.getRepository(Address);
   }
 
-  async getAddresses(queryParams: AddressQueryDTO): Promise<AddressDTO[]> {
+  async getAddresses(queryParams: AddressQueryDTO, authToken: string): Promise<AddressDTO[]> {
     const {
       userId,
       firstName,
@@ -46,12 +48,12 @@ export class AddressService {
       .limit(limit)
       .getMany();
 
-    const result = addresses.map(async (address) => await this.mergeAddress(address))
+    const result = addresses.map(async (address) => await this.mergeAddress(address, authToken))
 
     return Promise.all(result)
   }
 
-  async getAddress(id: string): Promise<AddressDTO> {
+  async getAddress(id: string, authToken: string): Promise<AddressDTO> {
     const queryBuilder = await this.addressRepository
       .createQueryBuilder('address')
       .leftJoinAndSelect('address.checkouts', 'checkout')
@@ -60,65 +62,66 @@ export class AddressService {
 
     if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
 
-    return this.mergeAddress(queryBuilder)
+    return this.mergeAddress(queryBuilder, authToken)
   }
 
-  async getUsersById(id: string): Promise<UserDTO | undefined> {
+  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
+        headers: {
+          Authorization: authToken!
+        }
+      });
 
-      return res.data;
-    } catch (e) {
-      console.error(e)
-      throw new CustomExternalError([ErrorCode.USER_NOT_FOUND], HttpStatus.NOT_FOUND);
+      return res.data
+    } catch (e: any) {
+      if (e.name === 'AxiosError' && e.response.status === 403) {
+        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+      }
     }
   }
 
   async createAddress(newAddress: Address): Promise<Address> {
-    await this.getUsersById(newAddress.userId);
-
     return this.addressRepository.save(newAddress);
   }
 
-  async updateAddress(id: string, addressDTO: Address) {
-    try {
-      const address = await this.addressRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      await this.getUsersById(addressDTO.userId);
-
-      return this.addressRepository.update(id, {
-        ...address,
-        ...addressDTO
-      });
-    } catch (e) {
-      if (e instanceof CustomExternalError) {
-        throw new CustomExternalError(e.messages, e.statusCode)
+  async updateAddress(id: string, addressDTO: Address, user: UserAuth) {
+    const address = await this.addressRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
       }
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    });
+    await this.isUserAddressOwner(address, user)
+
+    return this.addressRepository.save({
+      ...address,
+      ...addressDTO
+    });
+  }
+
+  async removeAddress(id: string, user: UserAuth) {
+    const address = await this.addressRepository.findOneOrFail({
+      where: {
+          id: Equal(id),
+      }
+    });
+
+    await this.isUserAddressOwner(address, user)
+
+    return this.addressRepository.remove(address);
+  }
+
+  isUserAddressOwner(address: Address, user: UserAuth ) {
+    if (scope(String(address.userId), String(user.id)) && user.role !== Role.Admin) {
+      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
-  async removeAddress(id: string) {
-    try {
-      await this.addressRepository.findOneOrFail({
-        where: {
-            id: Equal(id),
-        }
-      });
-      return this.addressRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
-  }
-
-  async mergeAddress(address: Address): Promise<AddressDTO> {
+  async mergeAddress(address: Address, authToken: string): Promise<AddressDTO> {
 
     return {
       id: address.id,
-      user: await this.getUsersById(address.userId),
+      user: await this.getUserById(address.userId, authToken) ?? address.userId,
       fistName: address.fistName,
       lastName: address.lastName,
       address: address.address,

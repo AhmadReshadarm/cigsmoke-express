@@ -10,7 +10,7 @@ export function isUser(req: Request, res: Response, next: NextFunction): void {
     const { ACCESS_SECRET_TOKEN } = process.env;
     const tokenInfo = jwt.verify(token!, ACCESS_SECRET_TOKEN ?? '') as any;
 
-    if (tokenInfo?.role !== Role.User) {
+    if (tokenInfo?.role !== Role.User && tokenInfo?.role !== Role.Admin) {
         res.status(HttpStatus.FORBIDDEN).json({ message: 'You are forbidden to retrieve this data' });
 
         return;

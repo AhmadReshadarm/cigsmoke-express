@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { User } from '../../core/entities/users/user.entity';
+import { User } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { Role } from '../../core/enums/roles.enum';
 
@@ -61,7 +61,7 @@ export class UserService {
           id: Equal(id),
         },
       });
-      return this.userRepository.update(id, {
+      return this.userRepository.save({
         ...user,
         ...userDTO,
       });
