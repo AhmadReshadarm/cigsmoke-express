@@ -1,10 +1,8 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../../core/domain/error/custom.external.error';
-import { ErrorCode } from '../../core/domain/error/error.code';
 import { User } from '../../core/entities';
-import { HttpStatus } from '../../core/lib/http-status';
 import { Role } from '../../core/enums/roles.enum';
+import { UserQueryDTO } from '../auth.dtos';
 
 @singleton()
 export class UserService {
@@ -14,40 +12,51 @@ export class UserService {
     this.userRepository = appDataSource.getRepository(User);
   }
 
-  async getUsers(): Promise<User[]> {
-    const users = await this.userRepository
-      .createQueryBuilder('User')
-      .select(['id', 'firstName', 'lastName', 'email'])
-      // for security measures removing admins from quarry
-      .where(`User.role != :admin`, { admin: Role.Admin })
-      .getRawMany();
-    return users;
+  async getUsers(queryParams: UserQueryDTO): Promise<User[]> {
+    const {
+      firstName,
+      lastName,
+      email,
+      isVerified,
+      role,
+      sortBy='email',
+      orderBy='DESC',
+      limit=10,
+    } = queryParams;
+
+    const queryBuilder = await this.userRepository
+      .createQueryBuilder('user')
+
+    if (firstName) { queryBuilder.andWhere('user.firstName LIKE :firstName', { firstName: `%${firstName}%` }); }
+    if (lastName) { queryBuilder.andWhere('user.lastName LIKE :lastName', { lastName: `%${lastName}%` }); }
+    if (email) { queryBuilder.andWhere('user.email LIKE :email', { email: `%${email}%` }); }
+    if (isVerified) { queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified: isVerified }); }
+    if (role) { queryBuilder.andWhere('user.role = :role', { role: role }); }
+
+    return queryBuilder
+      .orderBy(`user.${sortBy}`, orderBy)
+      .limit(limit)
+      .getMany();
   }
 
   async getUser(id: string): Promise<User> {
-    try {
-      const user = await this.userRepository.findOneOrFail({
-        where: {
-          id: Equal(id),
-        },
-      });
-      return user;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const user = await this.userRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+    });
+
+    return user;
   }
 
   async getEmail(email: string) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: {
-          email: Equal(email),
-        },
-      });
-      return user;
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const user = await this.userRepository.findOne({
+      where: {
+        email: Equal(email),
+      },
+    });
+
+    return user;
   }
 
   async createUser(newUser: User): Promise<User> {
@@ -55,31 +64,29 @@ export class UserService {
   }
 
   async updateUser(id: string, userDTO: User) {
-    try {
-      const user = await this.userRepository.findOneOrFail({
-        where: {
-          id: Equal(id),
-        },
-      });
-      return this.userRepository.save({
-        ...user,
-        ...userDTO,
-      });
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    const user = await this.userRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+    });
+
+    const newUser = {
+      ...user,
+      ...userDTO,
     }
+    newUser.isVerified = newUser.isVerified ?? user.isVerified;
+    newUser.role = newUser.role ?? user.role;
+
+    return this.userRepository.save(newUser);
   }
 
   async removeUser(id: string) {
-    try {
-      await this.userRepository.findOneOrFail({
-        where: {
-          id: Equal(id),
-        },
-      });
-      return this.userRepository.delete(id);
-    } catch {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    const user = await this.userRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+    });
+
+    return this.userRepository.remove(user);
   }
 }

@@ -19,7 +19,7 @@ export class User {
   @IsNotEmpty()
   email: string;
 
-  @Column()
+  @Column({ select: false })
   @IsNotEmpty()
   password: string;
 
