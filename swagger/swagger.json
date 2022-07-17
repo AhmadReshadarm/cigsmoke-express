@@ -4383,6 +4383,13 @@
         },
         "url": {
           "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "array of tag ids"
         }
       }
     },
