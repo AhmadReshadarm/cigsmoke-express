@@ -63,6 +63,7 @@ export interface CategoryQueryDTO {
 export interface BrandQueryDTO {
   readonly name?: string,
   readonly image?: string,
+  readonly showOnMain?: boolean,
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;

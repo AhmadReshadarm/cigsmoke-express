@@ -678,6 +678,13 @@
             "type": "string"
           },
           {
+            "name": "showOnMain",
+            "in": "query",
+            "description": "Filtering brands by showOnMain",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "description": "Sorting brands by property",
@@ -3662,6 +3669,13 @@
             "type": "string"
           },
           {
+            "name": "showOnMain",
+            "in": "query",
+            "description": "Filtering reviews by showOnMain",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "description": "Sorting reviews by property",
@@ -3802,7 +3816,6 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
-            "required": true,
             "description": "Admin-token or user-token from review owner"
           },
           {
@@ -3827,6 +3840,10 @@
                 },
                 "comment": {
                   "type": "string"
+                },
+                "showOnMain": {
+                  "type": "boolean",
+                  "description": "value 'true' can be set up only with admin token"
                 }
               }
             }
@@ -4482,6 +4499,9 @@
         },
         "image": {
           "type": "string"
+        },
+        "showOnMain": {
+          "type": "boolean"
         }
       },
       "xml": {
@@ -5020,6 +5040,10 @@
         },
         "comment": {
           "type": "string"
+        },
+        "showOnMain": {
+          "type": "boolean",
+          "description": "value 'true' can be set up only with admin token"
         },
         "productId": {
           "type": "string"
