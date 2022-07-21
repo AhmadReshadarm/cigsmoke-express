@@ -1,5 +1,6 @@
 import { Address, Basket, Checkout, OrderProduct, PaymentCard } from '../core/entities';
 import { Role } from '../core/enums/roles.enum';
+import { BasketStatus } from '../core/enums/basket-status.enum';
 
 export interface UserDTO {
   id: string,
@@ -46,12 +47,16 @@ export interface BasketDTO {
   totalAmount: number,
   createdAt: Date,
   updatedAt: Date,
+  status: BasketStatus;
 }
 
 export interface BasketQueryDTO {
   minTotalAmount?: number,
   maxTotalAmount?: number,
+  updatedFrom?: Date,
+  updatedTo?: Date,
   userId?: string,
+  status?: BasketStatus
   sortBy?: 'productId' | 'qty' | 'price',
   orderBy?: 'DESC' | 'ASC',
   limit?: number,

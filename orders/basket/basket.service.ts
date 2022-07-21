@@ -22,6 +22,9 @@ export class BasketService {
       userId,
       minTotalAmount,
       maxTotalAmount,
+      status,
+      updatedFrom,
+      updatedTo,
       sortBy='userId',
       orderBy='DESC',
       limit=10,
@@ -33,8 +36,11 @@ export class BasketService {
       .leftJoinAndSelect('basket.checkout', 'checkout')
 
     if (userId) { queryBuilder.andWhere('basket.userId = :userId', {userId: userId}) }
-    if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :amount', {amount: minTotalAmount}) }
-    if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :amount', {amount: maxTotalAmount}) }
+    if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', {minAmount: minTotalAmount}) }
+    if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', {maxAmount: maxTotalAmount}) }
+    if (status) { queryBuilder.andWhere('basket.status = :status', {status: status}) }
+    if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', {dateFrom: updatedFrom}) }
+    if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', {dateTo: updatedTo}) }
 
     const baskets = await queryBuilder
       .orderBy(`basket.${sortBy}`, orderBy)
@@ -129,6 +135,7 @@ export class BasketService {
       totalAmount: this.getTotalAmount(basket.orderProducts),
       createdAt: basket.createdAt,
       updatedAt: basket.updatedAt,
+      status: basket.status,
     }
   }
 }

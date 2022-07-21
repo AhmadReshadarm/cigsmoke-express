@@ -10,6 +10,7 @@ import {
 import { OrderProduct } from './orderProduct.entity';
 import { Checkout } from './checkout.entity';
 import { IsNotEmpty } from 'class-validator';
+import { BasketStatus } from '../../enums/basket-status.enum';
 
 @Entity()
 export class Basket {
@@ -33,10 +34,14 @@ export class Basket {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  constructor(args?: { title: string, orderProducts: OrderProduct[], checkout: Checkout }) {
+  @Column({ type: 'enum', enum: BasketStatus, default: BasketStatus.New })
+  status: BasketStatus
+
+  constructor(args?: { title: string, orderProducts: OrderProduct[], checkout: Checkout, status: BasketStatus }) {
     if (args) {
       this.orderProducts = args.orderProducts;
       this.checkout = args.checkout;
+      this.status = args.status;
     }
   }
 }

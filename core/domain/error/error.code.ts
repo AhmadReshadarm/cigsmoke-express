@@ -4,5 +4,6 @@ export enum ErrorCode {
   PRODUCT_NOT_FOUND = 'The requested product is not found',
   USER_NOT_FOUND = 'The requested user is not found',
   FORBIDDEN = 'You are forbidden to access this data',
-  DUPLICATE_ENTRY = 'Duplicate entry for primary key'
+  DUPLICATE_ENTRY = 'Duplicate entry for primary key',
+  DYNAMIC_EMPTY_QUERY = 'Query params "from", "to" and "step" should not be empty',
 }
