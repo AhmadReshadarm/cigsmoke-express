@@ -4468,6 +4468,152 @@
           }
         }
       }
+    },
+    "/analytics": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "Get analytics object",
+        "description": "",
+        "operationId": "getAnalytics",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "name": "updatedFrom",
+            "in": "query",
+            "description": "filtering sales from date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "updatedTo",
+            "in": "query",
+            "description": "filtering sales to date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "filtering sales by basket status",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "groupBy",
+            "in": "query",
+            "description": "group sales by user/category/brand/product",
+            "required": false,
+            "default": "product",
+            "type": "string"
+          }
+        ],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "description": "product or user or brand or category object with properties: qty and amount"
+                    }
+                  },
+                  "totalAmount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/analytics/dynamic": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "Get sales dynamic from period",
+        "description": "",
+        "operationId": "getDynamic",
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "filtering sales from date",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "filtering sales to date",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "step",
+            "in": "query",
+            "description": "step for dynamics (day or month)",
+            "required": false,
+            "default": "day",
+            "type": "string"
+          }
+        ],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query params"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {
