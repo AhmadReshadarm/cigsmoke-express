@@ -47,6 +47,11 @@ apiEndpoints:
       '/slides*',
       '/advertisements*'
     ]
+  analytics:
+    host: localhost
+    paths: [
+      '/analytics*',
+    ]
 serviceEndpoints:
   authSrv:
     url: ${AUTH_DB}
@@ -64,6 +69,8 @@ serviceEndpoints:
     url: ${WISHLISTS_DB}
   bannersSrv:
     url: ${BANNERS_DB}
+  analyticsSrv:
+    url: ${ANALYTICS_DB}
 policies:
   - cors
   - proxy
@@ -131,4 +138,12 @@ pipelines:
       - proxy:
           - action:
               serviceEndpoint: bannersSrv
+              changeOrigin: true
+  pipeAnalytic:
+    apiEndpoints:
+      - analytics
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: analyticsSrv
               changeOrigin: true
