@@ -20,8 +20,8 @@ export interface ProductDTO {
 
 export interface OrderProductDTO {
   id: string,
-  user: UserDTO | string,
-  product: ProductDTO | string,
+  // user: UserDTO | string,
+  product: ProductDTO | undefined,
   inBasket: Basket
   qty: number,
   productPrice: number,
@@ -41,8 +41,7 @@ export interface OrderProductQueryDTO {
 
 export interface BasketDTO {
   id: string
-  user: UserDTO | string,
-  orderProducts: OrderProduct[],
+  orderProducts: OrderProductDTO[],
   checkout: Checkout,
   totalAmount: number,
   createdAt: Date,

@@ -20,9 +20,11 @@ export interface ReviewDTO {
   id: string,
   rating: number,
   comment: string,
+  createdAt: Date,
+  updatedAt: Date,
   showOnMain: boolean,
   product: ProductDTO | string,
-  user:  UserDTO | string,
+  user: UserDTO | string,
 }
 
 export interface ReviewQueryDTO {

@@ -2,22 +2,28 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Address, Basket, OrderProduct } from '../../core/entities';
+import { Basket, OrderProduct } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
 import { BasketDTO, BasketQueryDTO, UserAuth, UserDTO } from '../order.dtos';
 import { Role } from '../../core/enums/roles.enum';
 import { scope } from '../../core/middlewares/access.user';
+import { OrderProductService } from '../../orders/orderProducts/orderProduct.service';
 
 @singleton()
 export class BasketService {
   private basketRepository: Repository<Basket>;
+  private orderProductRepository: Repository<OrderProduct>;
 
-  constructor(dataSource: DataSource) {
+  constructor(
+    dataSource: DataSource,
+    private orderProductService: OrderProductService,
+  ) {
     this.basketRepository = dataSource.getRepository(Basket);
+    this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
 
-  async getBaskets(queryParams: BasketQueryDTO, authToken: string): Promise<BasketDTO[]> {
+  async getBaskets(queryParams: BasketQueryDTO): Promise<BasketDTO[]> {
     const {
       userId,
       minTotalAmount,
@@ -25,9 +31,9 @@ export class BasketService {
       status,
       updatedFrom,
       updatedTo,
-      sortBy='userId',
-      orderBy='DESC',
-      limit=10,
+      sortBy = 'userId',
+      orderBy = 'DESC',
+      limit = 10,
     } = queryParams;
 
     const queryBuilder = this.basketRepository
@@ -35,35 +41,35 @@ export class BasketService {
       .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
       .leftJoinAndSelect('basket.checkout', 'checkout')
 
-    if (userId) { queryBuilder.andWhere('basket.userId = :userId', {userId: userId}) }
-    if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', {minAmount: minTotalAmount}) }
-    if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', {maxAmount: maxTotalAmount}) }
-    if (status) { queryBuilder.andWhere('basket.status = :status', {status: status}) }
-    if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', {dateFrom: updatedFrom}) }
-    if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', {dateTo: updatedTo}) }
+    if (userId) { queryBuilder.andWhere('basket.userId = :userId', { userId: userId }) }
+    if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', { minAmount: minTotalAmount }) }
+    if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', { maxAmount: maxTotalAmount }) }
+    if (status) { queryBuilder.andWhere('basket.status = :status', { status: status }) }
+    if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', { dateFrom: updatedFrom }) }
+    if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', { dateTo: updatedTo }) }
 
     const baskets = await queryBuilder
       .orderBy(`basket.${sortBy}`, orderBy)
       .limit(limit)
       .getMany();
 
-    const result = baskets.map(async (basket) => await this.mergeBasket(basket, authToken))
+    const result = baskets.map(async (basket) => await this.mergeBasket(basket))
 
     return Promise.all(result)
   }
 
-  async getBasket(id: string, authToken: string): Promise<BasketDTO> {
-      const queryBuilder = await this.basketRepository
-        .createQueryBuilder('basket')
-        .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
-        .leftJoinAndSelect('basket.checkout', 'checkout')
-        .where('basket.id = :id', {id: id})
-        .getOne();
+  async getBasket(id: string): Promise<BasketDTO> {
+    const queryBuilder = await this.basketRepository
+      .createQueryBuilder('basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
+      .leftJoinAndSelect('basket.checkout', 'checkout')
+      .where('basket.id = :id', { id: id })
+      .getOne();
 
-      if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
 
-      return this.mergeBasket(queryBuilder, authToken)
-    }
+    return this.mergeBasket(queryBuilder)
+  }
 
   async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
     try {
@@ -86,7 +92,7 @@ export class BasketService {
       accum += product.qty * product.productPrice;
 
       return accum;
-    }, 0)
+    }, 0);
   }
 
   async createBasket(newBasket: Basket): Promise<Basket> {
@@ -96,41 +102,86 @@ export class BasketService {
   async updateBasket(id: string, basketDTO: Basket, user: UserAuth) {
     const basket = await this.basketRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
+      },
+      relations: ['orderProducts'],
+    });
+
+    if (user) {
+      await this.checkIfUserBasketOwner(basket, user);
+    }
+
+    basket.orderProducts.forEach(orderProduct => {
+      const curOrderProduct = basketDTO.orderProducts.find(({ productId }) => orderProduct.productId === productId.toString());
+
+      if (!curOrderProduct) {
+        this.orderProductRepository.remove(orderProduct);
+        basket.orderProducts = basket.orderProducts.filter(curOrderProduct => curOrderProduct.id !== orderProduct.id)
       }
     });
 
-    await this.isUserBasketOwner(basket, user);
+    const promises = basket.orderProducts.map(
+      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
+    )
+    const orderProducts = await Promise.all(promises);
 
-    return this.basketRepository.save({
+    for (const { productId, qty } of basketDTO.orderProducts) {
+      const orderProduct = await this.orderProductRepository.findOne({
+        where: {
+          productId: Equal(productId),
+          basketId: Equal(basket.id),
+        },
+      });
+
+      if (!orderProduct) {
+        const orderProductData = new OrderProduct({ productId, qty, inBasket: basket });
+        const newOrderProduct = await this.orderProductService.createOrderProduct(orderProductData);
+        orderProducts.push(await this.orderProductService.mergeOrderProduct(newOrderProduct));
+      }
+
+      if (orderProduct && orderProduct.qty !== qty) {
+        const newOrderProduct = await this.orderProductService.updateOrderProduct(orderProduct.id, {
+          ...orderProduct,
+          qty
+        });
+        const curOrderProduct = orderProducts.find(orderProduct => orderProduct.id === newOrderProduct.id)!;
+        curOrderProduct.qty = qty;
+      }
+    }
+
+    return {
       ...basket,
-      ...basketDTO
-    });
+      orderProducts,
+    }
   }
 
   async removeBasket(id: string, user: UserAuth) {
     const basket = await this.basketRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
-    await this.isUserBasketOwner(basket, user);
+
+    if (user) {
+      await this.checkIfUserBasketOwner(basket, user);
+    }
 
     return this.basketRepository.remove(basket);
   }
 
-  isUserBasketOwner(basket: Basket, user: UserAuth ) {
+  checkIfUserBasketOwner(basket: Basket, user: UserAuth) {
     if (scope(String(basket.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
-  async mergeBasket(basket: Basket, authToken: string): Promise<BasketDTO> {
-
+  async mergeBasket(basket: Basket): Promise<BasketDTO> {
+    const orderProducts = basket.orderProducts.map(
+      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
+    );
     return {
       id: basket.id,
-      user: await this.getUserById(basket.userId, authToken) ?? basket.userId,
-      orderProducts: basket.orderProducts,
+      orderProducts: await Promise.all(orderProducts),
       checkout: basket.checkout,
       totalAmount: this.getTotalAmount(basket.orderProducts),
       createdAt: basket.createdAt,

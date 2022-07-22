@@ -12,7 +12,7 @@ import { User } from '../../core/entities';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -27,7 +27,11 @@ export class UserController {
   }
 
   @Get(':id')
-  @Middleware([verifyToken, isUser, verifyUserId])
+  @Middleware([
+    // verifyToken
+    // , isUser
+    // , verifyUserId
+  ])
   async getUser(req: Request, resp: Response) {
     const { id } = req.params;
 

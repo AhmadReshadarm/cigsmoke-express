@@ -30,7 +30,7 @@ export class Product {
 
   @Column()
   @Min(1)
-  oldPrice: number;
+  oldPrice?: number;
 
   @Column({ nullable: true })
   desc: string;
@@ -66,7 +66,7 @@ export class Product {
   brand: Brand;
 
   @IsNotEmpty()
-  @Column({unique: true})
+  @Column({ unique: true })
   url: string;
 
   @ManyToMany(
@@ -84,6 +84,7 @@ export class Product {
     desc: string,
     available: boolean,
     colors?: Color[],
+    oldPrice?: number,
     category: Category,
     images: string,
     url: string,

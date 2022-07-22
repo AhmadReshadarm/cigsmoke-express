@@ -19,9 +19,9 @@ export class UserService {
       email,
       isVerified,
       role,
-      sortBy='email',
-      orderBy='DESC',
-      limit=10,
+      sortBy = 'email',
+      orderBy = 'DESC',
+      limit = 10,
     } = queryParams;
 
     const queryBuilder = await this.userRepository
@@ -49,7 +49,7 @@ export class UserService {
     return user;
   }
 
-  async getEmail(email: string) {
+  async getByEmail(email: string) {
     const user = await this.userRepository.findOne({
       where: {
         email: Equal(email),

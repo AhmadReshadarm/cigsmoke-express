@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { OrderProduct } from './orderProduct.entity';
 import { Checkout } from './checkout.entity';
-import { IsNotEmpty } from 'class-validator';
 import { BasketStatus } from '../../enums/basket-status.enum';
 
 @Entity()
@@ -17,7 +16,6 @@ export class Basket {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @IsNotEmpty()
   @Column()
   userId: string;
 
