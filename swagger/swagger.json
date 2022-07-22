@@ -678,6 +678,13 @@
             "type": "string"
           },
           {
+            "name": "showOnMain",
+            "in": "query",
+            "description": "Filtering brands by showOnMain",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "description": "Sorting brands by property",
@@ -2339,23 +2346,7 @@
           "200": {
             "description": "Successful deleted",
             "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "products": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/Product"
-                  },
-                  "readOnly": true
-                },
-                "url": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/Tag"
             }
           },
           "401": {
@@ -3678,6 +3669,13 @@
             "type": "string"
           },
           {
+            "name": "showOnMain",
+            "in": "query",
+            "description": "Filtering reviews by showOnMain",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "description": "Sorting reviews by property",
@@ -3818,7 +3816,6 @@
             "name": "Authorization",
             "required": true,
             "in": "header",
-            "required": true,
             "description": "Admin-token or user-token from review owner"
           },
           {
@@ -3843,6 +3840,10 @@
                 },
                 "comment": {
                   "type": "string"
+                },
+                "showOnMain": {
+                  "type": "boolean",
+                  "description": "value 'true' can be set up only with admin token"
                 }
               }
             }
@@ -4135,6 +4136,338 @@
           }
         }
       }
+    },
+    "/slides": {
+      "get": {
+        "tags": ["slide"],
+        "summary": "Get array of slides",
+        "description": "",
+        "operationId": "getSlides",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Slide"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["slide"],
+        "summary": "Create a slide",
+        "description": "",
+        "operationId": "createSlide",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Slide"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Slide request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/slides/{slideId}": {
+      "get": {
+        "tags": ["slide"],
+        "summary": "Find slide by id",
+        "operationId": "findSlideById",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "slideId",
+            "in": "path",
+            "description": "id of slide to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/Slide"
+            }
+          },
+          "400": {
+            "description": "Invalid id supplied"
+          },
+          "404": {
+            "description": "Slide not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["slide"],
+        "summary": "Delete the slide",
+        "description": "",
+        "operationId": "deleteSlide",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "name": "slideId",
+            "in": "path",
+            "description": "id of slide to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful deleted",
+            "schema": {
+              "$ref": "#/definitions/Slide"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Slide not found"
+          }
+        }
+      }
+    },
+    "/advertisements": {
+      "get": {
+        "tags": ["advertisement"],
+        "summary": "Get array of advertisements",
+        "description": "",
+        "operationId": "getAdvertisements",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Advertisement"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["advertisement"],
+        "summary": "Create a advertisement",
+        "description": "",
+        "operationId": "createAdvertisement",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Advertisement"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Advertisement request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/advertisements/{advertisementId}": {
+      "get": {
+        "tags": ["advertisement"],
+        "summary": "Find advertisement by id",
+        "operationId": "findAdvertisementById",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "advertisementId",
+            "in": "path",
+            "description": "id of advertisement to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/Advertisement"
+            }
+          },
+          "400": {
+            "description": "Invalid id supplied"
+          },
+          "404": {
+            "description": "Advertisement not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["advertisement"],
+        "summary": "Update the advertisement",
+        "description": "",
+        "operationId": "updateAdvertisement",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "name": "advertisementId",
+            "in": "path",
+            "description": "id of advertisement to return",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Advertisement"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful updated",
+            "schema": {
+              "$ref": "#/definitions/Advertisement"
+            }
+          },
+          "400": {
+            "description": "Invalid Advertisement request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Advertisement not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["advertisement"],
+        "summary": "Delete the advertisement",
+        "description": "",
+        "operationId": "deleteAdvertisement",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "description": "Admin-token"
+          },
+          {
+            "name": "advertisementId",
+            "in": "path",
+            "description": "id of advertisement to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful deleted",
+            "schema": {
+              "$ref": "#/definitions/Advertisement"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Advertisement not found"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {
@@ -4166,6 +4499,9 @@
         },
         "image": {
           "type": "string"
+        },
+        "showOnMain": {
+          "type": "boolean"
         }
       },
       "xml": {
@@ -4705,6 +5041,10 @@
         "comment": {
           "type": "string"
         },
+        "showOnMain": {
+          "type": "boolean",
+          "description": "value 'true' can be set up only with admin token"
+        },
         "productId": {
           "type": "string"
         },
@@ -4783,6 +5123,36 @@
         "userId": {
           "type": "string",
           "readOnly": true
+        }
+      }
+    },
+    "Slide": {
+      "required": ["image"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "image": {
+          "type": "string"
+        }
+      }
+    },
+    "Advertisement": {
+      "required": ["image", "description", "link"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "image": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
         }
       }
     }

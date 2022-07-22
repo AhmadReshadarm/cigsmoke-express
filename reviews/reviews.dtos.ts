@@ -22,6 +22,7 @@ export interface ReviewDTO {
   comment: string,
   createdAt: Date,
   updatedAt: Date,
+  showOnMain: boolean,
   product: ProductDTO | string,
   user: UserDTO | string,
 }
@@ -30,6 +31,7 @@ export interface ReviewQueryDTO {
   id?: string,
   productId?: string,
   userId?: string,
+  showOnMain?: boolean,
   sortBy?: 'productId' | 'userId',
   orderBy?: 'DESC' | 'ASC';
   limit?: number;

@@ -1,9 +1,9 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { Brand, Tag } from '../../core/entities';
+import { Brand } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { Product } from '../../core/entities';
-import { BrandQueryDTO, TagQueryDTO } from '../catalog.dtos';
+import { BrandQueryDTO } from '../catalog.dtos';
 
 @singleton()
 export class BrandService {
@@ -17,6 +17,7 @@ export class BrandService {
     const {
       name,
       image,
+      showOnMain,
       sortBy='name',
       orderBy='DESC',
       limit=10,
@@ -27,6 +28,7 @@ export class BrandService {
 
     if (name) { queryBuilder.andWhere('brand.name LIKE :name', { name: `%${name}%` }); }
     if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
+    if (showOnMain) { queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
     return queryBuilder
       .orderBy(`brand.${sortBy}`, orderBy)

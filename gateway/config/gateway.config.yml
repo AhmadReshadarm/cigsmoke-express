@@ -41,6 +41,12 @@ apiEndpoints:
   wishlists:
     host: localhost
     paths: [ '/wishlists*' ]
+  banners:
+    host: localhost
+    paths: [
+      '/slides*',
+      '/advertisements*'
+    ]
 serviceEndpoints:
   authSrv:
     url: ${AUTH_DB}
@@ -56,6 +62,8 @@ serviceEndpoints:
     url: ${SWAGGER_DB}
   wishlistsSrv:
     url: ${WISHLISTS_DB}
+  bannersSrv:
+    url: ${BANNERS_DB}
 policies:
   - cors
   - proxy
@@ -116,4 +124,11 @@ pipelines:
           - action:
               serviceEndpoint: wishlistsSrv
               changeOrigin: true
-
+  pipeBanner:
+    apiEndpoints:
+      - banners
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: bannersSrv
+              changeOrigin: true

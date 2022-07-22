@@ -11,12 +11,16 @@ export class Brand {
   name: string;
 
   @Column({ nullable: true })
-  image?: string;
+  image: string;
 
-  constructor(args?: { name: string, image?: string }) {
+  @Column({ default: false })
+  showOnMain: boolean;
+
+  constructor(args?: { name: string, image: string, showOnMain: boolean }) {
     if (args) {
       this.name = args.name;
       this.image = args.image;
+      this.showOnMain = args.showOnMain;
     }
   }
 }

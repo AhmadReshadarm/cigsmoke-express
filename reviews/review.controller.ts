@@ -6,6 +6,7 @@ import { validation } from '../core/lib/validator';
 import { ReviewService } from './review.service';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../core/decorators';
 import { isUser, verifyToken, verifyUserId } from '../core/middlewares';
+import { Role } from '../core/enums/roles.enum';
 
 @singleton()
 @Controller('/reviews')
@@ -34,6 +35,10 @@ export class ReviewController {
     const newReview = new Review(req.body);
     newReview.userId = resp.locals.user.id;
 
+    if (resp.locals.user.role != Role.Admin) {
+      newReview.showOnMain = false;
+    }
+
     await validation(newReview);
     const created = await this.reviewService.createReview(newReview);
 
@@ -44,6 +49,11 @@ export class ReviewController {
   @Middleware([verifyToken, isUser])
   async updateReview(req: Request, resp: Response) {
     const { id } = req.params;
+
+    if (resp.locals.user.role != Role.Admin) {
+      req.body.showOnMain = undefined;
+    }
+
     const updated = await this.reviewService.updateReview(id, req.body, resp.locals.user);
 
     resp.status(HttpStatus.OK).json(updated);
