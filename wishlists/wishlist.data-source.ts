@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm"
-import { Wishlist } from '../core/entities';
+import { Wishlist, WishlistProduct } from '../core/entities';
 
 const dataSource = new DataSource({
     type: "mysql",
@@ -11,7 +11,7 @@ const dataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Wishlist],
+    entities: [Wishlist, WishlistProduct],
 });
 
 export default dataSource;

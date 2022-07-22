@@ -19,7 +19,7 @@ export interface ProductDTO {
 export interface WishlistDTO {
   id: string,
   product: ProductDTO | string,
-  user:  UserDTO | string,
+  user?: UserDTO | string,
 }
 
 export interface WishlistQueryDTO {

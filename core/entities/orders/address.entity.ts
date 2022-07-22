@@ -7,7 +7,6 @@ export class Address {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @IsNotEmpty()
   @Column()
   userId: string;
 
@@ -38,7 +37,7 @@ export class Address {
   @OneToMany(() => Checkout, checkout => checkout.address)
   checkouts: Checkout[];
 
-  constructor(args?: {fistName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
+  constructor(args?: { fistName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
     if (args) {
       this.fistName = args.fistName
       this.lastName = args.lastName
