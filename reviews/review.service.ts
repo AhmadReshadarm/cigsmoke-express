@@ -18,11 +18,19 @@ export class ReviewService {
   }
 
   async getReviews(queryParams: ReviewQueryDTO): Promise<ReviewDTO[]> {
-    const { productId, userId, sortBy='productId', orderBy='DESC', limit=10, } = queryParams;
+    const {
+      productId,
+      userId,
+      showOnMain,
+      sortBy='productId',
+      orderBy='DESC',
+      limit=10,
+    } = queryParams;
 
     const queryBuilder = this.reviewRepository.createQueryBuilder('review');
     if (productId) { queryBuilder.andWhere('review.productId = :productId', { productId: productId }); }
     if (userId) { queryBuilder.andWhere('review.userId = :userId', { userId: userId }); }
+    if (showOnMain) { queryBuilder.andWhere('review.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
     const reviews = await queryBuilder
       .orderBy(`review.${sortBy}`, orderBy)
@@ -132,6 +140,7 @@ export class ReviewService {
       id: review.id,
       rating: review.rating,
       comment: review.comment,
+      showOnMain: review.showOnMain,
       product: await this.getProductById(review.productId) ?? review.productId,
       user: await this.getUserById(review.userId, authToken) ?? review.userId,
     }

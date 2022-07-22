@@ -15,6 +15,9 @@ export class Review {
   @Column()
   comment: string;
 
+  @Column({ default: false })
+  showOnMain: boolean;
+
   @IsNotEmpty()
   @PrimaryColumn()
   productId: string;
@@ -24,10 +27,11 @@ export class Review {
   userId: string;
 
 
-  constructor(args?: { rating: number, comment: string, productId: string }) {
+  constructor(args?: { rating: number, comment: string, showOnMain: boolean, productId: string }) {
     if (args) {
       this.rating = args.rating;
       this.comment = args.comment;
+      this.showOnMain = args.showOnMain;
       this.productId = args.productId;
     }
   }
