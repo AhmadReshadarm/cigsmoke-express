@@ -18,8 +18,12 @@ export class UserController {
   @Middleware([verifyToken, isAdmin])
   async getUsers(req: Request, resp: Response) {
     const users = await this.userService.getUsers(req.query);
+    const result = users.map(user => {
+      const { password, ...other } = user;
+      return other;
+    })
 
-    resp.json(users).status(HttpStatus.OK);
+    resp.json(result).status(HttpStatus.OK);
   }
 
   @Get(':id')
@@ -32,8 +36,9 @@ export class UserController {
     const { id } = req.params;
 
     const user = await this.userService.getUser(id);
+    const { password, ...other } = user;
 
-    resp.json(user).status(HttpStatus.OK);
+    resp.json(other).status(HttpStatus.OK);
   }
 
   @Post('')
