@@ -80,7 +80,6 @@ export class Product {
   constructor(args?: {
     name: string,
     price: number,
-    oldPrice: number,
     desc: string,
     available: boolean,
     colors?: Color[],
