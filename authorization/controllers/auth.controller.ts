@@ -17,7 +17,7 @@ import { UserService } from '../services/user.service';
 @singleton()
 @Controller('/auth')
 export class AuthController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @Post('signup')
   async signUp(req: Request, resp: Response) {
@@ -32,7 +32,7 @@ export class AuthController {
       password: hashedPass,
       role: Role.User,
     };
-    const isUser = await this.userService.getEmail(payload.email);
+    const isUser = await this.userService.getByEmail(payload.email);
 
     if (isUser) {
       resp.status(HttpStatus.CONFLICT).json({ message: 'Such user already exists.' });
@@ -52,7 +52,7 @@ export class AuthController {
   @Post('signin')
   async signIn(req: Request, resp: Response) {
     const { email, password } = req.body;
-    const user = await this.userService.getEmail(email);
+    const user = await this.userService.getByEmail(email);
 
     if (!user) {
       resp.status(HttpStatus.BAD_REQUEST).json({ message: `This email: ${email} does not exist in our database` });
@@ -76,10 +76,12 @@ export class AuthController {
 
     resp
       .status(HttpStatus.OK)
-      .json({ user: { 
+      .json({
+        user: {
           ...user,
           password: undefined,
-       }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+        }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated
+      });
   }
 
   @Post('token')
@@ -107,7 +109,7 @@ export class AuthController {
   @Post('reset')
   async reset(req: Request, resp: Response) {
     const { email } = req.body;
-    const user = await this.userService.getEmail(email);
+    const user = await this.userService.getByEmail(email);
 
     if (!user) {
       resp.status(HttpStatus.NOT_FOUND).json({ message: `This email: ${email} does not exist in our database` });
@@ -149,7 +151,7 @@ export class AuthController {
       const validated = await bcrypt.compare(userPassword, user.password);
 
       if (validated) {
-        resp.status(HttpStatus.FORBIDDEN).json({ message: 'Can not use the same password as previous'});
+        resp.status(HttpStatus.FORBIDDEN).json({ message: 'Can not use the same password as previous' });
         return;
       }
 
@@ -190,7 +192,7 @@ export class AuthController {
 
       const user = await this.userService.getUser(decoded.id);
 
-      if (user.isVerified) {  
+      if (user.isVerified) {
         resp.status(HttpStatus.FORBIDDEN).json('Token was already used');
         return;
       }
@@ -204,7 +206,7 @@ export class AuthController {
         isVerified: true,
         role: Role.User,
       };
-  
+
       await this.userService.updateUser(decoded.id, payload);
 
       const accessTokenCreated = accessToken({ ...user, password: undefined });

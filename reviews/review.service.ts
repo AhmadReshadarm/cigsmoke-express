@@ -8,6 +8,7 @@ import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from './revi
 import axios from 'axios';
 import { scope } from '../core/middlewares/access.user';
 import { Role } from '../core/enums/roles.enum';
+import moment from 'moment';
 
 @singleton()
 export class ReviewService {
@@ -18,7 +19,7 @@ export class ReviewService {
   }
 
   async getReviews(queryParams: ReviewQueryDTO): Promise<ReviewDTO[]> {
-    const { productId, userId, sortBy='productId', orderBy='DESC', limit=10, } = queryParams;
+    const { productId, userId, sortBy = 'productId', orderBy = 'DESC', limit = 10, } = queryParams;
 
     const queryBuilder = this.reviewRepository.createQueryBuilder('review');
     if (productId) { queryBuilder.andWhere('review.productId = :productId', { productId: productId }); }
@@ -37,9 +38,9 @@ export class ReviewService {
   async getReview(id: string, authToken: string): Promise<ReviewDTO> {
     const review = await this.reviewRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
-  });
+    });
     return await this.mergeReviewUserId(review, authToken)
   }
 
@@ -65,19 +66,19 @@ export class ReviewService {
 
       return res.data;
     } catch (e: any) {
-      if (e.name !== 'AxiosError' && e.response.status !== 404) {
+      if (e.name !== 'AxiosError') {
         throw new Error(e)
       }
     }
   }
 
   async getNewReviewId(): Promise<string> {
-    const lastElement =  await this.reviewRepository.find( {
+    const lastElement = await this.reviewRepository.find({
       order: { id: 'DESC' },
       take: 1
     })
 
-    return lastElement[0]? String(+lastElement[0].id + 1) : String(1);
+    return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
   async createReview(newReview: Review): Promise<Review> {
@@ -93,7 +94,7 @@ export class ReviewService {
   async updateReview(id: string, reviewDTO: Review, user: UserAuth) {
     const review = await this.reviewRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 
@@ -112,7 +113,7 @@ export class ReviewService {
   async removeReview(id: string, user: UserAuth) {
     const review = await this.reviewRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 
@@ -132,6 +133,8 @@ export class ReviewService {
       id: review.id,
       rating: review.rating,
       comment: review.comment,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
       product: await this.getProductById(review.productId) ?? review.productId,
       user: await this.getUserById(review.userId, authToken) ?? review.userId,
     }

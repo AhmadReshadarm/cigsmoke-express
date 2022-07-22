@@ -15,11 +15,11 @@ export class User {
   @IsNotEmpty()
   lastName: string;
 
-  @Column( { unique: true })
+  @Column({ unique: true })
   @IsNotEmpty()
   email: string;
 
-  @Column({ select: false })
+  @Column()
   @IsNotEmpty()
   password: string;
 

@@ -1,22 +1,19 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
+import { WishlistProduct } from './whishlistProduct.entity';
 
 @Entity()
 export class Wishlist {
-  @Column({unique: true})
+  @PrimaryGeneratedColumn()
   id: string;
 
   @IsNotEmpty()
-  @PrimaryColumn()
-  productId: string;
+  @OneToMany(() => WishlistProduct, wishlistProduct => wishlistProduct.wishlist)
+  items: WishlistProduct[];
 
-  @IsNotEmpty()
-  @PrimaryColumn()
-  userId: string;
-
-  constructor(args?: { productId: string }) {
+  constructor(args?: { items: WishlistProduct[] }) {
     if (args) {
-      this.productId = args.productId;
+      this.items = args.items;
     }
   }
 }

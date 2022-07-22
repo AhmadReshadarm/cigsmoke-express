@@ -1,62 +1,45 @@
+import axios from 'axios';
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../core/domain/error/custom.external.error';
-import { ErrorCode } from '../core/domain/error/error.code';
-import { Wishlist } from '../core/entities';
-import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, WishlistDTO, WishlistQueryDTO, UserDTO, UserAuth } from './wishlist.dtos';
-import axios from 'axios';
-import { scope } from '../core/middlewares/access.user';
-import { Role } from '../core/enums/roles.enum';
+import { Wishlist, WishlistProduct } from '../core/entities';
+import { WishlistProductService } from './wishlist-product.service';
+import { ProductDTO, WishlistQueryDTO } from './wishlist.dtos';
 
 @singleton()
 export class WishlistService {
   private wishlistRepository: Repository<Wishlist>;
+  private wishlistProductRepository: Repository<WishlistProduct>;
 
-  constructor(dataSource: DataSource) {
+  constructor(
+    dataSource: DataSource,
+    private wishlistProductService: WishlistProductService
+  ) {
     this.wishlistRepository = dataSource.getRepository(Wishlist);
+    this.wishlistProductRepository = dataSource.getRepository(WishlistProduct);
   }
 
-  async getWishlists(queryParams: WishlistQueryDTO, authToken: string): Promise<WishlistDTO[]> {
-    const { productId, userId, sortBy='productId', orderBy='DESC', limit=10, } = queryParams;
+  async getWishlists(queryParams: WishlistQueryDTO): Promise<Wishlist[]> {
+    const { sortBy = 'productId', orderBy = 'DESC', limit = 10, } = queryParams;
 
     const queryBuilder = this.wishlistRepository.createQueryBuilder('wishlist');
-    if (productId) { queryBuilder.andWhere('wishlist.productId = :productId', { productId: productId }); }
-    if (userId) { queryBuilder.andWhere('wishlist.userId = :userId', { userId: userId }); }
 
     const wishlists = await queryBuilder
       .orderBy(`wishlist.${sortBy}`, orderBy)
       .limit(limit)
       .getMany();
 
-    const result = wishlists.map(async (wishlist) => await this.mergeWishlistUserId(wishlist, authToken))
-
-    return Promise.all(result)
+    return wishlists;
   }
 
-  async getWishlist(id: string, authToken: string): Promise<WishlistDTO> {
+  async getWishlist(id: string): Promise<Wishlist> {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
+      relations: ['items']
     });
-    return await this.mergeWishlistUserId(wishlist, authToken)
-  }
 
-  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
-    try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
-        headers: {
-          Authorization: authToken!
-        }
-      });
-
-      return res.data
-    } catch (e: any) {
-      if (e.name === 'AxiosError' && e.response.status === 403) {
-        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
-      }
-    }
+    return wishlist;
   }
 
   async getProductById(id: string): Promise<ProductDTO | undefined> {
@@ -71,48 +54,59 @@ export class WishlistService {
     }
   }
 
-  async getNewWishlistId(): Promise<string> {
-    const lastElement =  await this.wishlistRepository.find( {
-      order: { id: 'DESC' },
-      take: 1
-    })
+  async createWishlist(): Promise<Wishlist> {
+    const wishlist = new Wishlist({ items: [] });
 
-    return lastElement[0]? String(+lastElement[0].id + 1) : String(1);
+    return this.wishlistRepository.save(wishlist);
   }
 
-  async createWishlist(newWishlist: Wishlist): Promise<Wishlist> {
-    if (!await this.getProductById(newWishlist.productId)) {
-      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+  async updateWishlist(id: string, whishlistDTO: Wishlist) {
+    const wishlist = await this.wishlistRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+      relations: ['items'],
+    });
+
+    wishlist.items.forEach(item => {
+      const curWishlistProduct = whishlistDTO.items.find(({ productId }) => item.productId === productId.toString());
+
+      if (!curWishlistProduct) {
+        this.wishlistProductRepository.remove(item);
+        wishlist.items = wishlist.items.filter(curItem => curItem.id !== item.id)
+      }
+    });
+
+    const items = [...wishlist.items]
+
+    for (const { productId } of whishlistDTO.items) {
+      const wishlistProduct = await this.wishlistProductRepository.findOne({
+        where: {
+          productId: Equal(productId),
+          wishlist: Equal(wishlist.id),
+        },
+      });
+
+      if (!wishlistProduct) {
+        const wishlistProductData = new WishlistProduct({ productId, wishlist });
+        const newWishlistProduct = await this.wishlistProductService.createWishlistProduct(wishlistProductData);
+        items.push(newWishlistProduct);
+      }
     }
 
-    newWishlist.id = await this.getNewWishlistId()
-
-    return this.wishlistRepository.save(newWishlist);
+    return {
+      ...wishlist,
+      items,
+    }
   }
 
-  async removeWishlist(id: string, user: UserAuth) {
+  async removeWishlist(id: string) {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {
         id: Equal(id),
       }
     });
 
-    await this.isUserWishlistOwner(wishlist, user)
-
     return this.wishlistRepository.remove(wishlist);
-  }
-
-  isUserWishlistOwner(wishlist: Wishlist, user: UserAuth ) {
-    if (scope(String(wishlist.userId), String(user.id)) && user.role !== Role.Admin) {
-      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
-    }
-  }
-
-  async mergeWishlistUserId(wishlist: Wishlist, authToken: string): Promise<WishlistDTO> {
-    return {
-      id: wishlist.id,
-      product: await this.getProductById(wishlist.productId) ?? wishlist.productId,
-      user: await this.getUserById(wishlist.userId, authToken) ?? wishlist.userId,
-    }
   }
 }

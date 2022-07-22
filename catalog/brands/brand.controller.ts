@@ -12,7 +12,7 @@ export class BrandController {
   constructor(
     private brandService: BrandService,
     private productService: ProductService
-  ) {}
+  ) { }
 
   @Get()
   async getBrands(req: Request, resp: Response) {
@@ -34,7 +34,7 @@ export class BrandController {
     const { categoryUrl } = req.params;
 
     const products = await this.productService.getProducts({ categories: JSON.stringify([categoryUrl]) });
-    const brands =  await this.brandService.getUniqueBrandsFromProducts(products);
+    const brands = await this.brandService.getUniqueBrandsFromProducts(products);
     resp.json(brands);
   }
 

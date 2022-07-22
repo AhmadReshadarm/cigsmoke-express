@@ -9,7 +9,6 @@ export class Checkout {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @IsNotEmpty()
   @Column()
   userId: string;
 

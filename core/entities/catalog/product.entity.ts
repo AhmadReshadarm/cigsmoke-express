@@ -28,6 +28,10 @@ export class Product {
   @Min(1)
   price: number;
 
+  @Column()
+  @Min(1)
+  oldPrice?: number;
+
   @Column({ nullable: true })
   desc: string;
 
@@ -62,7 +66,7 @@ export class Product {
   brand: Brand;
 
   @IsNotEmpty()
-  @Column({unique: true})
+  @Column({ unique: true })
   url: string;
 
   @ManyToMany(
@@ -79,6 +83,7 @@ export class Product {
     desc: string,
     available: boolean,
     colors?: Color[],
+    oldPrice?: number,
     category: Category,
     images: string,
     url: string,
@@ -88,6 +93,7 @@ export class Product {
     if (args) {
       this.name = args.name;
       this.price = args.price;
+      this.oldPrice = args.oldPrice;
       this.desc = args.desc;
       this.available = args.available;
       this.colors = args.colors;
