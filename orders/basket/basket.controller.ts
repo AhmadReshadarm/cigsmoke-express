@@ -38,8 +38,6 @@ export class BasketController {
   // @Middleware([verifyToken, isUser])
   async createBasket(req: Request, resp: Response) {
     const newBasket = new Basket(req.body);
-    newBasket.userId = resp.locals.user?.id;
-
     await validation(newBasket);
 
     const created = await this.basketService.createBasket(newBasket);

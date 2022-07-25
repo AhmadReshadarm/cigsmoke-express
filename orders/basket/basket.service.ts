@@ -181,6 +181,7 @@ export class BasketService {
     );
     return {
       id: basket.id,
+      userId: basket.userId ?? null,
       orderProducts: await Promise.all(orderProducts),
       checkout: basket.checkout,
       totalAmount: this.getTotalAmount(basket.orderProducts),

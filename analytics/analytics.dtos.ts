@@ -69,7 +69,7 @@ export interface AnalyticsDTO {
 
 export interface BasketDTO {
   id: string
-  user: User,
+  userId: string | null,
   orderProducts: OrderProductDTO[],
   checkout: Checkout,
   totalAmount: number,
@@ -88,6 +88,20 @@ export interface OrderProductDTO {
   product: Product,
   qty: number,
   productPrice: number,
+}
+
+export interface UsersQueryDTO {
+  createdFrom?: Date,
+  createdTo?: Date,
+}
+
+export interface RatingQueryParams {
+  userId?: string,
+  productId?: string
+}
+
+export interface UnregisteredUser {
+  id: string
 }
 
 export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO;

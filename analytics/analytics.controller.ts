@@ -17,37 +17,13 @@ export class AnalyticsController {
     resp.json(analytics);
   }
 
-  // @Get('products')
-  // @Middleware([verifyToken, isAdmin])
-  // async getAnalyticsGroupByProducts(req: Request, resp: Response) {
-  //   const analytics = await this.analyticsService.getAnalyticsGroupByProducts(req.query, req.headers.authorization!);
-  //
-  //   resp.json(analytics);
-  // }
-  //
-  // @Get('users')
-  // @Middleware([verifyToken, isAdmin])
-  // async getAnalyticsGroupByUsers(req: Request, resp: Response) {
-  //   const analytics = await this.analyticsService.getAnalyticsGroupByUsers(req.query, req.headers.authorization!);
-  //
-  //   resp.json(analytics);
-  // }
-  //
-  // @Get('brands')
-  // @Middleware([verifyToken, isAdmin])
-  // async getAnalyticsGroupByBrands(req: Request, resp: Response) {
-  //   const analytics = await this.analyticsService.getAnalyticsGroupByBrands(req.query, req.headers.authorization!);
-  //
-  //   resp.json(analytics);
-  // }
-  //
-  // @Get('categories')
-  // @Middleware([verifyToken, isAdmin])
-  // async getAnalyticsGroupByCategories(req: Request, resp: Response) {
-  //   const analytics = await this.analyticsService.getAnalyticsGroupByCategories(req.query, req.headers.authorization!);
-  //
-  //   resp.json(analytics);
-  // }
+  @Get('users')
+  @Middleware([verifyToken, isAdmin])
+  async getUsers(req: Request, resp: Response) {
+    const analytics = await this.analyticsService.getUsers(req.query, req.headers.authorization!);
+
+    resp.json(analytics);
+  }
 
   @Get('dynamic')
   @Middleware([verifyToken, isAdmin])
@@ -56,4 +32,5 @@ export class AnalyticsController {
 
     resp.json(analytics);
   }
+
 }

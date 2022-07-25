@@ -40,7 +40,8 @@ export interface OrderProductQueryDTO {
 }
 
 export interface BasketDTO {
-  id: string
+  id: string,
+  userId: string | null,
   orderProducts: OrderProductDTO[],
   checkout: Checkout,
   totalAmount: number,
