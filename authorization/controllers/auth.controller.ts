@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { singleton } from 'tsyringe';
 import { Controller, Get, Middleware, Post, Put } from '../../core/decorators';
-import { User } from '../../core/entities/users/user.entity';
+import { User } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { Role } from '../../core/enums/roles.enum';
 import { validation } from '../../core/lib/validator';
@@ -163,6 +163,7 @@ export class AuthController {
         password: hashedPass,
         isVerified: true,
         role: Role.User,
+
       };
       await this.userService.updateUser(decoded.id, payload);
       const accessTokenCreated = accessToken({ ...user, password: undefined });

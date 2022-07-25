@@ -19,6 +19,8 @@ export class UserService {
       email,
       isVerified,
       role,
+      createdFrom,
+      createdTo,
       sortBy = 'email',
       orderBy = 'DESC',
       limit = 10,
@@ -32,6 +34,8 @@ export class UserService {
     if (email) { queryBuilder.andWhere('user.email LIKE :email', { email: `%${email}%` }); }
     if (isVerified) { queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified: isVerified }); }
     if (role) { queryBuilder.andWhere('user.role = :role', { role: role }); }
+    if (createdFrom) { queryBuilder.andWhere('user.createdAt >= :dateFrom', { dateFrom: createdFrom }) }
+    if (createdTo) { queryBuilder.andWhere('user.createdAt <= :dateTo', { dateTo: createdTo }) }
 
     return queryBuilder
       .orderBy(`user.${sortBy}`, orderBy)

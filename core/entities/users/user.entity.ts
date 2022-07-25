@@ -1,5 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Role } from '../../enums/roles.enum';
 
 @Entity()
@@ -28,6 +28,12 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.User })
   role: Role;
+
+  @CreateDateColumn()
+  createdAt?: Date;
+
+  @UpdateDateColumn()
+  updatedAt?: Date;
 
   constructor(args?: {
     firstName: string;

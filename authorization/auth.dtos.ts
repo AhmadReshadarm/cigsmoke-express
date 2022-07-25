@@ -6,6 +6,8 @@ export interface UserQueryDTO {
   readonly email?: string,
   readonly isVerified?: boolean,
   readonly role?: Role,
+  readonly createdFrom?: string,
+  readonly createdTo?: string,
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
