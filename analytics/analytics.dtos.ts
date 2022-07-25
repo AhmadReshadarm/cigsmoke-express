@@ -1,5 +1,5 @@
 import { BasketStatus } from '../core/enums/basket-status.enum';
-import { Brand, Category, Checkout, Color, OrderProduct, Tag, User } from '../core/entities';
+import { Brand, Category, Checkout, Color, OrderProduct, Product, Tag, User } from '../core/entities';
 import { Role } from '../core/enums/roles.enum';
 import { GroupBy, Steps } from '../core/enums/analytics.enum';
 
@@ -70,7 +70,7 @@ export interface AnalyticsDTO {
 export interface BasketDTO {
   id: string
   user: User,
-  orderProducts: OrderProduct[],
+  orderProducts: OrderProductDTO[],
   checkout: Checkout,
   totalAmount: number,
   createdAt: Date,
@@ -81,6 +81,13 @@ export interface BasketDTO {
 export interface DynamicDTO {
   date: string,
   amount: number
+}
+
+export interface OrderProductDTO {
+  id: string,
+  product: Product,
+  qty: number,
+  productPrice: number,
 }
 
 export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO;
