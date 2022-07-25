@@ -11,4 +11,5 @@ export interface UserQueryDTO {
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
+  readonly offset?: number;
 }

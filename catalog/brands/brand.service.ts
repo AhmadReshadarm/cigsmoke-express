@@ -4,6 +4,7 @@ import { Brand } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { Product } from '../../core/entities';
 import { BrandQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class BrandService {
@@ -13,13 +14,14 @@ export class BrandService {
     this.brandRepository = dataSource.getRepository(Brand);
   }
 
-  async getBrands(queryParams: BrandQueryDTO): Promise<Brand[]> {
+  async getBrands(queryParams: BrandQueryDTO): Promise<PaginationDTO<Brand>> {
     const {
       name,
       image,
       showOnMain,
       sortBy = 'name',
       orderBy = 'DESC',
+      offset = 0,
       limit = 10,
     } = queryParams;
 
@@ -30,10 +32,16 @@ export class BrandService {
     // if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
     if (showOnMain) { queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
-    return queryBuilder
+    const brands = await queryBuilder
       .orderBy(`brand.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: brands,
+      length: await this.brandRepository.count()
+    }
   }
 
   async getBrand(id: string): Promise<Brand> {

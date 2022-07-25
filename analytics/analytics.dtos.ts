@@ -108,10 +108,13 @@ export interface RatingQueryParams {
 }
 
 export interface UnregisteredUser {
+  id: string,
+}
+
+export interface UnregisteredUserDTO extends UnregisteredUser{
   qty: number,
   amount: number
-  id: string,
   avgRating: number,
 }
 
-export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO;
+export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO | UnregisteredUserDTO;

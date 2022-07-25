@@ -105,7 +105,7 @@ export class AnalyticsService {
     );
 
     return {
-      data: users.data,
+      data: users.data.rows,
       qty: users.data.length
     }
   }
@@ -192,7 +192,7 @@ export class AnalyticsService {
       params: params
     });
 
-    return baskets.data;
+    return baskets.data.rows;
   }
 
   async getProduct(id: string): Promise<Product> {
@@ -214,7 +214,7 @@ export class AnalyticsService {
     let totalRating: number = 0;
 
 
-    reviews.data.map((review: Review) => {
+    reviews.data.rows.map((review: Review) => {
       totalRating += review.rating;
       counter += 1;
     })

@@ -35,6 +35,7 @@ export interface ReviewQueryDTO {
   sortBy?: 'productId' | 'userId',
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
+  offset?: number;
 }
 
 export interface UserAuth {

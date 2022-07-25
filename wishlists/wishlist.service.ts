@@ -4,6 +4,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { Wishlist, WishlistProduct } from '../core/entities';
 import { WishlistProductService } from './wishlist-product.service';
 import { ProductDTO, WishlistQueryDTO } from './wishlist.dtos';
+import { PaginationDTO } from '../core/lib/dto';
 
 @singleton()
 export class WishlistService {
@@ -18,17 +19,21 @@ export class WishlistService {
     this.wishlistProductRepository = dataSource.getRepository(WishlistProduct);
   }
 
-  async getWishlists(queryParams: WishlistQueryDTO): Promise<Wishlist[]> {
-    const { sortBy = 'productId', orderBy = 'DESC', limit = 10, } = queryParams;
+  async getWishlists(queryParams: WishlistQueryDTO): Promise<PaginationDTO<Wishlist>> {
+    const { sortBy = 'productId', orderBy = 'DESC', limit = 10, offset = 0 } = queryParams;
 
     const queryBuilder = this.wishlistRepository.createQueryBuilder('wishlist');
 
     const wishlists = await queryBuilder
       .orderBy(`wishlist.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
 
-    return wishlists;
+    return  {
+      rows: wishlists,
+      length: await this.wishlistRepository.count(),
+    }
   }
 
   async getWishlist(id: string): Promise<Wishlist> {

@@ -37,6 +37,7 @@ export interface OrderProductQueryDTO {
   sortBy?: 'productId' | 'qty' | 'price',
   orderBy?: 'DESC' | 'ASC',
   limit?: number,
+  offset?: number,
 }
 
 export interface BasketDTO {
@@ -60,6 +61,7 @@ export interface BasketQueryDTO {
   sortBy?: 'productId' | 'qty' | 'price',
   orderBy?: 'DESC' | 'ASC',
   limit?: number,
+  offset?: number,
 }
 
 export interface AddressDTO {
@@ -86,6 +88,7 @@ export interface AddressQueryDTO {
   sortBy?: string,
   orderBy?: 'DESC' | 'ASC',
   limit?: number,
+  offset?: number,
 }
 
 
@@ -107,6 +110,7 @@ export interface CheckoutQueryDTO {
   sortBy?: string,
   orderBy?: 'DESC' | 'ASC',
   limit?: number,
+  offset?: number,
 }
 
 export interface UserAuth {
