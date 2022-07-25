@@ -9,15 +9,11 @@
   "paths": {
     "/auth/signup": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Signup like a new user",
         "description": "",
         "operationId": "signup",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -26,12 +22,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "firstName",
-                "lastName",
-                "email",
-                "password"
-              ],
+              "required": ["firstName", "lastName", "email", "password"],
               "properties": {
                 "firstName": {
                   "type": "string"
@@ -72,15 +63,11 @@
     },
     "/auth/signin": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Login with email",
         "description": "",
         "operationId": "signin",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -89,10 +76,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "email",
-                "password"
-              ],
+              "required": ["email", "password"],
               "properties": {
                 "email": {
                   "type": "string"
@@ -127,15 +111,11 @@
     },
     "/auth/token": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Create token",
         "description": "",
         "operationId": "CreateToken",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -144,9 +124,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "token"
-              ],
+              "required": ["token"],
               "properties": {
                 "token": {
                   "type": "string"
@@ -178,15 +156,11 @@
     },
     "/auth/reset": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Reset password by email",
         "description": "",
         "operationId": "ResetPwd",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -195,9 +169,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "email"
-              ],
+              "required": ["email"],
               "properties": {
                 "email": {
                   "type": "string"
@@ -229,15 +201,11 @@
     },
     "/auth/update-password": {
       "put": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Update password",
         "description": "",
         "operationId": "UpdatePwd",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -246,10 +214,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "token",
-                "password"
-              ],
+              "required": ["token", "password"],
               "properties": {
                 "token": {
                   "type": "string",
@@ -285,15 +250,11 @@
     },
     "/auth/authorize/:token": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Authorize by email ",
         "description": "",
         "operationId": "Auth",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -302,9 +263,7 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": [
-                "token"
-              ],
+              "required": ["token"],
               "properties": {
                 "token": {
                   "type": "string",
@@ -337,18 +296,12 @@
     },
     "/users": {
       "get": {
-        "tags": [
-          "user"
-        ],
+        "tags": ["user"],
         "summary": "Get array of users",
         "description": "",
         "operationId": "getUsers",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "type": "string",
@@ -434,15 +387,11 @@
         }
       },
       "post": {
-        "tags": [
-          "user"
-        ],
+        "tags": ["user"],
         "summary": "Create a user",
         "description": "",
         "operationId": "createUser",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "type": "string",
@@ -487,17 +436,11 @@
     },
     "/users/{userId}": {
       "get": {
-        "tags": [
-          "user"
-        ],
+        "tags": ["user"],
         "summary": "Find user by id",
         "operationId": "findUserById",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "type": "string",
@@ -536,15 +479,11 @@
         }
       },
       "put": {
-        "tags": [
-          "user"
-        ],
+        "tags": ["user"],
         "summary": "Update the user",
         "description": "",
         "operationId": "updateUser",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "type": "string",
@@ -592,15 +531,11 @@
         }
       },
       "delete": {
-        "tags": [
-          "user"
-        ],
+        "tags": ["user"],
         "summary": "Delete the user",
         "description": "",
         "operationId": "deleteUser",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "type": "string",
@@ -5227,13 +5162,7 @@
       }
     },
     "UserDTO": {
-      "required": [
-        "firstName",
-        "lastName",
-        "email",
-        "password",
-        "isAdmin"
-      ],
+      "required": ["firstName", "lastName", "email", "password", "isAdmin"],
       "properties": {
         "id": {
           "type": "string",

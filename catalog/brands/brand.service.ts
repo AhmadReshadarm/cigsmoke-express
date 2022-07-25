@@ -18,16 +18,16 @@ export class BrandService {
       name,
       image,
       showOnMain,
-      sortBy='name',
-      orderBy='DESC',
-      limit=10,
+      sortBy = 'name',
+      orderBy = 'DESC',
+      limit = 10,
     } = queryParams;
 
     const queryBuilder = await this.brandRepository
       .createQueryBuilder('brand')
 
     if (name) { queryBuilder.andWhere('brand.name LIKE :name', { name: `%${name}%` }); }
-    if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
+    // if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
     if (showOnMain) { queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
     return queryBuilder
@@ -39,7 +39,7 @@ export class BrandService {
   async getBrand(id: string): Promise<Brand> {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 
@@ -47,7 +47,7 @@ export class BrandService {
   }
 
   async getUniqueBrandsFromProducts(products: Product[]): Promise<Brand[]> {
-    return products.reduce((acc: Brand[], product:Product ) => {
+    return products.reduce((acc: Brand[], product: Product) => {
       if (!acc.find(brand => brand.id === product.brand.id)) {
         return acc.concat(product.brand);
       }
@@ -70,11 +70,11 @@ export class BrandService {
   async updateBrand(id: string, brandDTO: Brand) {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 
-    return this.brandRepository.save( {
+    return this.brandRepository.save({
       ...brand,
       ...brandDTO
     });
@@ -83,7 +83,7 @@ export class BrandService {
   async removeBrand(id: string) {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 

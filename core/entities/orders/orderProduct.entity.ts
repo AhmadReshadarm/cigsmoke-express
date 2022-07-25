@@ -8,10 +8,6 @@ export class OrderProduct {
   id: string;
 
   @IsNotEmpty()
-  @Column()
-  userId: string;
-
-  @IsNotEmpty()
   @PrimaryColumn()
   productId: string;
 
@@ -37,7 +33,6 @@ export class OrderProduct {
       this.qty = args.qty;
       this.inBasket = args.inBasket;
       this.basketId = args.inBasket.id;
-      this.userId = args.inBasket.userId;
     }
   }
 }

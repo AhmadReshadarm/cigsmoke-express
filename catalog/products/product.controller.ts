@@ -16,11 +16,18 @@ export class ProductController {
     private productService: ProductService,
     private colorService: ColorService,
     private tagService: TagService,
-  ) {}
+  ) { }
 
   @Get()
   async getProducts(req: Request, resp: Response) {
     const products = await this.productService.getProducts(req.query);
+
+    resp.json(products);
+  }
+
+  @Get('priceRange')
+  async getProductsPriceRange(req: Request, resp: Response) {
+    const products = await this.productService.getProductsPriceRange(req.query);
 
     resp.json(products);
   }

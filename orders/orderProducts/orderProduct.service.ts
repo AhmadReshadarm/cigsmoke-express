@@ -162,11 +162,11 @@ export class OrderProductService {
     return this.orderProductRepository.remove(orderProduct);
   }
 
-  isUserOrderProductOwner(orderProduct: OrderProduct, user: UserAuth) {
-    if (scope(String(orderProduct.userId), String(user.id)) && user.role !== Role.Admin) {
-      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
-    }
-  }
+  // isUserOrderProductOwner(orderProduct: OrderProduct, user: UserAuth) {
+  //   if (scope(String(orderProduct.userId), String(user.id)) && user.role !== Role.Admin) {
+  //     throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+  //   }
+  // }
 
   async validation(id: string, authToken: string): Promise<boolean> {
     const orderProduct = await this.getOrderProduct(id, authToken) as any;
