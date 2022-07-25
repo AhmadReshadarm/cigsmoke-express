@@ -1,7 +1,15 @@
 import { singleton } from 'tsyringe';
 import axios from 'axios';
 import { OrderProduct, Product, User } from '../core/entities';
-import { AnalyticsData, AnalyticsDTO, BasketDTO, DynamicDTO, DynamicQueryDTO, SalesQueryDTO } from './analytics.dtos';
+import {
+  AnalyticsData,
+  AnalyticsDTO,
+  BasketDTO,
+  DynamicDTO,
+  DynamicQueryDTO,
+  OrderProductDTO,
+  SalesQueryDTO,
+} from './analytics.dtos';
 import { GroupBy, Steps } from '../core/enums/analytics.enum';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
@@ -14,22 +22,23 @@ export class AnalyticsService {
   async getAnalyticsData(
     params: SalesQueryDTO,
     basket: BasketDTO,
-    orderProduct: OrderProduct,
+    orderProduct: OrderProductDTO,
     authToken: string
   ) {
     if (params.groupBy?.toLowerCase() === GroupBy.User) {
       return this.getUser(basket.user.id, authToken);
     }
     if (params.groupBy?.toLowerCase() === GroupBy.Brand) {
-      const product = await this.getProduct(orderProduct.productId);
+      const product = await this.getProduct(orderProduct.product.id);
       return product.brand
     }
     if (params.groupBy?.toLowerCase() === GroupBy.Category) {
-      const product = await this.getProduct(orderProduct.productId);
+      const product = await this.getProduct(orderProduct.product.id);
       return product.category
     }
 
-    return this.getProduct(orderProduct.productId);
+    console.log(orderProduct)
+    return this.getProduct(orderProduct.product.id);
   }
 
   async getAnalytics(params: SalesQueryDTO, authToken: string): Promise<AnalyticsDTO> {
