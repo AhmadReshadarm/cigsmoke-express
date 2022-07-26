@@ -2,9 +2,10 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Product } from '../../core/entities/catalog/product.entity';
+import { Product } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @injectable()
 export class ProductService {
@@ -14,7 +15,7 @@ export class ProductService {
     this.productRepository = dataSource.getRepository(Product);
   }
 
-  async getProducts(queryParams: ProductQueryDTO): Promise<Product[]> {
+  async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<Product>> {
     const {
       name,
       minPrice,
@@ -27,6 +28,7 @@ export class ProductService {
       tags,
       sortBy = 'name',
       orderBy = 'DESC',
+      offset = 0,
       limit = 10,
     } = queryParams;
     const queryBuilder = await this.productRepository.createQueryBuilder("product")
@@ -45,10 +47,16 @@ export class ProductService {
     if (brands) { queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands }); }
     if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: JSON.parse(tags) }); }
 
-    return queryBuilder
+    const products = await queryBuilder
       .orderBy(`product.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: products,
+      length: await this.productRepository.count()
+    }
   }
 
   async getProductsPriceRange(queryParams: ProductQueryDTO): Promise<{ minPrice: number, maxPrice: number } | undefined> {

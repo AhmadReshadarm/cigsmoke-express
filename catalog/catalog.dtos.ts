@@ -1,4 +1,4 @@
-import { Parameter } from '../core/entities';
+import { Brand, Category, Color, Parameter, Product, Tag } from '../core/entities';
 
 export interface ProductQueryDTO {
   readonly name?: string,
@@ -12,6 +12,7 @@ export interface ProductQueryDTO {
   readonly tags?: string,
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
+  readonly offset?: number;
   readonly limit?: number;
 }
 
@@ -22,6 +23,7 @@ export interface TagQueryDTO {
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface ParameterQueryDTO {
@@ -30,6 +32,7 @@ export interface ParameterQueryDTO {
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface ColorQueryDTO {
@@ -40,6 +43,7 @@ export interface ColorQueryDTO {
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface CategoryDTO {
@@ -57,6 +61,7 @@ export interface CategoryQueryDTO {
   readonly parameters?: string,
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
+  readonly offset?: number;
   readonly limit?: number;
 }
 
@@ -67,4 +72,5 @@ export interface BrandQueryDTO {
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
+  readonly offset?: number;
 }

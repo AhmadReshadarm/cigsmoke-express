@@ -8,6 +8,7 @@ import { BasketDTO, CheckoutDTO, CheckoutQueryDTO, UserAuth, UserDTO } from '../
 import { Role } from '../../core/enums/roles.enum';
 import { scope } from '../../core/middlewares/access.user';
 import axios from 'axios';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class CheckoutService {
@@ -17,7 +18,7 @@ export class CheckoutService {
     this.checkoutRepository = dataSource.getRepository(Checkout);
   }
 
-  async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<CheckoutDTO[]> {
+  async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<PaginationDTO<CheckoutDTO>> {
     const {
       addressId,
       paymentId,
@@ -25,6 +26,7 @@ export class CheckoutService {
       userId,
       sortBy = 'basket',
       orderBy = 'DESC',
+      offset=0,
       limit = 10,
     } = queryParams;
 
@@ -42,11 +44,16 @@ export class CheckoutService {
 
     const checkouts = await queryBuilder
       .orderBy(`checkout.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
 
     const result = checkouts.map(async (checkout) => await this.mergeCheckout(checkout, authToken))
-    return Promise.all(result)
+
+    return  {
+      rows: await Promise.all(result),
+      length: await this.checkoutRepository.count()
+    }
   }
 
   async getCheckout(id: string, authToken: string): Promise<CheckoutDTO> {

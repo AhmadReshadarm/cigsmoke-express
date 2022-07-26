@@ -1,14 +1,14 @@
 import { singleton } from 'tsyringe';
 import axios from 'axios';
-import { OrderProduct, Product, User } from '../core/entities';
+import { Brand, Category, OrderProduct, Product, Review, User } from '../core/entities';
 import {
   AnalyticsData,
   AnalyticsDTO,
   BasketDTO,
   DynamicDTO,
   DynamicQueryDTO,
-  OrderProductDTO,
-  SalesQueryDTO,
+  OrderProductDTO, RatingQueryParams,
+  SalesQueryDTO, UnregisteredUser, UsersQueryDTO,
 } from './analytics.dtos';
 import { GroupBy, Steps } from '../core/enums/analytics.enum';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
@@ -24,9 +24,14 @@ export class AnalyticsService {
     basket: BasketDTO,
     orderProduct: OrderProductDTO,
     authToken: string
-  ) {
+  ): Promise<User | Brand | Category | Product | UnregisteredUser> {
     if (params.groupBy?.toLowerCase() === GroupBy.User) {
-      return this.getUser(basket.user.id, authToken);
+      if (basket.userId !== "null") {
+        return this.getUser(basket.userId!, authToken);
+      }
+      return {
+        id: "UnregisteredUsers",
+      }
     }
     if (params.groupBy?.toLowerCase() === GroupBy.Brand) {
       const product = await this.getProduct(orderProduct.product.id);
@@ -37,7 +42,6 @@ export class AnalyticsService {
       return product.category
     }
 
-    console.log(orderProduct)
     return this.getProduct(orderProduct.product.id);
   }
 
@@ -57,6 +61,15 @@ export class AnalyticsService {
           }
         }
 
+        const ratingParams: RatingQueryParams = {
+          userId: params.groupBy?.toLowerCase() === GroupBy.User ? data.id : undefined,
+          productId: params.groupBy?.toLowerCase() !== GroupBy.User ? orderProduct.product.id : undefined,
+        }
+
+        if (!analytics[data.id].avgRating) {
+          analytics[data.id].avgRating = await this.getRating(authToken, ratingParams);
+        }
+
         analytics[data.id].qty += orderProduct.qty
         analytics[data.id].amount += orderProduct.qty * orderProduct.productPrice;
       }
@@ -64,6 +77,37 @@ export class AnalyticsService {
     const analyticsList = this.mergeAnalyticsList(analytics);
 
     return this.countTotalAmount(analyticsList)
+  }
+
+  async getDynamic(params: DynamicQueryDTO, authToken: string): Promise<DynamicDTO[]> {
+    let { from, to, step } = params;
+
+    if (!from || !to || !step) {
+      throw new CustomExternalError([ErrorCode.DYNAMIC_EMPTY_QUERY], HttpStatus.BAD_REQUEST);
+    }
+
+    from = new Date(from);
+    to = new Date(to);
+
+    return step?.toLowerCase() === Steps.Day ?
+      this.getDynamicDay(from, to, authToken) :
+      this.getDynamicMonth(from, to, authToken);
+
+  }
+
+  async getUsers(params: UsersQueryDTO, authToken: string) {
+    const users = await axios.get(`${process.env.AUTH_DB}/users`, {
+        headers: {
+          Authorization: authToken
+        },
+        params: params
+      }
+    );
+
+    return {
+      data: users.data.rows,
+      qty: users.data.length
+    }
   }
 
   async getDynamicDay(from: Date, to: Date, authToken: string): Promise<DynamicDTO[]> {
@@ -110,22 +154,6 @@ export class AnalyticsService {
     return dynamic;
   }
 
-  async getDynamic(params: DynamicQueryDTO, authToken: string) {
-    let { from, to, step } = params;
-
-    if (!from || !to || !step) {
-      throw new CustomExternalError([ErrorCode.DYNAMIC_EMPTY_QUERY], HttpStatus.BAD_REQUEST);
-    }
-
-    from = new Date(from);
-    to = new Date(to);
-
-   return step?.toLowerCase() === Steps.Day ?
-     this.getDynamicDay(from, to, authToken) :
-     this.getDynamicMonth(from, to, authToken);
-
-  }
-
   mergeAnalyticsList(analytics: any): AnalyticsData[] {
     const data: AnalyticsData[] = []
 
@@ -164,7 +192,7 @@ export class AnalyticsService {
       params: params
     });
 
-    return baskets.data;
+    return baskets.data.rows;
   }
 
   async getProduct(id: string): Promise<Product> {
@@ -173,13 +201,34 @@ export class AnalyticsService {
     return product.data
   }
 
+  async getRating(authToken: string, params: RatingQueryParams): Promise<number> {
+    const reviews = await axios.get(`${process.env.REVIEWS_DB}/reviews`, {
+        headers: {
+          Authorization: authToken
+        },
+        params: params
+      }
+    );
+
+    let counter: number = 0;
+    let totalRating: number = 0;
+
+
+    reviews.data.rows.map((review: Review) => {
+      totalRating += review.rating;
+      counter += 1;
+    })
+
+    return +(totalRating / counter).toFixed(2);
+  }
+
   async getUser(id: string, authToken: string): Promise<User> {
-    const product = await axios.get(`${process.env.AUTH_DB}/users/${id}`, {
+    const user = await axios.get(`${process.env.AUTH_DB}/users/${id}`, {
       headers: {
         Authorization: authToken
       },
     });
 
-    return product.data
+    return user.data
   }
 }

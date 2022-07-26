@@ -29,6 +29,7 @@ export interface WishlistQueryDTO {
   sortBy?: 'productId' | 'userId',
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
+  offset?: number;
 }
 
 export interface UserAuth {

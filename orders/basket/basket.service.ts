@@ -9,6 +9,7 @@ import { BasketDTO, BasketQueryDTO, UserAuth, UserDTO } from '../order.dtos';
 import { Role } from '../../core/enums/roles.enum';
 import { scope } from '../../core/middlewares/access.user';
 import { OrderProductService } from '../../orders/orderProducts/orderProduct.service';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class BasketService {
@@ -23,7 +24,7 @@ export class BasketService {
     this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
 
-  async getBaskets(queryParams: BasketQueryDTO): Promise<BasketDTO[]> {
+  async getBaskets(queryParams: BasketQueryDTO): Promise<PaginationDTO<BasketDTO>> {
     const {
       userId,
       minTotalAmount,
@@ -33,6 +34,7 @@ export class BasketService {
       updatedTo,
       sortBy = 'userId',
       orderBy = 'DESC',
+      offset=0,
       limit = 10,
     } = queryParams;
 
@@ -50,12 +52,16 @@ export class BasketService {
 
     const baskets = await queryBuilder
       .orderBy(`basket.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
 
     const result = baskets.map(async (basket) => await this.mergeBasket(basket))
 
-    return Promise.all(result)
+    return  {
+      rows: await Promise.all(result),
+      length: await this.basketRepository.count()
+    }
   }
 
   async getBasket(id: string): Promise<BasketDTO> {
@@ -181,6 +187,7 @@ export class BasketService {
     );
     return {
       id: basket.id,
+      userId: basket.userId ?? null,
       orderProducts: await Promise.all(orderProducts),
       checkout: basket.checkout,
       totalAmount: this.getTotalAmount(basket.orderProducts),

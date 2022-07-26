@@ -8,7 +8,8 @@ import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from './revi
 import axios from 'axios';
 import { scope } from '../core/middlewares/access.user';
 import { Role } from '../core/enums/roles.enum';
-import moment from 'moment';
+import { PaginationDTO } from '../core/lib/dto';
+
 
 @singleton()
 export class ReviewService {
@@ -18,13 +19,14 @@ export class ReviewService {
     this.reviewRepository = dataSource.getRepository(Review);
   }
 
-  async getReviews(queryParams: ReviewQueryDTO): Promise<ReviewDTO[]> {
+  async getReviews(queryParams: ReviewQueryDTO): Promise<PaginationDTO<ReviewDTO>> {
     const {
       productId,
       userId,
       showOnMain,
       sortBy = 'productId',
       orderBy = 'DESC',
+      offset=0,
       limit = 10,
     } = queryParams;
 
@@ -35,12 +37,16 @@ export class ReviewService {
 
     const reviews = await queryBuilder
       .orderBy(`review.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
 
     const result = reviews.map(async (review) => await this.mergeReviewUserId(review, ''))
 
-    return Promise.all(result)
+    return  {
+      rows: await Promise.all(result),
+      length: await this.reviewRepository.count()
+    }
   }
 
   async getReview(id: string, authToken: string): Promise<ReviewDTO> {

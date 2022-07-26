@@ -3,6 +3,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { Color } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { ColorQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class ColorService {
@@ -12,7 +13,7 @@ export class ColorService {
     this.colorRepository = dataSource.getRepository(Color);
   }
 
-  async getColors(queryParams: ColorQueryDTO): Promise<Color[]> {
+  async getColors(queryParams: ColorQueryDTO): Promise<PaginationDTO<Color>> {
     const {
       name,
       products,
@@ -20,6 +21,7 @@ export class ColorService {
       code,
       sortBy='name',
       orderBy='DESC',
+      offset=0,
       limit=10,
     } = queryParams;
 
@@ -32,10 +34,16 @@ export class ColorService {
     if (code) { queryBuilder.andWhere('color.code = :code', { code: `%${code}%` }); }
     if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
 
-    return queryBuilder
+    const colors = await queryBuilder
       .orderBy(`color.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: colors,
+      length: await this.colorRepository.count()
+    }
   }
 
   async getColor(id: string): Promise<Color> {

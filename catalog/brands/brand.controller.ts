@@ -34,7 +34,7 @@ export class BrandController {
     const { categoryUrl } = req.params;
 
     const products = await this.productService.getProducts({ categories: JSON.stringify([categoryUrl]) });
-    const brands = await this.brandService.getUniqueBrandsFromProducts(products);
+    const brands = await this.brandService.getUniqueBrandsFromProducts(products.rows);
     resp.json(brands);
   }
 

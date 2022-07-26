@@ -32,9 +32,11 @@ export interface ProductDTO {
   brand: Brand,
   colors: Color[],
   tags: Tag[],
+  avgRating: number,
 }
 
 export interface UserDTO {
+  qty: number,
   amount: number,
   id: string,
   firstName: string
@@ -43,23 +45,28 @@ export interface UserDTO {
   password: string;
   isVerified: boolean;
   role: Role;
+  avgRating: number,
 }
 
 export interface BrandDTO {
   id: string,
+  qty: number,
   amount: number,
   name: string,
   image: string;
   showOnMain: boolean;
+  avgRating: number,
 }
 
 export interface CategoryDTO {
   id: string,
+  qty: number,
   amount: number,
   name: string;
   createdAt: Date;
   updatedAt: Date;
   url: string;
+  avgRating: number,
 }
 
 export interface AnalyticsDTO {
@@ -69,7 +76,7 @@ export interface AnalyticsDTO {
 
 export interface BasketDTO {
   id: string
-  user: User,
+  userId: string | null,
   orderProducts: OrderProductDTO[],
   checkout: Checkout,
   totalAmount: number,
@@ -90,4 +97,24 @@ export interface OrderProductDTO {
   productPrice: number,
 }
 
-export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO;
+export interface UsersQueryDTO {
+  createdFrom?: Date,
+  createdTo?: Date,
+}
+
+export interface RatingQueryParams {
+  userId?: string,
+  productId?: string
+}
+
+export interface UnregisteredUser {
+  id: string,
+}
+
+export interface UnregisteredUserDTO extends UnregisteredUser{
+  qty: number,
+  amount: number
+  avgRating: number,
+}
+
+export type AnalyticsData = ProductDTO | UserDTO | BrandDTO | CategoryDTO | UnregisteredUserDTO;

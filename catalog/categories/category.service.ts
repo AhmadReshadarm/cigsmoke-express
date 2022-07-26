@@ -2,6 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository, TreeRepository } from 'typeorm';
 import { Category } from '../../core/entities';
 import { CategoryDTO, CategoryQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 
 @singleton()
@@ -14,7 +15,7 @@ export class CategoryService {
     this.categoryTreeRepository = dataSource.getTreeRepository(Category);
   }
 
-  async getCategories(queryParams: CategoryQueryDTO): Promise<Category[]> {
+  async getCategories(queryParams: CategoryQueryDTO): Promise<PaginationDTO<Category>> {
     const {
       name,
       url,
@@ -23,6 +24,7 @@ export class CategoryService {
       children,
       sortBy='name',
       orderBy='DESC',
+      offset=0,
       limit=10,
     } = queryParams;
 
@@ -39,10 +41,16 @@ export class CategoryService {
     if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: JSON.parse(children) }); }
 
 
-    return queryBuilder
+    const categories = await queryBuilder
       .orderBy(`category.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: categories,
+      length: await this.categoryRepository.count()
+    }
   }
 
   async getCategory(id: string): Promise<Category> {

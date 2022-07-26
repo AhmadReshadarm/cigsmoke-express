@@ -16,7 +16,7 @@ export class Basket {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column()
+  @Column( {nullable: true})
   userId: string;
 
   @OneToMany(() => OrderProduct, orderProduct => orderProduct.inBasket)

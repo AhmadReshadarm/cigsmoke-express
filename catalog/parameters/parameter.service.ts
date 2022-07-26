@@ -3,6 +3,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { Parameter, Tag } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { ParameterQueryDTO, TagQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 
 @singleton()
@@ -13,12 +14,13 @@ export class ParameterService {
     this.parameterRepository = dataSource.getRepository(Parameter);
   }
 
-  async getParameters(queryParams: ParameterQueryDTO): Promise<Parameter[]> {
+  async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<Parameter>> {
     const {
       name,
       categories,
       sortBy='name',
       orderBy='DESC',
+      offset=0,
       limit=10,
     } = queryParams;
 
@@ -29,10 +31,16 @@ export class ParameterService {
     if (name) { queryBuilder.andWhere('parameter.name LIKE :name', { name: `%${name}%` }); }
     if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) }); }
 
-    return queryBuilder
+    const parameters = await queryBuilder
       .orderBy(`parameter.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: parameters,
+      length: await this.parameterRepository.count(),
+    }
   }
 
   async getParameter(id: string): Promise<Parameter> {

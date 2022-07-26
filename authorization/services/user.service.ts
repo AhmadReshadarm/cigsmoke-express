@@ -3,6 +3,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { User } from '../../core/entities';
 import { Role } from '../../core/enums/roles.enum';
 import { UserQueryDTO } from '../auth.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class UserService {
@@ -12,15 +13,18 @@ export class UserService {
     this.userRepository = appDataSource.getRepository(User);
   }
 
-  async getUsers(queryParams: UserQueryDTO): Promise<User[]> {
+  async getUsers(queryParams: UserQueryDTO): Promise<PaginationDTO<User>> {
     const {
       firstName,
       lastName,
       email,
       isVerified,
       role,
+      createdFrom,
+      createdTo,
       sortBy = 'email',
       orderBy = 'DESC',
+      offset=0,
       limit = 10,
     } = queryParams;
 
@@ -32,11 +36,19 @@ export class UserService {
     if (email) { queryBuilder.andWhere('user.email LIKE :email', { email: `%${email}%` }); }
     if (isVerified) { queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified: isVerified }); }
     if (role) { queryBuilder.andWhere('user.role = :role', { role: role }); }
+    if (createdFrom) { queryBuilder.andWhere('user.createdAt >= :dateFrom', { dateFrom: createdFrom }) }
+    if (createdTo) { queryBuilder.andWhere('user.createdAt <= :dateTo', { dateTo: createdTo }) }
 
-    return queryBuilder
+    const users = await queryBuilder
       .orderBy(`user.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: users,
+      length: await this.userRepository.count()
+    }
   }
 
   async getUser(id: string): Promise<User> {

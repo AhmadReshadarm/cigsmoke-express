@@ -9,6 +9,7 @@ import { OrderProductDTO, OrderProductQueryDTO, ProductDTO, UserAuth, UserDTO } 
 import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
 import { v4 } from 'uuid';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class OrderProductService {
@@ -18,7 +19,7 @@ export class OrderProductService {
     this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
 
-  async getOrderProducts(queryParams: OrderProductQueryDTO, authToken: string): Promise<OrderProductDTO[]> {
+  async getOrderProducts(queryParams: OrderProductQueryDTO, authToken: string): Promise<PaginationDTO<OrderProductDTO>> {
     const {
       productId,
       userId,
@@ -28,6 +29,7 @@ export class OrderProductService {
       maxPrice,
       sortBy = 'productId',
       orderBy = 'DESC',
+      offset=0,
       limit = 10,
     } = queryParams;
 
@@ -44,23 +46,27 @@ export class OrderProductService {
 
     const orderProducts = await queryBuilder
       .orderBy(`orderProduct.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
 
     const result = orderProducts.map(async (orderProduct) => await this.mergeOrderProduct(orderProduct))
 
-    return Promise.all(result)
+    return  {
+      rows: await Promise.all(result),
+      length: await this.orderProductRepository.count()
+    }
   }
 
-  async getOrderProductEntity(id: string): Promise<OrderProduct> {
-    const orderProduct = await this.orderProductRepository.findOneOrFail({
-      where: {
-        id: Equal(id),
-      }
-    });
-
-    return orderProduct;
-  }
+  // async getOrderProductEntity(id: string): Promise<OrderProduct> {
+  //   const orderProduct = await this.orderProductRepository.findOneOrFail({
+  //     where: {
+  //       id: Equal(id),
+  //     }
+  //   });
+  //
+  //   return orderProduct;
+  // }
 
   async getOrderProduct(id: string, authToken: string): Promise<OrderProductDTO> {
     const queryBuilder = await this.orderProductRepository

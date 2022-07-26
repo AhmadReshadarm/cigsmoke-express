@@ -3,6 +3,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { Tag } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { TagQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class TagService {
@@ -12,13 +13,14 @@ export class TagService {
     this.tagRepository = dataSource.getRepository(Tag);
   }
 
-  async getTags(queryParams: TagQueryDTO): Promise<Tag[]> {
+  async getTags(queryParams: TagQueryDTO): Promise<PaginationDTO<Tag>> {
     const {
       name,
       products,
       url,
       sortBy='name',
       orderBy='DESC',
+      offset=0,
       limit=10,
     } = queryParams;
 
@@ -30,10 +32,16 @@ export class TagService {
     if (url) { queryBuilder.andWhere('tag.url LIKE :url', { url: `%${url}%` }); }
     if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
 
-    return queryBuilder
+    const tags = await queryBuilder
       .orderBy(`tag.${sortBy}`, orderBy)
-      .limit(limit)
+      .skip(offset)
+      .take(limit)
       .getMany();
+
+    return {
+      rows: tags,
+      length: await this.tagRepository.count(),
+    }
   }
 
   async getTag(id: string): Promise<Tag> {
