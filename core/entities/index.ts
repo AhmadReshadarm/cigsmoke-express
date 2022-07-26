@@ -1,5 +1,6 @@
 export { User } from "./users/user.entity";
 export { Image } from './images/image.entity';
+export { Subscribe, Mailing } from './mailer/';
 export { Review } from './reviews/review.entity';
 export { Wishlist, WishlistProduct } from './wishlists';
 export { Slide, Advertisement } from './banners/';

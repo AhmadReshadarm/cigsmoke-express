@@ -52,6 +52,12 @@ apiEndpoints:
     paths: [
       '/analytics*',
     ]
+  mailer:
+    host: localhost
+    paths: [
+      '/subscribe*',
+      '/mailings*',
+    ]
 serviceEndpoints:
   authSrv:
     url: ${AUTH_DB}
@@ -71,6 +77,8 @@ serviceEndpoints:
     url: ${BANNERS_DB}
   analyticsSrv:
     url: ${ANALYTICS_DB}
+  mailerSrv:
+    url: ${MAILER_DB}
 policies:
   - cors
   - proxy
@@ -146,4 +154,12 @@ pipelines:
       - proxy:
           - action:
               serviceEndpoint: analyticsSrv
+              changeOrigin: true
+  pipeMailer:
+    apiEndpoints:
+      - mailer
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: mailerSrv
               changeOrigin: true

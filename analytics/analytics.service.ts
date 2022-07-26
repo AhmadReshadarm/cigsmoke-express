@@ -100,7 +100,10 @@ export class AnalyticsService {
         headers: {
           Authorization: authToken
         },
-        params: params
+        params: {
+          ...params,
+          limit: 1000000,
+        }
       }
     );
 
@@ -189,7 +192,10 @@ export class AnalyticsService {
       headers: {
         Authorization: authToken
       },
-      params: params
+      params: {
+        ...params,
+        limit: 100000
+      }
     });
 
     return baskets.data.rows;
@@ -206,7 +212,10 @@ export class AnalyticsService {
         headers: {
           Authorization: authToken
         },
-        params: params
+        params: {
+          ...params,
+          limit: 100000,
+        }
       }
     );
 
