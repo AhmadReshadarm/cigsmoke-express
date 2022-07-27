@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+ import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { AdvertisementService } from './advertisement.service';

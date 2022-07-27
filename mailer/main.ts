@@ -1,10 +1,10 @@
 import path from "path";
 import "reflect-metadata";
 import { bootstrap } from "../core/bootstrap";
-import { AnalyticsApp } from "./analytics.app";
-import analyticsDataSource from './analytics.data-source';
+import { MailerApp } from "./mailer.app";
+import mailerDataSource from './mailer.data-source';
 
 const controllerPaths = path.resolve(__dirname, './load-controllers.js');
 const { PORT } = process.env;
 
-bootstrap(Number(PORT ?? 8080), AnalyticsApp, controllerPaths, analyticsDataSource);
+bootstrap(Number(PORT ?? 8080), MailerApp, controllerPaths, mailerDataSource);

@@ -18,7 +18,8 @@ export class UserController {
   @Middleware([verifyToken, isAdmin])
   async getUsers(req: Request, resp: Response) {
     const users = await this.userService.getUsers(req.query);
-    const result = users.map(user => {
+
+    const result = users.rows.map(user => {
       const { password, ...other } = user;
       return other;
     })
