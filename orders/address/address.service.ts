@@ -45,17 +45,17 @@ export class AddressService {
     if (country) { queryBuilder.andWhere('address.country = :country', {country: country}) }
     if (zipCode) { queryBuilder.andWhere('address.zipCode = :zipCode', {zipCode: zipCode}) }
 
-    const addresses = await queryBuilder
+    queryBuilder
       .orderBy(`address.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
+    const addresses = await queryBuilder.getMany();
     const result = addresses.map(async (address) => await this.mergeAddress(address, authToken))
 
     return  {
       rows: await Promise.all(result),
-      length: await this.addressRepository.count()
+      length: await queryBuilder.getCount(),
     }
   }
 
@@ -128,7 +128,7 @@ export class AddressService {
     return {
       id: address.id,
       user: await this.getUserById(address.userId, authToken) ?? address.userId,
-      fistName: address.fistName,
+      firstName: address.firstName,
       lastName: address.lastName,
       address: address.address,
       city: address.city,

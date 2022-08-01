@@ -24,15 +24,14 @@ export class WishlistService {
 
     const queryBuilder = this.wishlistRepository.createQueryBuilder('wishlist');
 
-    const wishlists = await queryBuilder
+    queryBuilder
       .orderBy(`wishlist.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
-    return  {
-      rows: wishlists,
-      length: await this.wishlistRepository.count(),
+    return {
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

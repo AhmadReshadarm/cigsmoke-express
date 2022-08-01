@@ -12,7 +12,7 @@ export class Address {
 
   @IsNotEmpty()
   @Column()
-  fistName: string;
+  firstName: string;
 
   @IsNotEmpty()
   @Column()
@@ -37,9 +37,9 @@ export class Address {
   @OneToMany(() => Checkout, checkout => checkout.address)
   checkouts: Checkout[];
 
-  constructor(args?: { fistName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
+  constructor(args?: { firstName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
     if (args) {
-      this.fistName = args.fistName
+      this.firstName = args.firstName
       this.lastName = args.lastName
       this.address = args.address;
       this.city = args.city;

@@ -40,16 +40,14 @@ export class CategoryService {
     if (parent) { queryBuilder.andWhere('categoryParent.id = :parent', { parent: parent }) }
     if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: JSON.parse(children) }); }
 
-
-    const categories = await queryBuilder
+    queryBuilder
       .orderBy(`category.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
     return {
-      rows: categories,
-      length: await this.categoryRepository.count()
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

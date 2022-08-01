@@ -8,7 +8,7 @@ import axios from 'axios';
 import { BasketDTO, BasketQueryDTO, UserAuth, UserDTO } from '../order.dtos';
 import { Role } from '../../core/enums/roles.enum';
 import { scope } from '../../core/middlewares/access.user';
-import { OrderProductService } from '../../orders/orderProducts/orderProduct.service';
+import { OrderProductService } from '../orderProducts/orderProduct.service';
 import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
@@ -50,17 +50,17 @@ export class BasketService {
     if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', { dateFrom: updatedFrom }) }
     if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', { dateTo: updatedTo }) }
 
-    const baskets = await queryBuilder
+    queryBuilder
       .orderBy(`basket.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
+    const baskets = await queryBuilder.getMany();
     const result = baskets.map(async (basket) => await this.mergeBasket(basket))
 
     return  {
       rows: await Promise.all(result),
-      length: await this.basketRepository.count()
+      length: await queryBuilder.getCount(),
     }
   }
 
