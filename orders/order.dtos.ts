@@ -67,7 +67,7 @@ export interface BasketQueryDTO {
 export interface AddressDTO {
   id: string
   user: UserDTO | string,
-  fistName: string,
+  firstName: string,
   lastName: string
   address: string,
   city: string,

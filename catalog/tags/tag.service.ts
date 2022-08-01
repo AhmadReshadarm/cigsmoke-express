@@ -32,15 +32,14 @@ export class TagService {
     if (url) { queryBuilder.andWhere('tag.url LIKE :url', { url: `%${url}%` }); }
     if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
 
-    const tags = await queryBuilder
+    queryBuilder
       .orderBy(`tag.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
     return {
-      rows: tags,
-      length: await this.tagRepository.count(),
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

@@ -42,17 +42,17 @@ export class CheckoutService {
     if (basketId) { queryBuilder.andWhere('checkout.basketId = :basketId', { basketId: basketId }) }
     if (userId) { queryBuilder.andWhere('checkout.userId = :userId', { userId: userId }) }
 
-    const checkouts = await queryBuilder
+    queryBuilder
       .orderBy(`checkout.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
+    const checkouts = await queryBuilder.getMany();
     const result = checkouts.map(async (checkout) => await this.mergeCheckout(checkout, authToken))
 
     return  {
       rows: await Promise.all(result),
-      length: await this.checkoutRepository.count()
+      length: await queryBuilder.getCount(),
     }
   }
 

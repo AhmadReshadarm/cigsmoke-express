@@ -31,15 +31,14 @@ export class ParameterService {
     if (name) { queryBuilder.andWhere('parameter.name LIKE :name', { name: `%${name}%` }); }
     if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) }); }
 
-    const parameters = await queryBuilder
+    queryBuilder
       .orderBy(`parameter.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
     return {
-      rows: parameters,
-      length: await this.parameterRepository.count(),
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

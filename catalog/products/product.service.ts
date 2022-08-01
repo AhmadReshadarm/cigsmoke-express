@@ -47,15 +47,14 @@ export class ProductService {
     if (brands) { queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands }); }
     if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: JSON.parse(tags) }); }
 
-    const products = await queryBuilder
+    queryBuilder
       .orderBy(`product.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
     return {
-      rows: products,
-      length: await this.productRepository.count()
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

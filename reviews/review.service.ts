@@ -35,17 +35,17 @@ export class ReviewService {
     if (userId) { queryBuilder.andWhere('review.userId = :userId', { userId: userId }); }
     if (showOnMain) { queryBuilder.andWhere('review.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
-    const reviews = await queryBuilder
+    queryBuilder
       .orderBy(`review.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
+    const reviews = await queryBuilder.getMany();
     const result = reviews.map(async (review) => await this.mergeReviewUserId(review, ''))
 
     return  {
       rows: await Promise.all(result),
-      length: await this.reviewRepository.count()
+      length: await queryBuilder.getCount(),
     }
   }
 

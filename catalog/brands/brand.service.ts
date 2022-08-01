@@ -32,15 +32,14 @@ export class BrandService {
     // if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
     if (showOnMain) { queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
 
-    const brands = await queryBuilder
+    queryBuilder
       .orderBy(`brand.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
     return {
-      rows: brands,
-      length: await this.brandRepository.count()
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

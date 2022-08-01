@@ -34,15 +34,14 @@ export class ColorService {
     if (code) { queryBuilder.andWhere('color.code = :code', { code: `%${code}%` }); }
     if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
 
-    const colors = await queryBuilder
+    queryBuilder
       .orderBy(`color.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
     return {
-      rows: colors,
-      length: await this.colorRepository.count()
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
     }
   }
 

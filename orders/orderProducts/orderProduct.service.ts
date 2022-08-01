@@ -44,17 +44,17 @@ export class OrderProductService {
     if (minPrice) { queryBuilder.andWhere('orderProduct.productPrice >= :price', { price: minPrice }) }
     if (maxPrice) { queryBuilder.andWhere('orderProduct.productPrice <= :price', { price: maxPrice }) }
 
-    const orderProducts = await queryBuilder
+    queryBuilder
       .orderBy(`orderProduct.${sortBy}`, orderBy)
       .skip(offset)
       .take(limit)
-      .getMany();
 
+    const orderProducts = await queryBuilder.getMany();
     const result = orderProducts.map(async (orderProduct) => await this.mergeOrderProduct(orderProduct))
 
     return  {
       rows: await Promise.all(result),
-      length: await this.orderProductRepository.count()
+      length: await queryBuilder.getCount(),
     }
   }
 

@@ -39,15 +39,14 @@ export class UserService {
     if (createdFrom) { queryBuilder.andWhere('user.createdAt >= :dateFrom', { dateFrom: createdFrom }) }
     if (createdTo) { queryBuilder.andWhere('user.createdAt <= :dateTo', { dateTo: createdTo }) }
 
-    const users = await queryBuilder
+    const users = queryBuilder
       .orderBy(`user.${sortBy}`, orderBy)
       .skip(offset)
-      .take(limit)
-      .getMany();
+      .take(limit);
 
     return {
-      rows: users,
-      length: await this.userRepository.count()
+      rows: await users.getMany(),
+      length: await users.getCount(),
     }
   }
 
