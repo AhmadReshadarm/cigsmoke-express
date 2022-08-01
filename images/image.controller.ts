@@ -12,7 +12,7 @@ import { isAdmin, verifyToken } from '../core/middlewares';
 @singleton()
 @Controller('/images')
 export class ImageController {
-  constructor(private imageService: ImageService) {}
+  constructor(private imageService: ImageService) { }
 
   @Get(':fileName')
   async getImage(req: Request, resp: Response) {
