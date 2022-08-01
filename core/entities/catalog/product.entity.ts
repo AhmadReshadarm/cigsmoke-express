@@ -29,7 +29,6 @@ export class Product {
   price: number;
 
   @Column()
-  @Min(1)
   oldPrice?: number;
 
   @Column({ nullable: true })

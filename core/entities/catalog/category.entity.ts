@@ -17,8 +17,12 @@ export class Category {
   id: string;
 
   @IsNotEmpty()
-  @Column({unique: true})
+  @Column({ unique: true })
   name: string;
+
+  @IsNotEmpty()
+  @Column()
+  image: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -37,12 +41,13 @@ export class Category {
   parameters: Parameter[];
 
   @IsNotEmpty()
-  @Column({unique: true})
+  @Column({ unique: true })
   url: string;
 
-  constructor(args?: { name: string, parent?: Category, url: string, parameters: Parameter[] }) {
+  constructor(args?: { name: string, image: string, parent?: Category, url: string, parameters: Parameter[] }) {
     if (args) {
       this.name = args.name;
+      this.image = args.image;
       this.url = args.url;
       this.parent = args.parent;
       this.parameters = args.parameters;
