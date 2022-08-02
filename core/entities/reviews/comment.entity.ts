@@ -1,11 +1,12 @@
 import {
   Column, CreateDateColumn,
-  Entity, JoinColumn, ManyToOne,
+  Entity, JoinColumn, ManyToOne, OneToMany,
   OneToOne,
   PrimaryGeneratedColumn, UpdateDateColumn,
 } from 'typeorm';
 import { Review } from './review.entity';
 import { IsNotEmpty } from 'class-validator';
+import { ReactionComment } from './reactionComment.entity';
 
 @Entity()
 export class Comment {
@@ -15,7 +16,7 @@ export class Comment {
   @Column()
   userId: string;
 
-  @ManyToOne(() => Review, (review) => review.comments, { cascade: true })
+  @ManyToOne(() => Review, (review) => review.comments)
   @JoinColumn()
   review: Review;
 
@@ -28,6 +29,9 @@ export class Comment {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => ReactionComment, (reaction) => reaction.commentId, { cascade: true })
+  reactions: ReactionComment[]
 
   constructor(args?: { userId: string, review: Review, text: string }) {
     if (args) {

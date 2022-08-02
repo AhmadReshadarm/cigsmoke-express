@@ -4,6 +4,8 @@ import { HttpStatus } from '../../core/lib/http-status';
 import { CommentService } from './comment.service';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { isUser, verifyToken } from '../../core/middlewares';
+import { ReactionComment } from '../../core/entities';
+import { validation } from '../../core/lib/validator';
 
 @singleton()
 @Controller('/comments')
@@ -35,6 +37,20 @@ export class CommentController {
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
+  @Post('reaction')
+  @Middleware([verifyToken, isUser])
+  async createReaction(req: Request, resp: Response) {
+    req.body.userId = resp.locals.user.id;
+
+    const reaction = new ReactionComment(req.body)
+    reaction.id = await this.commentService.getNewReactionId()
+    await validation(reaction)
+
+    const created = await this.commentService.createReaction(reaction);
+
+    resp.status(HttpStatus.CREATED).json({ id: created.id });
+  }
+
   @Put(':id')
   @Middleware([verifyToken, isUser])
   async updateComment(req: Request, resp: Response) {
@@ -54,6 +70,15 @@ export class CommentController {
   async removeComment(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.commentService.removeComment(id, resp.locals.user);
+
+    resp.status(HttpStatus.OK).json(removed);
+  }
+
+  @Delete('reaction/:id')
+  @Middleware([verifyToken, isUser])
+  async removeReaction(req: Request, resp: Response) {
+    const { id } = req.params;
+    const removed = await this.commentService.removeReaction(id, resp.locals.user);
 
     resp.status(HttpStatus.OK).json(removed);
   }

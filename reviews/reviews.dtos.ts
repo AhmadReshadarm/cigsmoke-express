@@ -1,5 +1,7 @@
 import { Role } from '../core/enums/roles.enum';
-import { Comment, Review } from '../core/entities';
+import { Comment, ReactionReview, Review } from '../core/entities';
+import { ReactionComment } from '../core/entities/reviews/reactionComment.entity';
+import { Reaction } from '../core/enums/reaction.enum';
 
 export interface UserDTO {
   id: string,
@@ -27,6 +29,7 @@ export interface ReviewDTO {
   product: ProductDTO | string,
   user: UserDTO | string,
   comments: Comment[],
+  reactions: ReactionReview[]
 }
 
 export interface ReviewQueryDTO {
@@ -56,6 +59,7 @@ export interface CommentDTO {
   text: String,
   createdAt: Date,
   updatedAt: Date,
+  reactions: ReactionComment[]
 }
 
 export interface CreateCommentDTO {
@@ -67,4 +71,11 @@ export interface CreateCommentDTO {
 export interface UserAuth {
   id: string,
   role: Role
+}
+
+export interface CreateReactionDTO {
+  id: string,
+  userId: string,
+  reaction: Reaction,
+  reviewId: string,
 }

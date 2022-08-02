@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import { Review } from '../../core/entities';
+import { ReactionReview, Review } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { ReviewService } from './review.service';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
-import { isUser, verifyToken, verifyUserId } from '../../core/middlewares';
+import { isUser, verifyToken } from '../../core/middlewares';
 import { Role } from '../../core/enums/roles.enum';
+import { CreateReactionDTO } from '../reviews.dtos';
 
 @singleton()
 @Controller('/reviews')
@@ -45,6 +46,20 @@ export class ReviewController {
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
+  @Post('reaction')
+  @Middleware([verifyToken, isUser])
+  async createReaction(req: Request, resp: Response) {
+    req.body.userId = resp.locals.user.id;
+
+    const reaction: CreateReactionDTO = req.body
+    reaction.id = await this.reviewService.getNewReactionId()
+    await validation(reaction)
+
+    const created = await this.reviewService.createReaction(reaction);
+
+    resp.status(HttpStatus.CREATED).json({ id: created.id });
+  }
+
   @Put(':id')
   @Middleware([verifyToken, isUser])
   async updateReview(req: Request, resp: Response) {
@@ -64,6 +79,15 @@ export class ReviewController {
   async removeReview(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.reviewService.removeReview(id, resp.locals.user);
+
+    resp.status(HttpStatus.OK).json(removed);
+  }
+
+  @Delete('reaction/:id')
+  @Middleware([verifyToken, isUser])
+  async removeReaction(req: Request, resp: Response) {
+    const { id } = req.params;
+    const removed = await this.reviewService.removeReaction(id, resp.locals.user);
 
     resp.status(HttpStatus.OK).json(removed);
   }

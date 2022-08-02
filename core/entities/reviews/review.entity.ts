@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { Min, Max, IsNotEmpty } from 'class-validator';
 import { Comment } from './comment.entity';
+import { ReactionReview } from './reactionReview.entity';
 
 @Entity()
 export class Review {
@@ -34,8 +35,11 @@ export class Review {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Comment, (comment) => comment.review)
+  @OneToMany(() => Comment, (comment) => comment.review, { cascade: true })
   comments: Comment[]
+
+  @OneToMany(() => ReactionReview, (reaction) => reaction.review, { cascade: true })
+  reactions: ReactionReview[]
 
   constructor(args?: { rating: number, text: string, showOnMain: boolean, productId: string, comments: Comment[] }) {
     if (args) {

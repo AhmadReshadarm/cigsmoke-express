@@ -2,7 +2,7 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Comment, Review } from '../../core/entities';
+import { Comment, ReactionComment, Review } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { CommentQueryDTO, UserAuth, UserDTO, CommentDTO, CreateCommentDTO } from '../reviews.dtos';
 import axios from 'axios';
@@ -15,10 +15,12 @@ import { PaginationDTO } from '../../core/lib/dto';
 export class CommentService {
   private commentRepository: Repository<Comment>;
   private reviewRepository: Repository<Review>;
+  private reactionRepository: Repository<ReactionComment>;
 
   constructor(dataSource: DataSource) {
     this.commentRepository = dataSource.getRepository(Comment);
     this.reviewRepository = dataSource.getRepository(Review);
+    this.reactionRepository = dataSource.getRepository(ReactionComment);
   }
 
   async getComments(queryParams: CommentQueryDTO): Promise<PaginationDTO<CommentDTO>> {
@@ -31,7 +33,9 @@ export class CommentService {
 
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.review', 'review', 'review.productId = comment.reviewProductId and review.userId = comment.reviewUserId');
+      .leftJoinAndSelect('comment.review', 'review')
+      .leftJoinAndSelect('comment.reactions', 'reactions');
+
 
     if (userId) { queryBuilder.andWhere('comment.userId = :userId', { userId: userId }); }
 
@@ -53,7 +57,8 @@ export class CommentService {
   async getComment(id: string, authToken: string): Promise<CommentDTO> {
     const comment = await this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.review', 'review', 'review.productId = comment.reviewProductId and review.userId = comment.reviewUserId')
+      .leftJoinAndSelect('comment.review', 'review')
+      .leftJoinAndSelect('comment.reactions', 'reactions')
       .where('comment.id = :id', { id: id })
       .getOneOrFail()
 
@@ -76,13 +81,21 @@ export class CommentService {
     }
   }
 
-
   async getReview(id: string) {
     return this.reviewRepository.findOneOrFail({
       where: {
         id: Equal(id)
       }
     })
+  }
+
+  async getNewReactionId(): Promise<string> {
+    const lastElement = await this.reactionRepository.find({
+      order: { id: 'DESC' },
+      take: 1
+    })
+
+    return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
   async createComment(commentDTO: CreateCommentDTO): Promise<Comment> {
@@ -98,11 +111,15 @@ export class CommentService {
     return this.commentRepository.save(newComment);
   }
 
+  async createReaction(reaction: ReactionComment): Promise<ReactionComment> {
+    return this.reactionRepository.save(reaction)
+  }
+
   async updateComment(id: string, commentDTO: CreateCommentDTO, user: UserAuth, authToken: string) {
     const comment = await this.getComment(id, authToken)
     const { reviewId, ...others } = commentDTO;
 
-    const newComment = {
+    const newComment: Comment = {
       ...comment,
       ...others
     }
@@ -127,8 +144,26 @@ export class CommentService {
     return this.commentRepository.remove(comment);
   }
 
+  async removeReaction(id: string, user: UserAuth) {
+    const reaction = await this.reactionRepository.findOneOrFail({
+      where: {
+        id: Equal(id)
+      }
+    })
+
+    await this.isUserReactionOwner(reaction, user);
+
+    return this.reactionRepository.remove(reaction);
+  }
+
   isUserCommentOwner(comment: Comment, user: UserAuth) {
     if (scope(String(comment.userId), String(user.id)) && user.role !== Role.Admin) {
+      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+    }
+  }
+
+  isUserReactionOwner(reaction: ReactionComment, user: UserAuth) {
+    if (scope(String(reaction.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
@@ -147,6 +182,7 @@ export class CommentService {
       text: comment.text,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
+      reactions: comment.reactions
     }
   }
 }
