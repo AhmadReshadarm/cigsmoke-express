@@ -2,10 +2,11 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Product } from '../../core/entities';
+import { Product, Review } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
-import { ProductQueryDTO } from '../catalog.dtos';
-import { PaginationDTO } from '../../core/lib/dto';
+import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
+import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
+import axios from 'axios';
 
 @injectable()
 export class ProductService {
@@ -15,7 +16,7 @@ export class ProductService {
     this.productRepository = dataSource.getRepository(Product);
   }
 
-  async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<Product>> {
+  async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
     const {
       name,
       minPrice,
@@ -52,8 +53,11 @@ export class ProductService {
       .skip(offset)
       .take(limit)
 
+    const products = await queryBuilder.getMany();
+    const result = products.map(async (product) => await this.mergeProduct(product))
+
     return {
-      rows: await queryBuilder.getMany(),
+      rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
     }
   }
@@ -75,8 +79,8 @@ export class ProductService {
       .getRawOne();
   }
 
-  async getProduct(id: string): Promise<Product> {
-    const queryBuilder = await this.productRepository.createQueryBuilder("product")
+  async getProduct(id: string): Promise<ProductDTO> {
+    const product = await this.productRepository.createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
@@ -84,9 +88,9 @@ export class ProductService {
       .where('product.id = :id', { id: id })
       .getOne();
 
-    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!product) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
 
-    return queryBuilder
+    return this.mergeProduct(product)
   }
 
   async createProduct(newProduct: Product): Promise<Product> {
@@ -114,5 +118,54 @@ export class ProductService {
     });
 
     return this.productRepository.remove(product);
+  }
+
+  async getReviewsByProductId(id: string): Promise<PaginationDTO<Review> | null> {
+    const reviews = await axios.get(`${process.env.REVIEWS_DB}/reviews/`, {
+      params: {
+        productId: id,
+        merge: 'false',
+        limit: 100000
+      }
+    })
+
+    return reviews.data.length > 1 ? reviews.data : null;
+  }
+
+  async getProductRatingFromReviews(reviews: PaginationDTO<Review>): Promise<RatingDTO | null> {
+    let counter: number = 0;
+    let totalRating: number = 0;
+
+    const rating: RatingDTO = {
+      '1': 0,
+      '2': 0,
+      '3': 0,
+      '4': 0,
+      '5': 0,
+      avg: 0
+    }
+
+    reviews.rows.map((review: Review) => {
+
+      const index = String(review.rating)
+      rating[index as keyof typeof rating] += 1;
+
+      totalRating += review.rating;
+      counter += 1;
+    })
+
+    rating.avg = +(totalRating / counter).toFixed(2);
+    return rating
+  }
+
+  async mergeProduct(product: Product): Promise<ProductDTO> {
+    const reviews = await this.getReviewsByProductId(product.id);
+    const rating = reviews ? await this.getProductRatingFromReviews(reviews) : null;
+
+    return {
+      ...product,
+      rating: rating,
+      reviews: reviews?.rows ?? null,
+    }
   }
 }

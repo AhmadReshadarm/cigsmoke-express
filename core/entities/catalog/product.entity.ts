@@ -28,10 +28,10 @@ export class Product {
   @Min(1)
   price: number;
 
-  @Column()
+  @Column({ nullable: true })
   oldPrice?: number;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   desc: string;
 
   @IsNotEmpty()

@@ -3,7 +3,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { Brand } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 import { Product } from '../../core/entities';
-import { BrandQueryDTO } from '../catalog.dtos';
+import { BrandQueryDTO, ProductDTO } from '../catalog.dtos';
 import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
@@ -53,8 +53,8 @@ export class BrandService {
     return brand;
   }
 
-  async getUniqueBrandsFromProducts(products: Product[]): Promise<Brand[]> {
-    return products.reduce((acc: Brand[], product: Product) => {
+  async getUniqueBrandsFromProducts(products: ProductDTO[]): Promise<Brand[]> {
+    return products.reduce((acc: Brand[], product: ProductDTO) => {
       if (!acc.find(brand => brand.id === product.brand.id)) {
         return acc.concat(product.brand);
       }

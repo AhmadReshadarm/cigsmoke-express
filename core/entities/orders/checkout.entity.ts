@@ -25,7 +25,7 @@ export class Checkout {
   @JoinColumn()
   basket: Basket;
 
-  @Column({ nullable: true })
+  @Column('text',{ nullable: true })
   comment: string;
 
   constructor(args?: { address: Address, payment: PaymentCard, basket: Basket, comment: string }) {

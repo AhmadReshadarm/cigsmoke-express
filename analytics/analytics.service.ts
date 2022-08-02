@@ -67,7 +67,7 @@ export class AnalyticsService {
         }
 
         if (!analytics[data.id].avgRating) {
-          analytics[data.id].avgRating = await this.getRating(authToken, ratingParams);
+          analytics[data.id].avgRating = await this.getRating(ratingParams);
         }
 
         analytics[data.id].qty += orderProduct.qty
@@ -207,13 +207,11 @@ export class AnalyticsService {
     return product.data
   }
 
-  async getRating(authToken: string, params: RatingQueryParams): Promise<number> {
+  async getRating(params: RatingQueryParams): Promise<number> {
     const reviews = await axios.get(`${process.env.REVIEWS_DB}/reviews`, {
-        headers: {
-          Authorization: authToken
-        },
         params: {
           ...params,
+          merge: 'false',
           limit: 100000,
         }
       }
@@ -221,7 +219,6 @@ export class AnalyticsService {
 
     let counter: number = 0;
     let totalRating: number = 0;
-
 
     reviews.data.rows.map((review: Review) => {
       totalRating += review.rating;

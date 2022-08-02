@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, Generated, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { Min, Max, IsNotEmpty } from 'class-validator';
+import { Comment } from './comment.entity';
 
 @Entity()
 export class Review {
@@ -7,13 +8,14 @@ export class Review {
   id: string;
 
   @Min(1)
-  @Max(10)
+  @Max(5)
   @IsNotEmpty()
   @Column()
   rating: number;
 
-  @Column()
-  comment: string;
+  @IsNotEmpty()
+  @Column('text')
+  text: string;
 
   @Column({ default: false })
   showOnMain: boolean;
@@ -32,12 +34,16 @@ export class Review {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  constructor(args?: { rating: number, comment: string, showOnMain: boolean, productId: string }) {
+  @OneToMany(() => Comment, (comment) => comment.review)
+  comments: Comment[]
+
+  constructor(args?: { rating: number, text: string, showOnMain: boolean, productId: string, comments: Comment[] }) {
     if (args) {
       this.rating = args.rating;
-      this.comment = args.comment;
+      this.text = args.text;
       this.showOnMain = args.showOnMain;
       this.productId = args.productId;
+      this.comments = args.comments;
     }
   }
 }

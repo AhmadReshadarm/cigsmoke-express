@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm"
-import { Review } from '../core/entities';
+import { Comment, Review } from '../core/entities';
 
 const dataSource = new DataSource({
     type: "mysql",
@@ -11,7 +11,7 @@ const dataSource = new DataSource({
     logging: true,
     synchronize: true,
     migrationsRun: false,
-    entities: [Review],
+    entities: [Review, Comment],
 });
 
 export default dataSource;

@@ -1,4 +1,5 @@
 import { Role } from '../core/enums/roles.enum';
+import { Comment, Review } from '../core/entities';
 
 export interface UserDTO {
   id: string,
@@ -19,12 +20,13 @@ export interface ProductDTO {
 export interface ReviewDTO {
   id: string,
   rating: number,
-  comment: string,
+  text: string,
   createdAt: Date,
   updatedAt: Date,
   showOnMain: boolean,
   product: ProductDTO | string,
   user: UserDTO | string,
+  comments: Comment[],
 }
 
 export interface ReviewQueryDTO {
@@ -36,6 +38,30 @@ export interface ReviewQueryDTO {
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
   offset?: number;
+  merge?: string;
+}
+
+export interface CommentQueryDTO {
+  id?: string,
+  userId?: string,
+  orderBy?: 'DESC' | 'ASC';
+  limit?: number;
+  offset?: number;
+}
+
+export interface CommentDTO {
+  id: string,
+  user: UserDTO | string,
+  review: Review,
+  text: String,
+  createdAt: Date,
+  updatedAt: Date,
+}
+
+export interface CreateCommentDTO {
+  userId: string,
+  text: string,
+  reviewId: string,
 }
 
 export interface UserAuth {

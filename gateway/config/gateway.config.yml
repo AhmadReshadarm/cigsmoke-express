@@ -34,7 +34,10 @@ apiEndpoints:
     ]
   reviews:
     host: localhost
-    paths: [ '/reviews*' ]
+    paths: [
+      '/reviews*',
+      '/comments*'
+    ]
   swagger:
     host: localhost
     paths: [ '/api-docs*' ]

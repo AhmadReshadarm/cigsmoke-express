@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
-import { Review } from '../core/entities';
-import { HttpStatus } from '../core/lib/http-status';
-import { validation } from '../core/lib/validator';
+import { Review } from '../../core/entities';
+import { HttpStatus } from '../../core/lib/http-status';
+import { validation } from '../../core/lib/validator';
 import { ReviewService } from './review.service';
-import { Controller, Delete, Get, Middleware, Post, Put } from '../core/decorators';
-import { isUser, verifyToken, verifyUserId } from '../core/middlewares';
-import { Role } from '../core/enums/roles.enum';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
+import { isUser, verifyToken, verifyUserId } from '../../core/middlewares';
+import { Role } from '../../core/enums/roles.enum';
 
 @singleton()
 @Controller('/reviews')

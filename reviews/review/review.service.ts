@@ -1,14 +1,15 @@
 import { singleton } from 'tsyringe';
-import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../core/domain/error/custom.external.error';
-import { ErrorCode } from '../core/domain/error/error.code';
-import { Review } from '../core/entities';
-import { HttpStatus } from '../core/lib/http-status';
-import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from './reviews.dtos';
+import { DataSource, Equal, QueryBuilder, Repository } from 'typeorm';
+import { CustomExternalError } from '../../core/domain/error/custom.external.error';
+import { ErrorCode } from '../../core/domain/error/error.code';
+import { Review } from '../../core/entities';
+import { HttpStatus } from '../../core/lib/http-status';
+import { ProductDTO, ReviewDTO, ReviewQueryDTO, UserAuth, UserDTO } from '../reviews.dtos';
 import axios from 'axios';
-import { scope } from '../core/middlewares/access.user';
-import { Role } from '../core/enums/roles.enum';
-import { PaginationDTO } from '../core/lib/dto';
+import { scope } from '../../core/middlewares/access.user';
+import { Role } from '../../core/enums/roles.enum';
+import { PaginationDTO } from '../../core/lib/dto';
+import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
 
 
 @singleton()
@@ -19,18 +20,22 @@ export class ReviewService {
     this.reviewRepository = dataSource.getRepository(Review);
   }
 
-  async getReviews(queryParams: ReviewQueryDTO): Promise<PaginationDTO<ReviewDTO>> {
+  async getReviews(queryParams: ReviewQueryDTO): Promise<PaginationDTO<ReviewDTO | Review>> {
     const {
       productId,
       userId,
       showOnMain,
       sortBy = 'productId',
       orderBy = 'DESC',
-      offset=0,
+      merge = 'true',
+      offset = 0,
       limit = 10,
     } = queryParams;
 
-    const queryBuilder = this.reviewRepository.createQueryBuilder('review');
+    const queryBuilder = this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.comments', 'comments', 'comments.reviewProductId = review.productId and comments.reviewUserId = review.userId');
+
     if (productId) { queryBuilder.andWhere('review.productId = :productId', { productId: productId }); }
     if (userId) { queryBuilder.andWhere('review.userId = :userId', { userId: userId }); }
     if (showOnMain) { queryBuilder.andWhere('review.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
@@ -40,21 +45,19 @@ export class ReviewService {
       .skip(offset)
       .take(limit)
 
-    const reviews = await queryBuilder.getMany();
-    const result = reviews.map(async (review) => await this.mergeReviewUserId(review, ''))
-
     return  {
-      rows: await Promise.all(result),
+      rows: merge === 'true' ? await this.mergeReviews(queryBuilder) : await queryBuilder.getMany(),
       length: await queryBuilder.getCount(),
     }
   }
 
   async getReview(id: string, authToken: string): Promise<ReviewDTO> {
-    const review = await this.reviewRepository.findOneOrFail({
-      where: {
-        id: Equal(id),
-      }
-    });
+    const review = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.comments', 'comments', 'comments.reviewProductId = review.productId and comments.reviewUserId = review.userId')
+      .where('review.id = :id', { id: id })
+      .getOneOrFail()
+
     return await this.mergeReviewUserId(review, authToken)
   }
 
@@ -142,16 +145,24 @@ export class ReviewService {
     }
   }
 
+  async mergeReviews(queryBuilder: SelectQueryBuilder<Review>) {
+    const reviews = await queryBuilder.getMany();
+    const result = reviews.map(async (review) => await this.mergeReviewUserId(review, ''))
+
+    return Promise.all(result);
+  }
+
   async mergeReviewUserId(review: Review, authToken: string): Promise<ReviewDTO> {
     return {
       id: review.id,
       rating: review.rating,
-      comment: review.comment,
+      text: review.text,
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
       showOnMain: review.showOnMain,
       product: await this.getProductById(review.productId) ?? review.productId,
       user: await this.getUserById(review.userId, authToken) ?? review.userId,
+      comments: review.comments
     }
   }
 }

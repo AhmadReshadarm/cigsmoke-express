@@ -6,5 +6,6 @@ export enum ErrorCode {
   FORBIDDEN = 'You are forbidden to access this data',
   DUPLICATE_ENTRY = 'Duplicate entry for primary key',
   DYNAMIC_EMPTY_QUERY = 'Query params "from", "to" and "step" should not be empty',
-  MAIL_OPTIONS = 'Properties "to", "subject", "html" must be provided'
+  MAIL_OPTIONS = 'Properties "to", "subject", "html" must be provided',
+  VALIDATION_COMMENTS = 'Properties "text" and "reviewId" must be provided',
 }

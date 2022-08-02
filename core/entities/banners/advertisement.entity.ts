@@ -11,7 +11,7 @@ export class Advertisement {
   image: string;
 
   @IsNotEmpty()
-  @Column()
+  @Column('text')
   description: string;
 
   @IsNotEmpty()
