@@ -10,7 +10,7 @@ RUN mkdir -p core
 RUN mkdir -p reviews
 
 WORKDIR /app/reviews/
-COPY ./reviews .
+COPY review .
 RUN npm install
 
 WORKDIR /app/core/

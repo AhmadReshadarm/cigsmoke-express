@@ -1,4 +1,5 @@
-import { Brand, Category, Color, Parameter, Product, Tag } from '../core/entities';
+import { Brand, Category, Color, Parameter, Review, Tag } from '../core/entities';
+import { RatingDTO } from '../core/lib/dto';
 
 export interface ProductQueryDTO {
   readonly name?: string,
@@ -73,4 +74,23 @@ export interface BrandQueryDTO {
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
   readonly offset?: number;
+}
+
+export interface ProductDTO {
+  readonly id: string,
+  readonly name: string,
+  readonly price: number,
+  readonly oldPrice?: number,
+  readonly desc: string | null,
+  readonly available: boolean,
+  readonly createdAt: Date,
+  readonly updatedAt: Date,
+  readonly images: string | null,
+  readonly url: string,
+  readonly category: Category,
+  readonly brand: Brand,
+  readonly colors?: Color[],
+  readonly tags?: Tag[],
+  readonly rating: RatingDTO | null,
+  readonly reviews: Review[] | null,
 }
