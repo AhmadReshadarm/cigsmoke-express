@@ -129,7 +129,7 @@ export class ProductService {
       }
     })
 
-    return reviews.data.length > 1 ? reviews.data : null;
+    return reviews.data.length > 0 ? reviews.data : null;
   }
 
   async getProductRatingFromReviews(reviews: PaginationDTO<Review>): Promise<RatingDTO | null> {
@@ -160,6 +160,7 @@ export class ProductService {
 
   async mergeProduct(product: Product): Promise<ProductDTO> {
     const reviews = await this.getReviewsByProductId(product.id);
+    console.log(reviews)
     const rating = reviews ? await this.getProductRatingFromReviews(reviews) : null;
 
     return {
