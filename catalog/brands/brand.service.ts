@@ -17,7 +17,6 @@ export class BrandService {
   async getBrands(queryParams: BrandQueryDTO): Promise<PaginationDTO<Brand>> {
     const {
       name,
-      image,
       showOnMain,
       sortBy = 'name',
       orderBy = 'DESC',

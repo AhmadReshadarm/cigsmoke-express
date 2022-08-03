@@ -10,10 +10,10 @@ export interface ProductQueryDTO {
   readonly maxPrice?: number,
   readonly desc?: string,
   readonly available?: boolean,
-  readonly colors?: string,
-  readonly categories?: string,
-  readonly brands?: string,
-  readonly tags?: string,
+  readonly colors?: string | string[],
+  readonly categories?: string | string[],
+  readonly brands?: string | string[],
+  readonly tags?: string | string[],
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';
   readonly offset?: number;
@@ -71,7 +71,6 @@ export interface CategoryQueryDTO {
 
 export interface BrandQueryDTO {
   readonly name?: string,
-  readonly image?: string,
   readonly showOnMain?: boolean,
   readonly sortBy?: string,
   readonly orderBy?: 'DESC' | 'ASC';

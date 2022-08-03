@@ -674,13 +674,66 @@
         "produces": [
           "application/json"
         ],
+        "parameters": [
+          {
+            "type": "string",
+            "in": "query",
+            "name": "name",
+            "required": false
+          },
+          {
+            "type": "boolean",
+            "in": "query",
+            "name": "showOnMain",
+            "required": false
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "sortBy",
+            "required": false,
+            "default": "name"
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "orderBy",
+            "required": false,
+            "default": "DESC",
+            "description": "can be ASC or DESC"
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "default": 0,
+            "description": "qty rows to skip for pagination"
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "default": 10,
+            "description": "qty rows to take for pagination"
+          }
+        ],
         "responses": {
           "200": {
             "description": "successful operation",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Brand"
+              "type": "object",
+              "properties": {
+                "rows": {
+                  "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Brand"
+                    }
+                  },
+                "length": {
+                  "type": "number"
+                }
               }
             }
           }
@@ -697,6 +750,13 @@
           "application/json"
         ],
         "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token"
+          },
           {
             "in": "body",
             "name": "body",
@@ -777,6 +837,13 @@
         ],
         "parameters": [
           {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token"
+          },
+          {
             "name": "brandId",
             "in": "path",
             "description": "ID of brand to return",
@@ -797,20 +864,7 @@
           "200": {
             "description": "successful updated",
             "schema": {
-              "type": "object",
-              "properties": {
-                "raw": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": ""
-                },
-                "affected": {
-                  "type": "integer",
-                  "description": "qty of updated raws"
-                }
-              }
+              "$ref": "#/definitions/Brand"
             }
           },
           "400": {
@@ -836,6 +890,13 @@
         ],
         "parameters": [
           {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token"
+          },
+          {
             "name": "brandId",
             "in": "path",
             "description": "ID of brand to return",
@@ -849,22 +910,28 @@
             "schema": {
               "type": "object",
               "properties": {
-                "raw": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": ""
+                "name": {
+                  "type": "string"
                 },
-                "affected": {
-                  "type": "integer",
-                  "description": "qty of deleted raws"
+                "url": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                },
+                "showOnMain": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "value true can be post only with admin token"
                 }
               }
             }
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Brand not found"
@@ -929,9 +996,17 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Category"
+              "type": "object",
+              "properties": {
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Category"
+                  }
+                },
+                "length": {
+                  "type": "number"
+                }
               }
             }
           }
@@ -972,6 +1047,9 @@
           },
           "400": {
             "description": "Invalid Category request"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "401": {
             "description": "Unauthorized"
@@ -1070,6 +1148,9 @@
           "401": {
             "description": "Unauthorized"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Category not found"
           }
@@ -1116,6 +1197,9 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Category not found"
@@ -3772,7 +3856,7 @@
         "parameters": [
           {
             "type": "string",
-            "name": "Authorization",
+            "name": "authorization",
             "required": true,
             "in": "header",
             "description": "Admin-token"
@@ -4287,7 +4371,8 @@
   "definitions": {
     "Brand": {
       "required": [
-        "name"
+        "name",
+        "url"
       ],
       "properties": {
         "id": {
@@ -4298,11 +4383,15 @@
           "type": "string"
         },
         "url": {
-          "type": "string",
-          "required": true
+          "type": "string"
         },
         "image": {
           "type": "string"
+        },
+        "showOnMain": {
+          "type": "boolean",
+          "default": false,
+          "description": "value true can be post only with admin token"
         }
       },
       "xml": {
@@ -4376,9 +4465,9 @@
         "parameters": {
           "type": "array",
           "items": {
-            "type": "string"
-          },
-          "description": "array of parameters IDs"
+            "type": "object",
+            "$ref": "#/definitions/Parameter"
+          }
         },
         "url": {
           "type": "string"
@@ -4425,14 +4514,6 @@
         },
         "name": {
           "type": "string"
-        },
-        "categories": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/Category"
-          },
-          "readOnly": true
         }
       }
     },

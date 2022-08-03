@@ -33,7 +33,7 @@ export class BrandController {
   async getBrandsByCategory(req: Request, resp: Response) {
     const { categoryUrl } = req.params;
 
-    const products = await this.productService.getProducts({ categories: JSON.stringify([categoryUrl]) });
+    const products = await this.productService.getProducts({ categories: [categoryUrl] });
     const brands = await this.brandService.getUniqueBrandsFromProducts(products.rows);
     resp.json(brands);
   }

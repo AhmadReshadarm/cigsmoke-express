@@ -49,7 +49,7 @@ export class ProductService {
     if (colors) { queryBuilder.andWhere('color.url IN (:...colors)', { colors: colors }); }
     if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories }); }
     if (brands) { queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands }); }
-    if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: JSON.parse(tags) }); }
+    if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags }); }
 
     queryBuilder
       .orderBy(`product.${sortBy}`, orderBy)
