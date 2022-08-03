@@ -2,18 +2,21 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Product, Review } from '../../core/entities';
+import { ParameterProduct, Product, Review } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
 import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
 import axios from 'axios';
+import { validation } from '../../core/lib/validator';
 
 @injectable()
 export class ProductService {
   private productRepository: Repository<Product>;
+  private parameterProductRepository: Repository<ParameterProduct>
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
+    this.parameterProductRepository = dataSource.getRepository(ParameterProduct)
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
@@ -79,6 +82,16 @@ export class ProductService {
       .getRawOne();
   }
 
+  async getParameterProducts(id: string) {
+
+    return this.parameterProductRepository.find({
+      where: {
+        productId: id
+      },
+      relations: ['parameter']
+    })
+  }
+
   async getProduct(id: string): Promise<ProductDTO> {
     const product = await this.productRepository.createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
@@ -90,11 +103,30 @@ export class ProductService {
 
     if (!product) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
 
+
     return this.mergeProduct(product)
   }
 
+  async createParameters(parameters: ParameterProduct[], id: string) {
+    parameters.map(async (parameter) => {
+      parameter.productId = id
+      return await this.parameterProductRepository.save(parameter);
+
+    })
+  }
+
   async createProduct(newProduct: Product): Promise<Product> {
-    return this.productRepository.save(newProduct);
+    if (newProduct.parameterProduct) {
+      await validation(newProduct.parameterProduct)
+    }
+
+    const created = await this.productRepository.save(new Product(newProduct));
+
+    if (newProduct.parameterProduct) {
+      await this.createParameters(newProduct.parameterProduct, created.id)
+    }
+
+    return created
   }
 
   async updateProduct(id: string, productDTO: Product) {
@@ -160,13 +192,13 @@ export class ProductService {
 
   async mergeProduct(product: Product): Promise<ProductDTO> {
     const reviews = await this.getReviewsByProductId(product.id);
-    console.log(reviews)
     const rating = reviews ? await this.getProductRatingFromReviews(reviews) : null;
 
     return {
       ...product,
       rating: rating,
       reviews: reviews?.rows ?? null,
+      parameterProduct: await this.getParameterProducts(product.id)
     }
   }
 }

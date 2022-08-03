@@ -36,8 +36,7 @@ export class Category {
   @TreeChildren()
   children: Category[];
 
-  @ManyToMany(() => Parameter, (parameter) => parameter.categories)
-  @JoinTable()
+  @OneToMany(() => Parameter, (parameter) => parameter.category)
   parameters: Parameter[];
 
   @IsNotEmpty()

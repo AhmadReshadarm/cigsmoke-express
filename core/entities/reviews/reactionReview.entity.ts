@@ -21,7 +21,7 @@ export class ReactionReview {
   @PrimaryColumn()
   reviewId: string
 
-  @ManyToOne(() => Review, (review) => review.reactions)
+  @ManyToOne(() => Review, (review) => review.reactions, { cascade: true, onDelete: 'CASCADE' })
   review: Review
 
   @Column({type: 'enum', enum: Reaction })

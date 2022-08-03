@@ -14,7 +14,8 @@ export class CheckoutController {
   constructor(private checkoutService: CheckoutService) {}
 
   @Get()
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
+  // TODO: add temporary token verification
   async getCheckouts(req: Request, resp: Response) {
     if (resp.locals.user.role !== Role.Admin) {
       req.query.userId = String(resp.locals.user.id);
@@ -26,7 +27,7 @@ export class CheckoutController {
   }
 
   @Get(':id')
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
   async getCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const checkout = await this.checkoutService.getCheckout(id, req.headers.authorization!);
@@ -35,7 +36,7 @@ export class CheckoutController {
   }
 
   @Post()
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
   async createCheckout(req: Request, resp: Response) {
     const newCheckout = new Checkout(req.body);
     newCheckout.userId = resp.locals.user.id;
@@ -47,7 +48,7 @@ export class CheckoutController {
   }
 
   @Put(':id')
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
   async updateCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.checkoutService.updateCheckout(id, req.body, resp.locals.user);
@@ -56,7 +57,7 @@ export class CheckoutController {
   }
 
   @Delete(':id')
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
   async removeCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.checkoutService.removeCheckout(id, resp.locals.user);

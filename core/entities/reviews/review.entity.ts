@@ -35,10 +35,10 @@ export class Review {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Comment, (comment) => comment.review, { cascade: true })
+  @OneToMany(() => Comment, (comment) => comment.review)
   comments: Comment[]
 
-  @OneToMany(() => ReactionReview, (reaction) => reaction.review, { cascade: true })
+  @OneToMany(() => ReactionReview, (reaction) => reaction.review)
   reactions: ReactionReview[]
 
   constructor(args?: { rating: number, text: string, showOnMain: boolean, productId: string, comments: Comment[] }) {

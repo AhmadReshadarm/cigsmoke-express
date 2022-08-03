@@ -7,6 +7,7 @@ import { Category } from '../../core/entities';
 import { ParameterService } from '../parameters/parameter.service';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { isAdmin, verifyToken } from '../../core/middlewares';
+import { CreateCategoryDTO } from '../catalog.dtos';
 
 @singleton()
 @Controller('/categories')
@@ -42,16 +43,15 @@ export class CategoryController {
   @Middleware([verifyToken, isAdmin])
   async createCategory(req: Request, resp: Response) {
     const { parentId } = req.body
-    const newCategory = await validation(new Category(req.body));
+    const newCategory: CreateCategoryDTO = await validation(req.body);
 
     if (parentId) {
       newCategory.parent = await this.categoryService.getCategory(parentId);
     }
 
-    newCategory.parameters = await this.parameterService.getParametersByIds(newCategory.parameters?.map(parameter => String(parameter)))
     const created = await this.categoryService.createCategory(newCategory);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Put(':id')

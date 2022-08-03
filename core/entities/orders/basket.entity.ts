@@ -22,7 +22,7 @@ export class Basket {
   @OneToMany(() => OrderProduct, orderProduct => orderProduct.inBasket)
   orderProducts: OrderProduct[];
 
-  @OneToOne(() => Checkout, checkout => checkout.basket)
+  @OneToOne(() => Checkout, checkout => checkout.basket, { onDelete: 'SET NULL' })
   @JoinColumn()
   checkout: Checkout;
 
@@ -35,9 +35,10 @@ export class Basket {
   @Column({ type: 'enum', enum: BasketStatus, default: BasketStatus.New })
   status: BasketStatus
 
-  constructor(args?: { title: string, orderProducts: OrderProduct[], checkout: Checkout, status: BasketStatus }) {
+  constructor(args?: { title: string, userId: string, orderProducts: OrderProduct[], checkout: Checkout, status: BasketStatus }) {
     if (args) {
       this.orderProducts = args.orderProducts;
+      this.userId = args.userId;
       this.checkout = args.checkout;
       this.status = args.status;
     }

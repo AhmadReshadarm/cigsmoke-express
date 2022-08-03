@@ -1,6 +1,8 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from './category.entity';
 import { IsNotEmpty } from 'class-validator';
+import { ParameterProduct } from './parameterProduct.entity';
+import { Product } from './product.entity';
 
 @Entity()
 export class Parameter {
@@ -11,17 +13,21 @@ export class Parameter {
   @Column({ unique: true })
   name: string;
 
-  @ManyToMany(
+  @ManyToOne(
     () => Category,
     (category) => category.parameters,
-    { cascade: true },
+    { cascade: true, onDelete: 'CASCADE' },
   )
-  categories: Category[]
+  category: Category
 
-  constructor(args?: { name: string, categories: Category[] }) {
+  @OneToMany(() => Product, (products) => products.parameterProduct)
+  // @JoinColumn()
+  parameterProduct: Product[]
+
+  constructor(args?: { name: string, category: Category }) {
     if (args) {
       this.name = args.name;
-      this.categories = args.categories;
+      this.category = args.category;
     }
   }
 }

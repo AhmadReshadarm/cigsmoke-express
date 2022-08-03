@@ -13,15 +13,15 @@ export class Checkout {
   userId: string;
 
   @IsNotEmpty()
-  @ManyToOne(() => Address, address => address.checkouts)
+  @ManyToOne(() => Address, address => address.checkouts, { cascade: true, onDelete: 'SET NULL' })
   address: Address;
 
   @IsNotEmpty()
-  @ManyToOne(() => PaymentCard, paymentCard => paymentCard.checkouts)
+  @ManyToOne(() => PaymentCard, paymentCard => paymentCard.checkouts, { cascade: true, onDelete: 'SET NULL' })
   payment: PaymentCard;
 
   @IsNotEmpty()
-  @OneToOne(() => Basket, basket => basket.checkout)
+  @OneToOne(() => Basket, basket => basket.checkout, { cascade: true, onDelete: 'SET NULL' })
   @JoinColumn()
   basket: Basket;
 

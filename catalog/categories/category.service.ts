@@ -1,18 +1,21 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository, TreeRepository } from 'typeorm';
-import { Category } from '../../core/entities';
-import { CategoryDTO, CategoryQueryDTO } from '../catalog.dtos';
+import { Category, Parameter } from '../../core/entities';
+import { CategoryQueryDTO, CreateCategoryDTO, CreateParameterDTO, ICreateCategoryAnswer } from '../catalog.dtos';
 import { PaginationDTO } from '../../core/lib/dto';
+import { validation } from '../../core/lib/validator';
 
 
 @singleton()
 export class CategoryService {
   private categoryRepository: Repository<Category>;
   private categoryTreeRepository: TreeRepository<Category>;
+  private parametersRepository: Repository<Parameter>;
 
   constructor(dataSource: DataSource) {
     this.categoryRepository = dataSource.getRepository(Category);
     this.categoryTreeRepository = dataSource.getTreeRepository(Category);
+    this.parametersRepository = dataSource.getRepository(Parameter)
   }
 
   async getCategories(queryParams: CategoryQueryDTO): Promise<PaginationDTO<Category>> {
@@ -28,7 +31,7 @@ export class CategoryService {
       limit=10,
     } = queryParams;
 
-    const queryBuilder = await this.categoryRepository
+    const queryBuilder = this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.parameters', 'parameter')
       .leftJoinAndSelect('category.children', 'categoryChildren')
@@ -56,7 +59,7 @@ export class CategoryService {
       where: {
           id: Equal(id),
       },
-      relations: ['parent', 'children'],
+      relations: ['parent', 'children', 'parameters'],
     });
 
     return category;
@@ -66,8 +69,35 @@ export class CategoryService {
     return await this.categoryTreeRepository.findTrees()
   }
 
-  async createCategory(categoryDTO: CategoryDTO): Promise<Category> {
-      return this.categoryRepository.save(categoryDTO);
+  async createParameters(parameters: CreateParameterDTO[]): Promise<string[]> {
+    const ids = parameters.map(async (parameter) => {
+      const created = await this.parametersRepository.save(parameter)
+      return created.id
+    })
+
+    return Promise.all(ids);
+  }
+
+  async createCategory(categoryDTO: CreateCategoryDTO): Promise<ICreateCategoryAnswer> {
+    const { parameters } = categoryDTO
+    if (parameters) {
+      await validation(parameters)
+    }
+
+    const created = await this.categoryRepository.save(categoryDTO);
+
+    if (parameters) {
+      parameters.forEach((parameter) => {
+        parameter.category = created
+      })
+    }
+
+    const parametersIds = parameters ? await this.createParameters(parameters) : null;
+
+    return {
+      categoryId: created.id,
+      parametersIds: parametersIds
+    }
   }
 
   async updateCategory(id: string, categoryDTO: Category) {

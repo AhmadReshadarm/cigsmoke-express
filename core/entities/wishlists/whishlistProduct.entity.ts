@@ -12,7 +12,7 @@ export class WishlistProduct {
   productId: string;
 
   @IsNotEmpty()
-  @ManyToOne(() => Wishlist, wishlish => wishlish.items, { nullable: false })
+  @ManyToOne(() => Wishlist, wishlish => wishlish.items, { cascade: true, onDelete: 'CASCADE' })
   wishlist: Wishlist;
 
   @CreateDateColumn()

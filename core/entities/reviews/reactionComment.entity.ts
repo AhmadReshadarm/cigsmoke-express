@@ -18,7 +18,7 @@ export class ReactionComment {
   @PrimaryColumn()
   userId: string;
 
-  @ManyToOne(() => Comment, (comment) => comment.reactions)
+  @ManyToOne(() => Comment, (comment) => comment.reactions, { cascade: true, onDelete: 'CASCADE' })
   @PrimaryColumn()
   commentId: string
 
