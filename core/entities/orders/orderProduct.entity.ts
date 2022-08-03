@@ -24,7 +24,7 @@ export class OrderProduct {
   basketId: string;
 
   @IsNotEmpty()
-  @ManyToOne(() => Basket, basket => basket.orderProducts, { nullable: false })
+  @ManyToOne(() => Basket, basket => basket.orderProducts, { cascade: true, onDelete: 'CASCADE' })
   inBasket: Basket
 
   constructor(args?: { productId: string, qty: number, inBasket: Basket }) {

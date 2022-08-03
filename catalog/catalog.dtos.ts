@@ -1,5 +1,8 @@
-import { Brand, Category, Color, Parameter, Review, Tag } from '../core/entities';
+import { Brand, Category, Color, Parameter, ParameterProduct, Review, Tag } from '../core/entities';
 import { RatingDTO } from '../core/lib/dto';
+import { IsBoolean, IsNotEmpty, IsPositive, IsString } from 'class-validator';
+import { Column, CreateDateColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, UpdateDateColumn } from 'typeorm';
+import { BrandService } from './brands/brand.service';
 
 export interface ProductQueryDTO {
   readonly name?: string,
@@ -47,12 +50,12 @@ export interface ColorQueryDTO {
   readonly offset?: number;
 }
 
-export interface CategoryDTO {
-  readonly name: string,
-  readonly url: string,
-  readonly parentId?: string,
-  readonly parameters?: Parameter[],
-}
+// export interface CategoryDTO {
+//   readonly name: string,
+//   readonly url: string,
+//   readonly parentId?: string,
+//   readonly parameters?: Parameter[],
+// }
 
 export interface CategoryQueryDTO {
   readonly name?: string,
@@ -93,4 +96,37 @@ export interface ProductDTO {
   readonly tags?: Tag[],
   readonly rating: RatingDTO | null,
   readonly reviews: Review[] | null,
+  readonly parameterProduct: ParameterProduct[] | null,
+}
+
+
+export class CreateCategoryDTO {
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsString()
+  image: string;
+
+  @IsString()
+  parentId?: string;
+
+  parameters: Parameter[];
+
+  @IsNotEmpty()
+  @IsString()
+  url: string;
+
+  parent?: Category
+}
+
+export class CreateParameterDTO {
+  @IsNotEmpty()
+  name: string;
+}
+
+export interface ICreateCategoryAnswer {
+  categoryId: string,
+  parametersIds: string[] | null;
 }

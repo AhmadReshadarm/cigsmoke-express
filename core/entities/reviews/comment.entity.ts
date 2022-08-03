@@ -16,7 +16,7 @@ export class Comment {
   @Column()
   userId: string;
 
-  @ManyToOne(() => Review, (review) => review.comments)
+  @ManyToOne(() => Review, (review) => review.comments, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn()
   review: Review;
 
@@ -30,7 +30,7 @@ export class Comment {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => ReactionComment, (reaction) => reaction.commentId, { cascade: true })
+  @OneToMany(() => ReactionComment, (reaction) => reaction.commentId)
   reactions: ReactionComment[]
 
   constructor(args?: { userId: string, review: Review, text: string }) {

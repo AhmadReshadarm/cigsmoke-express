@@ -4,7 +4,7 @@ import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { ProductService } from './product.service';
 import { ColorService } from '../colors/color.service';
-import { Color, Product } from '../../core/entities';
+import { Color, Product, Tag } from '../../core/entities';
 import { TagService } from '../tags/tag.service';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { isAdmin, verifyToken } from '../../core/middlewares';
@@ -54,11 +54,11 @@ export class ProductController {
     const newProduct = await validation(new Product(req.body));
 
     colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
-    tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Color) => String(tag))) : null;
+    tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag))) : null;
 
     const created = await this.productService.createProduct(newProduct);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json({id: created.id});
   }
 
   @Put(':id')
