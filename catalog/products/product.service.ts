@@ -28,6 +28,7 @@ export class ProductService {
       available,
       colors,
       categories,
+      parent,
       brands,
       tags,
       sortBy = 'name',
@@ -37,6 +38,7 @@ export class ProductService {
     } = queryParams;
     const queryBuilder = await this.productRepository.createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
+      .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag');
@@ -47,6 +49,7 @@ export class ProductService {
     if (desc) { queryBuilder.andWhere('product.desc LIKE :desc', { desc: `%${desc}%` }); }
     if (available) { queryBuilder.andWhere('product.available EQUAL :available', { available: `%${available}%` }); }
     if (colors) { queryBuilder.andWhere('color.url IN (:...colors)', { colors: colors }); }
+    if (parent) { queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent }) }
     if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories }); }
     if (brands) { queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands }); }
     if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags }); }
@@ -68,12 +71,15 @@ export class ProductService {
   async getProductsPriceRange(queryParams: ProductQueryDTO): Promise<{ minPrice: number, maxPrice: number } | undefined> {
     const {
       name,
+      parent,
       categories,
     } = queryParams;
     const queryBuilder = await this.productRepository.createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
+      .leftJoinAndSelect('category.parent', 'categoryParent')
 
     if (name) { queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` }); }
+    if (parent) { queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent }) }
     if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories }); }
 
     return queryBuilder
