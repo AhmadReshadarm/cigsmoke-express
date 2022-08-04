@@ -25,10 +25,10 @@ export class CategoryService {
       parameters,
       parent,
       children,
-      sortBy='name',
-      orderBy='DESC',
-      offset=0,
-      limit=10,
+      sortBy = 'name',
+      orderBy = 'DESC',
+      offset = 0,
+      limit = 10,
     } = queryParams;
 
     const queryBuilder = this.categoryRepository
@@ -40,7 +40,7 @@ export class CategoryService {
     if (name) { queryBuilder.andWhere('category.name LIKE :name', { name: `%${name}%` }); }
     if (url) { queryBuilder.andWhere('category.url LIKE :url', { url: `%${url}%` }); }
     if (parameters) { queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: parameters }); }
-    if (parent) { queryBuilder.andWhere('categoryParent.id = :parent', { parent: parent }) }
+    if (parent) { queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent }) }
     if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: children }); }
 
     queryBuilder
@@ -57,7 +57,7 @@ export class CategoryService {
   async getCategory(id: string): Promise<Category> {
     const category = await this.categoryRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       },
       relations: ['parent', 'children', 'parameters'],
     });
@@ -103,11 +103,11 @@ export class CategoryService {
   async updateCategory(id: string, categoryDTO: Category) {
     const category = await this.categoryRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 
-    return this.categoryRepository.save( {
+    return this.categoryRepository.save({
       ...category,
       ...categoryDTO
     });
@@ -116,7 +116,7 @@ export class CategoryService {
   async removeCategory(id: string) {
     const category = await this.categoryRepository.findOneOrFail({
       where: {
-          id: Equal(id),
+        id: Equal(id),
       }
     });
 

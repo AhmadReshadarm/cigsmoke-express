@@ -1681,6 +1681,13 @@
             }
           },
           {
+            "name": "parent",
+            "in": "query",
+            "description": "Filtering products by parent url",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "default": "name",
@@ -2033,6 +2040,13 @@
             "name": "name",
             "in": "query",
             "description": "Filtering products by name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "parent",
+            "in": "query",
+            "description": "Filtering products by parent URL",
             "required": false,
             "type": "string"
           },
@@ -4902,7 +4916,7 @@
         },
         "category": {
           "type": "object",
-          "$ref": "#/definitions/CategoryWithoutJoins"
+          "$ref": "#/definitions/Category"
         },
         "brand": {
           "type": "object",

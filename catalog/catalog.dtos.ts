@@ -12,6 +12,7 @@ export interface ProductQueryDTO {
   readonly available?: boolean,
   readonly colors?: string | string[],
   readonly categories?: string | string[],
+  readonly parent?: string;
   readonly brands?: string | string[],
   readonly tags?: string | string[],
   readonly sortBy?: string,
