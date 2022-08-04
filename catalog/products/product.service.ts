@@ -115,6 +115,20 @@ export class ProductService {
     })
   }
 
+  async getProductByUrl(url: string): Promise<Product> {
+    const queryBuilder = await this.productRepository.createQueryBuilder("product")
+      .leftJoinAndSelect("product.category", "category")
+      .leftJoinAndSelect('product.brand', 'brand')
+      .leftJoinAndSelect('product.colors', 'color')
+      .leftJoinAndSelect('product.tags', 'tag')
+      .where('product.url = :url', { url: url })
+      .getOne();
+
+    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+
+    return queryBuilder
+  }
+
   async createProduct(newProduct: Product): Promise<Product> {
     if (newProduct.parameterProduct) {
       await validation(newProduct.parameterProduct)

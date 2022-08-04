@@ -32,6 +32,15 @@ export class ProductController {
     resp.json(products);
   }
 
+  @Get('by-url/:url')
+  async getProductByUrl(req: Request, resp: Response) {
+    const { url } = req.params;
+    const product = await this.productService.getProductByUrl(url);
+
+    resp.json(product);
+  }
+
+
   @Get(':id')
   async getProduct(req: Request, resp: Response) {
     const { id } = req.params;
