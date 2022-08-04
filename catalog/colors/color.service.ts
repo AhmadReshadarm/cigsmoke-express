@@ -32,7 +32,7 @@ export class ColorService {
     if (name) { queryBuilder.andWhere('color.name LIKE :name', { name: `%${name}%` }); }
     if (url) { queryBuilder.andWhere('color.url LIKE :url', { url: `%${url}%` }); }
     if (code) { queryBuilder.andWhere('color.code = :code', { code: `%${code}%` }); }
-    if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) }); }
+    if (products) { queryBuilder.andWhere('product.url IN (:...products)', { products: products }); }
 
     queryBuilder
       .orderBy(`color.${sortBy}`, orderBy)

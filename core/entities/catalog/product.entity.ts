@@ -78,7 +78,6 @@ export class Product {
   tags?: Tag[];
 
   @OneToMany(() => ParameterProduct, (parameterProducts) => parameterProducts.productId)
-  // @JoinColumn()
   parameterProduct: ParameterProduct[]
 
   constructor(args?: {

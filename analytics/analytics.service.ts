@@ -107,8 +107,9 @@ export class AnalyticsService {
       }
     );
 
+
     return {
-      data: users.data.rows,
+      data: users.data,
       qty: users.data.length
     }
   }
