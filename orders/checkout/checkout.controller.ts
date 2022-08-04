@@ -17,9 +17,9 @@ export class CheckoutController {
   // @Middleware([verifyToken, isUser])
   // TODO: add temporary token verification
   async getCheckouts(req: Request, resp: Response) {
-    if (resp.locals.user.role !== Role.Admin) {
-      req.query.userId = String(resp.locals.user.id);
-    }
+    // if (resp.locals.user.role !== Role.Admin) {
+    //   req.query.userId = String(resp.locals.user.id);
+    // }
 
     const checkouts = await this.checkoutService.getCheckouts(req.query, req.headers.authorization!);
 

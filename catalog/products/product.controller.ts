@@ -32,19 +32,20 @@ export class ProductController {
     resp.json(products);
   }
 
+  @Get('productsUnderOneThousand')
+  async getProductsUnderOneThousand(req: Request, resp: Response) {
+    console.log('asdas');
+    const products = await this.productService.getProducts({ tags: ['UnderOneThousand'] });
+
+    resp.json(products);
+  }
+
   @Get(':id')
   async getProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const product = await this.productService.getProduct(id);
 
     resp.json(product);
-  }
-
-  @Get('productsUnderOneThousand')
-  async getProductsUnderOneThousand(req: Request, resp: Response) {
-    const products = await this.productService.getProducts({ tags: JSON.stringify(['underOneThousand']) });
-
-    resp.json(products);
   }
 
   @Post()
@@ -66,7 +67,7 @@ export class ProductController {
   async updateProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const { colors, tags } = req.body;
-    const newProduct = await validation(new Product(req.body));
+    const newProduct = new Product(req.body);
 
     colors ? newProduct.colors = await this.colorService.getColorsByIds(colors.map((color: Color) => String(color))) : null;
     tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Color) => String(tag))) : null;

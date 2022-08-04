@@ -39,9 +39,9 @@ export class CategoryService {
 
     if (name) { queryBuilder.andWhere('category.name LIKE :name', { name: `%${name}%` }); }
     if (url) { queryBuilder.andWhere('category.url LIKE :url', { url: `%${url}%` }); }
-    if (parameters) { queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: JSON.parse(parameters) }); }
+    if (parameters) { queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: parameters }); }
     if (parent) { queryBuilder.andWhere('categoryParent.id = :parent', { parent: parent }) }
-    if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: JSON.parse(children) }); }
+    if (children) { queryBuilder.andWhere('categoryChildren.id IN (:...children)', { children: children }); }
 
     queryBuilder
       .orderBy(`category.${sortBy}`, orderBy)
