@@ -32,6 +32,15 @@ export class ProductController {
     resp.json(products);
   }
 
+  @Get('by-url/:url')
+  async getProductByUrl(req: Request, resp: Response) {
+    const { url } = req.params;
+    const product = await this.productService.getProductByUrl(url);
+
+    resp.json(product);
+  }
+
+
   @Get('productsUnderOneThousand')
   async getProductsUnderOneThousand(req: Request, resp: Response) {
     console.log('asdas');
@@ -59,7 +68,7 @@ export class ProductController {
 
     const created = await this.productService.createProduct(newProduct);
 
-    resp.status(HttpStatus.CREATED).json({id: created.id});
+    resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
   @Put(':id')

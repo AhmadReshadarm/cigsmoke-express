@@ -20,7 +20,6 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
-  @IsNotEmpty()
   @Column()
   image: string;
 

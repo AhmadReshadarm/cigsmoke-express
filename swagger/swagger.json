@@ -1949,6 +1949,44 @@
         }
       }
     },
+    "/products/by-url/{url}": {
+      "get": {
+        "tags": [
+          "product"
+        ],
+        "summary": "Find product by url",
+        "operationId": "findProductByUrl",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "path",
+            "description": "URL of product to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
     "/products/productsUnderOneThousand": {
       "get": {
         "tags": [
