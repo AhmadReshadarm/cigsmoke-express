@@ -4,18 +4,18 @@ import { Product } from './product.entity';
 import { Parameter } from './parameter.entity';
 
 @Entity()
-export class ParameterProduct {
+export class ParameterProducts {
 
   @PrimaryColumn()
   productId: string
 
-  @ManyToOne(() => Product, (product) => product.parameterProduct,{ cascade: true, onDelete: 'CASCADE' } )
+  @ManyToOne(() => Product, (product) => product.parameterProducts,{ cascade: true, onDelete: 'CASCADE' } )
   product: Product
 
   @PrimaryColumn()
   parameterId: string
 
-  @ManyToOne(() => Parameter, (parameter) => parameter.parameterProduct,{ cascade: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Parameter, (parameter) => parameter.parameterProducts,{ cascade: true, onDelete: 'CASCADE' })
   parameter: Parameter
 
   @IsNotEmpty()

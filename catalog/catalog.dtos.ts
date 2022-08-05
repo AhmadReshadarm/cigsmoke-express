@@ -1,4 +1,4 @@
-import { Brand, Category, Color, Parameter, ParameterProduct, Review, Tag } from '../core/entities';
+import { Brand, Category, Color, Parameter, ParameterProducts, Review, Tag } from '../core/entities';
 import { RatingDTO } from '../core/lib/dto';
 import { IsBoolean, IsNotEmpty, IsPositive, IsString } from 'class-validator';
 import { Column, CreateDateColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, UpdateDateColumn } from 'typeorm';
@@ -96,7 +96,7 @@ export interface ProductDTO {
   readonly tags?: Tag[],
   readonly rating: RatingDTO | null,
   readonly reviews: Review[] | null,
-  readonly parameterProduct: ParameterProduct[] | null,
+  readonly parameterProducts: ParameterProducts[] | null,
 }
 
 
@@ -124,6 +124,8 @@ export class CreateCategoryDTO {
 export class CreateParameterDTO {
   @IsNotEmpty()
   name: string;
+
+  category: Category
 }
 
 export interface ICreateCategoryAnswer {

@@ -76,8 +76,9 @@ export class CategoryService {
     return await this.categoryTreeRepository.findTrees();
   }
 
-  async createParameters(parameters: CreateParameterDTO[]): Promise<string[]> {
+  async createParameters(parameters: CreateParameterDTO[], category: Category): Promise<string[]> {
     const ids = parameters.map(async parameter => {
+      parameter.category = category;
       const created = await this.parametersRepository.save(parameter);
       return created.id;
     });
@@ -93,14 +94,7 @@ export class CategoryService {
     }
 
     const created = await this.categoryRepository.save(categoryDTO);
-
-    if (parameters) {
-      parameters.forEach(parameter => {
-        parameter.category = created;
-      });
-    }
-
-    const parametersIds = parameters ? await this.createParameters(parameters) : null;
+    const parametersIds = parameters ? await this.createParameters(parameters, created) : null;
 
     return {
       categoryId: created.id,

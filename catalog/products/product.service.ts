@@ -2,7 +2,7 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { ParameterProduct, Product, Review } from '../../core/entities';
+import { ParameterProducts, Product, Review } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
 import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
@@ -12,11 +12,11 @@ import { validation } from '../../core/lib/validator';
 @injectable()
 export class ProductService {
   private productRepository: Repository<Product>;
-  private parameterProductRepository: Repository<ParameterProduct>;
+  private parameterProductsRepository: Repository<ParameterProducts>;
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
-    this.parameterProductRepository = dataSource.getRepository(ParameterProduct);
+    this.parameterProductsRepository = dataSource.getRepository(ParameterProducts);
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
@@ -42,7 +42,8 @@ export class ProductService {
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
-      .leftJoinAndSelect('product.tags', 'tag');
+      .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.parameterProducts', 'parameterProducts');
 
     if (name) {
       queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` });
@@ -111,15 +112,6 @@ export class ProductService {
       .getRawOne();
   }
 
-  async getParameterProducts(id: string) {
-    return this.parameterProductRepository.find({
-      where: {
-        productId: id,
-      },
-      relations: ['parameter'],
-    });
-  }
-
   async getProduct(id: string): Promise<ProductDTO> {
     const product = await this.productRepository
       .createQueryBuilder('product')
@@ -128,6 +120,7 @@ export class ProductService {
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag')
       .leftJoinAndSelect('category.parameters', 'parameter')
+      .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .where('product.id = :id', { id: id })
       .getOne();
 
@@ -138,10 +131,10 @@ export class ProductService {
     return this.mergeProduct(product);
   }
 
-  async createParameters(parameters: ParameterProduct[], id: string) {
+  async createParameters(parameters: ParameterProducts[], id: string) {
     parameters.map(async parameter => {
       parameter.productId = id;
-      return await this.parameterProductRepository.save(parameter);
+      return await this.parameterProductsRepository.save(parameter);
     });
   }
 
@@ -163,14 +156,14 @@ export class ProductService {
   }
 
   async createProduct(newProduct: Product): Promise<Product> {
-    if (newProduct.parameterProduct) {
-      await validation(newProduct.parameterProduct);
+    if (newProduct.parameterProducts) {
+      await validation(newProduct.parameterProducts);
     }
 
     const created = await this.productRepository.save(new Product(newProduct));
 
-    if (newProduct.parameterProduct) {
-      await this.createParameters(newProduct.parameterProduct, created.id);
+    if (newProduct.parameterProducts) {
+      await this.createParameters(newProduct.parameterProducts, created.id);
     }
 
     return created;
@@ -182,6 +175,18 @@ export class ProductService {
         id: Equal(id),
       },
     });
+
+    if (productDTO.parameterProducts) {
+      await validation(productDTO.parameterProducts);
+
+      if (product.parameterProducts) {
+        product.parameterProducts.map(async (parameterProduct) => {
+          await this.parameterProductsRepository.remove(parameterProduct)
+        })
+      }
+
+      await this.createParameters(productDTO.parameterProducts, product.id)
+    }
 
     return this.productRepository.save({
       ...product,
@@ -244,7 +249,6 @@ export class ProductService {
       ...product,
       rating: rating,
       reviews: reviews?.rows ?? null,
-      parameterProduct: await this.getParameterProducts(product.id),
     };
   }
 }
