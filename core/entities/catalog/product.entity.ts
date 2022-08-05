@@ -13,7 +13,7 @@ import { Category } from './category.entity';
 import { Brand } from './brand.entity';
 import { IsNotEmpty, IsPositive, Min } from 'class-validator';
 import { Tag } from './tag.entity';
-import { ParameterProduct } from './parameterProduct.entity';
+import { ParameterProducts } from './parameterProducts.entity';
 
 @Entity()
 export class Product {
@@ -77,8 +77,8 @@ export class Product {
   @JoinTable()
   tags?: Tag[];
 
-  @OneToMany(() => ParameterProduct, (parameterProducts) => parameterProducts.productId)
-  parameterProduct: ParameterProduct[]
+  @OneToMany(() => ParameterProducts, (parameterProducts) => parameterProducts.product)
+  parameterProducts: ParameterProducts[]
 
   constructor(args?: {
     name: string,
@@ -92,7 +92,7 @@ export class Product {
     url: string,
     brand: Brand,
     tags?: Tag[],
-    parameterProduct: ParameterProduct[],
+    parameterProducts: ParameterProducts[],
   }) {
     if (args) {
       this.name = args.name;
@@ -106,7 +106,7 @@ export class Product {
       this.url = args.url;
       this.brand = args.brand;
       this.tags = args.tags;
-      this.parameterProduct = args.parameterProduct;
+      this.parameterProducts = args.parameterProducts;
     }
   }
 }

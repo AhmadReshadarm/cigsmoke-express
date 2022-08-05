@@ -4857,7 +4857,7 @@
         }
       }
     },
-    "ParameterProduct": {
+    "ParameterProducts": {
       "properties": {
         "productId": {
           "type": "string"
@@ -4870,6 +4870,20 @@
         },
         "parameter": {
           "$ref": "#/definitions/Parameter"
+        }
+      }
+    },
+    "ParameterProductsDTO": {
+      "required": [
+        "parameterId",
+        "value"
+      ],
+      "properties": {
+        "parameterId": {
+          "type": "number"
+        },
+        "value": {
+          "type": "string"
         }
       }
     },
@@ -4942,7 +4956,7 @@
           }
         },
         "parameterProduct": {
-          "$ref": "#/definitions/ParameterProduct"
+          "$ref": "#/definitions/ParameterProducts"
         }
       }
     },
@@ -5067,14 +5081,7 @@
         },
         "parameterProduct": {
           "type": "object",
-          "properties": {
-            "parameterId": {
-              "type": "number"
-            },
-            "value": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/ParameterProductsDTO"
         }
       }
     },

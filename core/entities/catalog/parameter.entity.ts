@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from './category.entity';
 import { IsNotEmpty } from 'class-validator';
-import { ParameterProduct } from './parameterProduct.entity';
+import { ParameterProducts } from './parameterProducts.entity';
 import { Product } from './product.entity';
 
 @Entity()
@@ -20,9 +20,8 @@ export class Parameter {
   )
   category: Category
 
-  @OneToMany(() => Product, (products) => products.parameterProduct)
-  // @JoinColumn()
-  parameterProduct: Product[]
+  @OneToMany(() => ParameterProducts, (parameterProducts) => parameterProducts.parameter)
+  parameterProducts: ParameterProducts[]
 
   constructor(args?: { name: string, category: Category }) {
     if (args) {
