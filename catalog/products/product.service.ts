@@ -12,11 +12,11 @@ import { validation } from '../../core/lib/validator';
 @injectable()
 export class ProductService {
   private productRepository: Repository<Product>;
-  private parameterProductRepository: Repository<ParameterProduct>
+  private parameterProductRepository: Repository<ParameterProduct>;
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
-    this.parameterProductRepository = dataSource.getRepository(ParameterProduct)
+    this.parameterProductRepository = dataSource.getRepository(ParameterProduct);
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
@@ -36,51 +36,74 @@ export class ProductService {
       offset = 0,
       limit = 10,
     } = queryParams;
-    const queryBuilder = await this.productRepository.createQueryBuilder("product")
-      .leftJoinAndSelect("product.category", "category")
+    const queryBuilder = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag');
 
-    if (name) { queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` }); }
-    if (minPrice) { queryBuilder.andWhere('product.price >= :minPrice', { minPrice: minPrice }); }
-    if (maxPrice) { queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice: maxPrice }); }
-    if (desc) { queryBuilder.andWhere('product.desc LIKE :desc', { desc: `%${desc}%` }); }
-    if (available) { queryBuilder.andWhere('product.available EQUAL :available', { available: `%${available}%` }); }
-    if (colors) { queryBuilder.andWhere('color.url IN (:...colors)', { colors: colors }); }
-    if (parent) { queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent }) }
-    if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories }); }
-    if (brands) { queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands }); }
-    if (tags) { queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags }); }
+    if (name) {
+      queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` });
+    }
+    if (minPrice) {
+      queryBuilder.andWhere('product.price >= :minPrice', { minPrice: minPrice });
+    }
+    if (maxPrice) {
+      queryBuilder.andWhere('product.price <= :maxPrice', { maxPrice: maxPrice });
+    }
+    if (desc) {
+      queryBuilder.andWhere('product.desc LIKE :desc', { desc: `%${desc}%` });
+    }
+    if (available) {
+      queryBuilder.andWhere('product.available EQUAL :available', { available: `%${available}%` });
+    }
+    if (colors) {
+      queryBuilder.andWhere('color.url IN (:...colors)', { colors: colors });
+    }
+    if (parent) {
+      queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent });
+    }
+    if (categories) {
+      queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories });
+    }
+    if (brands) {
+      queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands });
+    }
+    if (tags) {
+      queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags });
+    }
 
-    queryBuilder
-      .orderBy(`product.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit)
+    queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const products = await queryBuilder.getMany();
-    const result = products.map(async (product) => await this.mergeProduct(product))
+    const result = products.map(async product => await this.mergeProduct(product));
 
     return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
-  async getProductsPriceRange(queryParams: ProductQueryDTO): Promise<{ minPrice: number, maxPrice: number } | undefined> {
-    const {
-      name,
-      parent,
-      categories,
-    } = queryParams;
-    const queryBuilder = await this.productRepository.createQueryBuilder("product")
-      .leftJoinAndSelect("product.category", "category")
-      .leftJoinAndSelect('category.parent', 'categoryParent')
+  async getProductsPriceRange(
+    queryParams: ProductQueryDTO,
+  ): Promise<{ minPrice: number; maxPrice: number } | undefined> {
+    const { name, parent, categories } = queryParams;
+    const queryBuilder = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('category.parent', 'categoryParent');
 
-    if (name) { queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` }); }
-    if (parent) { queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent }) }
-    if (categories) { queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories }); }
+    if (name) {
+      queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` });
+    }
+    if (parent) {
+      queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent });
+    }
+    if (categories) {
+      queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories });
+    }
 
     return queryBuilder
       .select('MIN(product.price)', 'minPrice')
@@ -89,71 +112,75 @@ export class ProductService {
   }
 
   async getParameterProducts(id: string) {
-
     return this.parameterProductRepository.find({
       where: {
-        productId: id
+        productId: id,
       },
-      relations: ['parameter']
-    })
+      relations: ['parameter'],
+    });
   }
 
   async getProduct(id: string): Promise<ProductDTO> {
-    const product = await this.productRepository.createQueryBuilder("product")
-      .leftJoinAndSelect("product.category", "category")
+    const product = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('category.parameters', 'parameter')
       .where('product.id = :id', { id: id })
       .getOne();
 
-    if (!product) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!product) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
 
-
-    return this.mergeProduct(product)
+    return this.mergeProduct(product);
   }
 
   async createParameters(parameters: ParameterProduct[], id: string) {
-    parameters.map(async (parameter) => {
-      parameter.productId = id
+    parameters.map(async parameter => {
+      parameter.productId = id;
       return await this.parameterProductRepository.save(parameter);
-
-    })
+    });
   }
 
   async getProductByUrl(url: string): Promise<Product> {
-    const queryBuilder = await this.productRepository.createQueryBuilder("product")
-      .leftJoinAndSelect("product.category", "category")
+    const queryBuilder = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag')
       .where('product.url = :url', { url: url })
       .getOne();
 
-    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!queryBuilder) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
 
-    return queryBuilder
+    return queryBuilder;
   }
 
   async createProduct(newProduct: Product): Promise<Product> {
     if (newProduct.parameterProduct) {
-      await validation(newProduct.parameterProduct)
+      await validation(newProduct.parameterProduct);
     }
 
     const created = await this.productRepository.save(new Product(newProduct));
 
     if (newProduct.parameterProduct) {
-      await this.createParameters(newProduct.parameterProduct, created.id)
+      await this.createParameters(newProduct.parameterProduct, created.id);
     }
 
-    return created
+    return created;
   }
 
   async updateProduct(id: string, productDTO: Product) {
     const product = await this.productRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.productRepository.save({
@@ -166,7 +193,7 @@ export class ProductService {
     const product = await this.productRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.productRepository.remove(product);
@@ -177,9 +204,9 @@ export class ProductService {
       params: {
         productId: id,
         merge: 'false',
-        limit: 100000
-      }
-    })
+        limit: 100000,
+      },
+    });
 
     return reviews.data.length > 0 ? reviews.data : null;
   }
@@ -194,20 +221,19 @@ export class ProductService {
       '3': 0,
       '4': 0,
       '5': 0,
-      avg: 0
-    }
+      'avg': 0,
+    };
 
     reviews.rows.map((review: Review) => {
-
-      const index = String(review.rating)
+      const index = String(review.rating);
       rating[index as keyof typeof rating] += 1;
 
       totalRating += review.rating;
       counter += 1;
-    })
+    });
 
     rating.avg = +(totalRating / counter).toFixed(2);
-    return rating
+    return rating;
   }
 
   async mergeProduct(product: Product): Promise<ProductDTO> {
@@ -218,7 +244,7 @@ export class ProductService {
       ...product,
       rating: rating,
       reviews: reviews?.rows ?? null,
-      parameterProduct: await this.getParameterProducts(product.id)
-    }
+      parameterProduct: await this.getParameterProducts(product.id),
+    };
   }
 }
