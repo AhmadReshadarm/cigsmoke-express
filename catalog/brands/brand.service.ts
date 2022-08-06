@@ -18,6 +18,8 @@ export class BrandService {
     const {
       name,
       showOnMain,
+      category,
+      parent,
       sortBy = 'name',
       orderBy = 'DESC',
       offset = 0,
@@ -26,45 +28,45 @@ export class BrandService {
 
     const queryBuilder = await this.brandRepository
       .createQueryBuilder('brand')
+      .leftJoinAndSelect('brand.products', 'product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('category.parent', 'categoryParent');
 
-    if (name) { queryBuilder.andWhere('brand.name LIKE :name', { name: `%${name}%` }); }
-    // if (image) { queryBuilder.andWhere('brand.image LIKE :image', { image: `%${image}%` }); }
-    if (showOnMain) { queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain }); }
+    if (name) {
+      queryBuilder.andWhere('brand.name LIKE :name', { name: `%${name}%` });
+    }
+    if (category) {
+      queryBuilder.andWhere('category.url = :category', { category: `${category}` });
+    }
+    if (parent) {
+      queryBuilder.andWhere('categoryParent.url = :parent', { parent: `${parent}` });
+    }
+    if (showOnMain) {
+      queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain });
+    }
 
-    queryBuilder
-      .orderBy(`brand.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit);
+    queryBuilder.orderBy(`brand.${sortBy}`, orderBy).skip(offset).take(limit);
 
     return {
-      rows: await queryBuilder.getMany(),
+      rows: (await queryBuilder.getMany()).map(brand => ({
+        id: brand.id,
+        image: brand.image,
+        name: brand.name,
+        url: brand.url,
+        showOnMain: brand.showOnMain,
+      })),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
   async getBrand(id: string): Promise<Brand> {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return brand;
-  }
-
-  async getUniqueBrandsFromProducts(products: ProductDTO[]): Promise<Brand[]> {
-    return products.reduce((acc: Brand[], product: ProductDTO) => {
-      if (!acc.find(brand => brand.id === product.brand.id)) {
-        return acc.concat(product.brand);
-      }
-
-      return acc;
-    }, []).sort((a, b) => {
-      if (a.id < b.id) return -1;
-      if (a.id > b.id) return 1;
-
-      return 0
-    });
   }
 
   async createBrand(brandDTO: Brand): Promise<Brand> {
@@ -77,12 +79,12 @@ export class BrandService {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.brandRepository.save({
       ...brand,
-      ...brandDTO
+      ...brandDTO,
     });
   }
 
@@ -90,7 +92,7 @@ export class BrandService {
     const brand = await this.brandRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.brandRepository.remove(brand);

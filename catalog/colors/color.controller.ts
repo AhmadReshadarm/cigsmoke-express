@@ -12,7 +12,7 @@ export class ColorController {
 
   @Get()
   async getColors(req: Request, resp: Response) {
-    const colors = await this.colorService.getColors(req.query);
+    const colors = await this.colorService.getColors(req.query as any);
 
     resp.json(colors);
   }

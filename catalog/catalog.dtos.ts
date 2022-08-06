@@ -5,47 +5,49 @@ import { Column, CreateDateColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, 
 import { BrandService } from './brands/brand.service';
 
 export interface ProductQueryDTO {
-  readonly name?: string,
-  readonly minPrice?: number,
-  readonly maxPrice?: number,
-  readonly desc?: string,
-  readonly available?: boolean,
-  readonly colors?: string | string[],
-  readonly categories?: string | string[],
+  readonly name?: string;
+  readonly minPrice?: number;
+  readonly maxPrice?: number;
+  readonly desc?: string;
+  readonly available?: boolean;
+  readonly colors?: string | string[];
+  readonly categories?: string | string[];
   readonly parent?: string;
-  readonly brands?: string | string[],
-  readonly tags?: string | string[],
-  readonly sortBy?: string,
+  readonly brands?: string | string[];
+  readonly tags?: string | string[];
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly offset?: number;
   readonly limit?: number;
 }
 
 export interface TagQueryDTO {
-  readonly name?: string,
-  readonly products?: string,
-  readonly url?: string,
-  readonly sortBy?: string,
+  readonly name?: string;
+  readonly products?: string;
+  readonly url?: string;
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
   readonly offset?: number;
 }
 
 export interface ParameterQueryDTO {
-  readonly name?: string,
-  readonly categories?: string,
-  readonly sortBy?: string,
+  readonly name?: string;
+  readonly categories?: string;
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
   readonly offset?: number;
 }
 
 export interface ColorQueryDTO {
-  readonly name?: string,
-  readonly products?: string,
-  readonly url?: string,
-  readonly code?: string,
-  readonly sortBy?: string,
+  readonly name?: string;
+  readonly products?: string;
+  readonly category?: string;
+  readonly parent: string;
+  readonly url?: string;
+  readonly code?: string;
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
   readonly offset?: number;
@@ -59,46 +61,47 @@ export interface ColorQueryDTO {
 // }
 
 export interface CategoryQueryDTO {
-  readonly name?: string,
-  readonly url?: string,
-  readonly parent?: string,
-  readonly children?: string,
-  readonly parameters?: string,
-  readonly sortBy?: string,
+  readonly name?: string;
+  readonly url?: string;
+  readonly parent?: string;
+  readonly children?: string;
+  readonly parameters?: string;
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly offset?: number;
   readonly limit?: number;
 }
 
 export interface BrandQueryDTO {
-  readonly name?: string,
-  readonly showOnMain?: boolean,
-  readonly sortBy?: string,
+  readonly name?: string;
+  readonly parent?: string;
+  readonly category?: string;
+  readonly showOnMain?: boolean;
+  readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
   readonly offset?: number;
 }
 
 export interface ProductDTO {
-  readonly id: string,
-  readonly name: string,
-  readonly price: number,
-  readonly oldPrice?: number,
-  readonly desc: string | null,
-  readonly available: boolean,
-  readonly createdAt: Date,
-  readonly updatedAt: Date,
-  readonly images: string | null,
-  readonly url: string,
-  readonly category: Category,
-  readonly brand: Brand,
-  readonly colors?: Color[],
-  readonly tags?: Tag[],
-  readonly rating: RatingDTO | null,
-  readonly reviews: Review[] | null,
-  readonly parameterProducts: ParameterProducts[] | null,
+  readonly id: string;
+  readonly name: string;
+  readonly price: number;
+  readonly oldPrice?: number;
+  readonly desc: string | null;
+  readonly available: boolean;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly images: string | null;
+  readonly url: string;
+  readonly category: Category;
+  readonly brand: Brand;
+  readonly colors?: Color[];
+  readonly tags?: Tag[];
+  readonly rating: RatingDTO | null;
+  readonly reviews: Review[] | null;
+  readonly parameterProducts: ParameterProducts[] | null;
 }
-
 
 export class CreateCategoryDTO {
   @IsNotEmpty()
@@ -118,17 +121,17 @@ export class CreateCategoryDTO {
   @IsString()
   url: string;
 
-  parent?: Category
+  parent?: Category;
 }
 
 export class CreateParameterDTO {
   @IsNotEmpty()
   name: string;
 
-  category: Category
+  category: Category;
 }
 
 export interface ICreateCategoryAnswer {
-  categoryId: string,
+  categoryId: string;
   parametersIds: string[] | null;
 }

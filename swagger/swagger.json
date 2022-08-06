@@ -682,6 +682,18 @@
             "required": false
           },
           {
+            "type": "string",
+            "in": "query",
+            "name": "parent",
+            "required": false
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "category",
+            "required": false
+          },
+          {
             "type": "boolean",
             "in": "query",
             "name": "showOnMain",
@@ -924,45 +936,6 @@
           },
           "404": {
             "description": "Brand not found"
-          }
-        }
-      }
-    },
-    "/brands/getBrandsByCategory/{categoryUrl}": {
-      "get": {
-        "tags": [
-          "brand"
-        ],
-        "summary": "Get array of brands by category url",
-        "description": "",
-        "operationId": "getBrandsByCategoryUrl",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "categoryUrl",
-            "in": "path",
-            "description": "URL of category",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Brand"
-              }
-            }
-          },
-          "404": {
-            "description": "Category not found"
           }
         }
       }
@@ -1352,6 +1325,18 @@
             "type": "string",
             "in": "query",
             "name": "url",
+            "required": false
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "parent",
+            "required": false
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "category",
             "required": false
           },
           {
@@ -1982,7 +1967,7 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "$ref": "#/definitions/Product"
+              "$ref": "#/definitions/ProductDTO"
             }
           },
           "400": {
@@ -4857,7 +4842,7 @@
         }
       }
     },
-    "ParameterProducts": {
+    "ParameterProduct": {
       "properties": {
         "productId": {
           "type": "string"
@@ -4955,8 +4940,11 @@
             "$ref": "#/definitions/ReviewWithoutJoins"
           }
         },
-        "parameterProduct": {
-          "$ref": "#/definitions/ParameterProducts"
+        "parameterProducts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ParameterProduct"
+          }
         }
       }
     },
@@ -5079,9 +5067,11 @@
         "url": {
           "type": "string"
         },
-        "parameterProduct": {
-          "type": "object",
-          "$ref": "#/definitions/ParameterProductsDTO"
+        "parameterProducts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ParameterProductsDTO"
+          }
         }
       }
     },
