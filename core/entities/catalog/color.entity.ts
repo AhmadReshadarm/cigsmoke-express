@@ -11,7 +11,7 @@ export class Color {
   @Column()
   name: string;
 
-  @ManyToMany(() => Product, (product) => product.colors)
+  @ManyToMany(() => Product, product => product.colors)
   products?: Product[];
 
   @IsNotEmpty()
@@ -22,7 +22,7 @@ export class Color {
   @Column()
   code: string;
 
-  constructor(args?: { name: string, products?: Product[], url: string, code: string }) {
+  constructor(args?: { name: string; products?: Product[]; url: string; code: string }) {
     if (args) {
       this.name = args.name;
       this.products = args.products;

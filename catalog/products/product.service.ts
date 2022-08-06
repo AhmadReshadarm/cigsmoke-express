@@ -138,21 +138,24 @@ export class ProductService {
     });
   }
 
-  async getProductByUrl(url: string): Promise<Product> {
-    const queryBuilder = await this.productRepository
+  async getProductByUrl(url: string): Promise<ProductDTO> {
+    const product = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.colors', 'color')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
+      .leftJoinAndSelect('parameterProducts.parameter', 'parameter')
       .where('product.url = :url', { url: url })
       .getOne();
 
-    if (!queryBuilder) {
+    if (!product) {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
-    return queryBuilder;
+    return this.mergeProduct(product);
   }
 
   async createProduct(newProduct: Product): Promise<Product> {
@@ -176,22 +179,29 @@ export class ProductService {
       },
     });
 
-    if (productDTO.parameterProducts) {
-      await validation(productDTO.parameterProducts);
+    const { parameterProducts, ...others } = productDTO;
+
+    await this.productRepository.save({
+      ...product,
+      ...others,
+    });
+
+    if (parameterProducts) {
+      await validation(parameterProducts);
 
       if (product.parameterProducts) {
-        product.parameterProducts.map(async (parameterProduct) => {
-          await this.parameterProductsRepository.remove(parameterProduct)
-        })
+        product.parameterProducts.map(async parameterProduct => {
+          await this.parameterProductsRepository.remove(parameterProduct);
+        });
       }
 
-      await this.createParameters(productDTO.parameterProducts, product.id)
+      await this.createParameters(parameterProducts, product.id);
     }
 
-    return this.productRepository.save({
+    return {
       ...product,
       ...productDTO,
-    });
+    };
   }
 
   async removeProduct(id: string) {

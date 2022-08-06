@@ -3,14 +3,21 @@ import {
   CreateDateColumn,
   Entity,
   JoinTable,
-  ManyToMany, ManyToOne, OneToMany, OneToOne,
-  PrimaryGeneratedColumn, Tree, TreeChildren, TreeParent,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  Tree,
+  TreeChildren,
+  TreeParent,
   UpdateDateColumn,
 } from 'typeorm';
 import { Parameter } from './parameter.entity';
 import { IsNotEmpty } from 'class-validator';
+import { Product } from './product.entity';
 
-@Tree("closure-table")
+@Tree('closure-table')
 @Entity()
 export class Category {
   @PrimaryGeneratedColumn()
@@ -35,14 +42,17 @@ export class Category {
   @TreeChildren()
   children: Category[];
 
-  @OneToMany(() => Parameter, (parameter) => parameter.category)
+  @OneToMany(() => Parameter, parameter => parameter.category)
   parameters: Parameter[];
 
   @IsNotEmpty()
   @Column({ unique: true })
   url: string;
 
-  constructor(args?: { name: string, image: string, parent?: Category, url: string, parameters: Parameter[] }) {
+  @OneToMany(() => Product, product => product.brand)
+  products?: Product[];
+
+  constructor(args?: { name: string; image: string; parent?: Category; url: string; parameters: Parameter[] }) {
     if (args) {
       this.name = args.name;
       this.image = args.image;

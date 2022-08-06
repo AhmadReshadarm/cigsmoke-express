@@ -9,17 +9,14 @@ import { isAdmin, verifyToken } from '../../core/middlewares';
 @singleton()
 @Controller('/brands')
 export class BrandController {
-  constructor(
-    private brandService: BrandService,
-    private productService: ProductService
-  ) { }
+  constructor(private brandService: BrandService, private productService: ProductService) {}
 
   @Get()
   async getBrands(req: Request, resp: Response) {
     const brands = await this.brandService.getBrands(req.query);
 
     resp.json(brands);
-  };
+  }
 
   @Get(':id')
   async getBrand(req: Request, resp: Response) {
@@ -27,15 +24,6 @@ export class BrandController {
     const brand = await this.brandService.getBrand(id);
 
     resp.json(brand);
-  };
-
-  @Get('getBrandsByCategory/:categoryUrl')
-  async getBrandsByCategory(req: Request, resp: Response) {
-    const { categoryUrl } = req.params;
-
-    const products = await this.productService.getProducts({ categories: [categoryUrl] });
-    const brands = await this.brandService.getUniqueBrandsFromProducts(products.rows);
-    resp.json(brands);
   }
 
   @Post('')
@@ -44,7 +32,7 @@ export class BrandController {
     const created = await this.brandService.createBrand(req.body);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
-  };
+  }
 
   @Put(':id')
   @Middleware([verifyToken, isAdmin])
@@ -53,7 +41,7 @@ export class BrandController {
     const updated = await this.brandService.updateBrand(id, req.body);
 
     resp.status(HttpStatus.OK).json(updated);
-  };
+  }
 
   @Delete(':id')
   @Middleware([verifyToken, isAdmin])
@@ -62,5 +50,5 @@ export class BrandController {
     const removed = await this.brandService.removeBrand(id);
 
     resp.status(HttpStatus.OK).json(removed);
-  };
+  }
 }

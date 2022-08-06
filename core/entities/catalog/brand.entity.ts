@@ -1,5 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from './product.entity';
 
 @Entity()
 export class Brand {
@@ -20,7 +21,10 @@ export class Brand {
   @Column({ default: false })
   showOnMain: boolean;
 
-  constructor(args?: { name: string, image: string, url: string, showOnMain: boolean }) {
+  @OneToMany(() => Product, product => product.brand)
+  products?: Product[];
+
+  constructor(args?: { name: string; image: string; url: string; showOnMain: boolean }) {
     if (args) {
       this.name = args.name;
       this.image = args.image;
