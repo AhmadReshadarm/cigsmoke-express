@@ -11,10 +11,7 @@ export class WishlistService {
   private wishlistRepository: Repository<Wishlist>;
   private wishlistProductRepository: Repository<WishlistProduct>;
 
-  constructor(
-    dataSource: DataSource,
-    private wishlistProductService: WishlistProductService
-  ) {
+  constructor(dataSource: DataSource, private wishlistProductService: WishlistProductService) {
     this.wishlistRepository = dataSource.getRepository(Wishlist);
     this.wishlistProductRepository = dataSource.getRepository(WishlistProduct);
   }
@@ -24,15 +21,12 @@ export class WishlistService {
 
     const queryBuilder = this.wishlistRepository.createQueryBuilder('wishlist');
 
-    queryBuilder
-      .orderBy(`wishlist.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit);
+    queryBuilder.orderBy(`wishlist.${sortBy}`, orderBy).skip(offset).take(limit);
 
     return {
       rows: await queryBuilder.getMany(),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
   async getWishlist(id: string): Promise<Wishlist> {
@@ -40,7 +34,7 @@ export class WishlistService {
       where: {
         id: Equal(id),
       },
-      relations: ['items']
+      relations: ['items'],
     });
 
     return wishlist;
@@ -53,7 +47,7 @@ export class WishlistService {
       return res.data;
     } catch (e: any) {
       if (e.name !== 'AxiosError' && e.response.status !== 404) {
-        throw new Error(e)
+        throw new Error(e);
       }
     }
   }
@@ -77,11 +71,11 @@ export class WishlistService {
 
       if (!curWishlistProduct) {
         this.wishlistProductRepository.remove(item);
-        wishlist.items = wishlist.items.filter(curItem => curItem.id !== item.id)
+        wishlist.items = wishlist.items.filter(curItem => curItem.id !== item.id);
       }
     });
 
-    const items = [...wishlist.items]
+    const items = [...wishlist.items];
 
     for (const { productId } of whishlistDTO.items) {
       const wishlistProduct = await this.wishlistProductRepository.findOne({
@@ -101,14 +95,14 @@ export class WishlistService {
     return {
       ...wishlist,
       items,
-    }
+    };
   }
 
   async removeWishlist(id: string) {
     const wishlist = await this.wishlistRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.wishlistRepository.remove(wishlist);
