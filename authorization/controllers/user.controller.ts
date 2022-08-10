@@ -24,7 +24,12 @@ export class UserController {
       return other;
     })
 
-    resp.json(result).status(HttpStatus.OK);
+    resp
+      .json({
+        rows: result,
+        length: users.length,
+      })
+      .status(HttpStatus.OK);
   }
 
   @Get(':id')
