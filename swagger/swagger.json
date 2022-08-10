@@ -25,27 +25,7 @@
             "description": "",
             "required": true,
             "schema": {
-              "type": "object",
-              "required": [
-                "firstName",
-                "lastName",
-                "email",
-                "password"
-              ],
-              "properties": {
-                "firstName": {
-                  "type": "string"
-                },
-                "lastName": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/SignupDTO"
             }
           }
         ],
@@ -88,19 +68,7 @@
             "description": "",
             "required": true,
             "schema": {
-              "type": "object",
-              "required": [
-                "email",
-                "password"
-              ],
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/SigninDTO"
             }
           }
         ],
@@ -3529,10 +3497,8 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ReviewResponse"
-              }
+              "type": "object",
+              "$ref": "#/definitions/ReviewResponse"
             }
           }
         }
@@ -5651,6 +5617,44 @@
           "items": {
             "$ref": "#/definitions/ReviewReaction"
           }
+        }
+      }
+    },
+    "SigninDTO": {
+      "type": "object",
+      "required": [
+        "email",
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "SignupDTO": {
+      "type": "object",
+      "required": [
+        "firstName",
+        "lastName",
+        "email",
+        "password"
+      ],
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
         }
       }
     },
