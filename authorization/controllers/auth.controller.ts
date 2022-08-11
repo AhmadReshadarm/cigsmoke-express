@@ -17,7 +17,26 @@ import { UserService } from '../services/user.service';
 @singleton()
 @Controller('/auth')
 export class AuthController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {
+    (async () => {
+      const admin = this.userService.getAdmin();
+
+      if (!admin) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPass = await bcrypt.hash('salmonella', salt);
+
+        await this.userService.createUser({
+          id: '',
+          firstName: 'admin',
+          lastName: 'admin',
+          isVerified: true,
+          email: 'admin@admin.ru',
+          password: hashedPass,
+          role: Role.Admin,
+        });
+      }
+    })();
+  }
 
   @Post('signup')
   async signUp(req: Request, resp: Response) {
@@ -74,14 +93,14 @@ export class AuthController {
     const accessTokenCreated = accessToken({ ...user, password: undefined });
     const refreshTokenCreated = refreshToken({ ...user, password: undefined });
 
-    resp
-      .status(HttpStatus.OK)
-      .json({
-        user: {
-          ...user,
-          password: undefined,
-        }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated
-      });
+    resp.status(HttpStatus.OK).json({
+      user: {
+        ...user,
+        password: undefined,
+      },
+      accessToken: accessTokenCreated,
+      refreshToken: refreshTokenCreated,
+    });
   }
 
   @Post('token')
@@ -163,14 +182,15 @@ export class AuthController {
         password: hashedPass,
         isVerified: true,
         role: Role.User,
-
       };
       await this.userService.updateUser(decoded.id, payload);
       const accessTokenCreated = accessToken({ ...user, password: undefined });
       const refreshTokenCreated = refreshToken({ ...user, password: undefined });
       const { password, ...others } = payload;
 
-      resp.status(HttpStatus.OK).json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+      resp
+        .status(HttpStatus.OK)
+        .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     });
   }
 
@@ -214,7 +234,9 @@ export class AuthController {
       const refreshTokenCreated = refreshToken({ ...user, password: undefined });
       const { password, ...others } = payload;
 
-      resp.status(HttpStatus.OK).json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+      resp
+        .status(HttpStatus.OK)
+        .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     });
   }
 }

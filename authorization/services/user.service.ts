@@ -24,36 +24,56 @@ export class UserService {
       createdTo,
       sortBy = 'email',
       orderBy = 'DESC',
-      offset=0,
+      offset = 0,
       limit = 10,
     } = queryParams;
 
-    const queryBuilder = await this.userRepository
-      .createQueryBuilder('user')
+    const queryBuilder = await this.userRepository.createQueryBuilder('user');
 
-    if (firstName) { queryBuilder.andWhere('user.firstName LIKE :firstName', { firstName: `%${firstName}%` }); }
-    if (lastName) { queryBuilder.andWhere('user.lastName LIKE :lastName', { lastName: `%${lastName}%` }); }
-    if (email) { queryBuilder.andWhere('user.email LIKE :email', { email: `%${email}%` }); }
-    if (isVerified) { queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified: isVerified }); }
-    if (role) { queryBuilder.andWhere('user.role = :role', { role: role }); }
-    if (createdFrom) { queryBuilder.andWhere('user.createdAt >= :dateFrom', { dateFrom: createdFrom }) }
-    if (createdTo) { queryBuilder.andWhere('user.createdAt <= :dateTo', { dateTo: createdTo }) }
+    if (firstName) {
+      queryBuilder.andWhere('user.firstName LIKE :firstName', { firstName: `%${firstName}%` });
+    }
+    if (lastName) {
+      queryBuilder.andWhere('user.lastName LIKE :lastName', { lastName: `%${lastName}%` });
+    }
+    if (email) {
+      queryBuilder.andWhere('user.email LIKE :email', { email: `%${email}%` });
+    }
+    if (isVerified) {
+      queryBuilder.andWhere('user.isVerified = :isVerified', { isVerified: isVerified });
+    }
+    if (role) {
+      queryBuilder.andWhere('user.role = :role', { role: role });
+    }
+    if (createdFrom) {
+      queryBuilder.andWhere('user.createdAt >= :dateFrom', { dateFrom: createdFrom });
+    }
+    if (createdTo) {
+      queryBuilder.andWhere('user.createdAt <= :dateTo', { dateTo: createdTo });
+    }
 
-    const users = queryBuilder
-      .orderBy(`user.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit);
+    const users = queryBuilder.orderBy(`user.${sortBy}`, orderBy).skip(offset).take(limit);
 
     return {
       rows: await users.getMany(),
       length: await users.getCount(),
-    }
+    };
   }
 
   async getUser(id: string): Promise<User> {
     const user = await this.userRepository.findOneOrFail({
       where: {
         id: Equal(id),
+      },
+    });
+
+    return user;
+  }
+
+  async getAdmin(): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: {
+        role: Equal(Role.Admin),
       },
     });
 
@@ -84,7 +104,7 @@ export class UserService {
     const newUser = {
       ...user,
       ...userDTO,
-    }
+    };
     newUser.isVerified = newUser.isVerified ?? user.isVerified;
     newUser.role = newUser.role ?? user.role;
 

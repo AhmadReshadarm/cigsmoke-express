@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-      - db_data:/var/lib/mysql
+      - "/var/lib/mysql-data:/var/lib/mysql"
   phpmyadmin:
     image: phpmyadmin:latest
     restart: always
