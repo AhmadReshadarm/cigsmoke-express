@@ -10,7 +10,7 @@ export class Parameter {
   id: string;
 
   @IsNotEmpty()
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @ManyToOne(
