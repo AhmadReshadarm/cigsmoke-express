@@ -26,14 +26,13 @@ export class AuthController {
         const hashedPass = await bcrypt.hash('salmonella', salt);
 
         await this.userService.createUser({
-          id: '',
           firstName: 'admin',
           lastName: 'admin',
           isVerified: true,
           email: 'admin@admin.ru',
           password: hashedPass,
           role: Role.Admin,
-        });
+        } as any);
       }
     })();
   }
@@ -47,14 +46,13 @@ export class AuthController {
       const hashedPass = await bcrypt.hash('salmonella', salt);
 
       const user = await this.userService.createUser({
-        id: '',
         firstName: 'admin',
         lastName: 'admin',
         isVerified: true,
         email: 'admin@admin.ru',
         password: hashedPass,
         role: Role.Admin,
-      });
+      } as any);
 
       resp.status(HttpStatus.CREATED).json({ user });
 
