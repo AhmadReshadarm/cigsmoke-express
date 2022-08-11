@@ -393,7 +393,7 @@
           "200": {
             "description": "Successful operation",
             "schema": {
-              "$ref": "#/definitions/User"
+              "$ref": "#/definitions/UserResponse"
             }
           },
           "401": {
@@ -4426,6 +4426,159 @@
         }
       }
     },
+    "/analytics/users": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Get array of users",
+        "description": "",
+        "operationId": "getUsers",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin token"
+          },
+          {
+            "name": "firstName",
+            "in": "query",
+            "description": "Filtering tags by firstName",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lastName",
+            "in": "query",
+            "description": "Filtering tags by lastName",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Filtering tags by email",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "isVerified",
+            "in": "query",
+            "description": "Filtering tags by isVerified",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "Filtering tags by role",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "Admin",
+              "User"
+            ]
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Sorting tags by property",
+            "default": "firstName",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Ordering results. ASC | DESC",
+            "default": "DESC",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limiting tags in array",
+            "default": 10,
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Create a user",
+        "description": "",
+        "operationId": "createUser",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserDTO"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid User request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
     "/analytics/dynamic": {
       "get": {
         "tags": [
@@ -5711,6 +5864,19 @@
         },
         "updatedAt": {
           "type": "string"
+        }
+      }
+    },
+    "UserResponse": {
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/User"
+          }
+        },
+        "length": {
+          "type": "number"
         }
       }
     },

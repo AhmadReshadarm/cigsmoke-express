@@ -101,17 +101,12 @@ export class AnalyticsService {
           Authorization: authToken
         },
         params: {
-          ...params,
-          limit: 1000000,
+          ...params
         }
       }
     );
 
-
-    return {
-      data: users.data,
-      qty: users.data.length
-    }
+    return users.data
   }
 
   async getDynamicDay(from: Date, to: Date, authToken: string): Promise<DynamicDTO[]> {
