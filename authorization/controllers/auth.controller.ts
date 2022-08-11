@@ -19,7 +19,7 @@ import { UserService } from '../services/user.service';
 export class AuthController {
   constructor(private userService: UserService) {
     (async () => {
-      const admin = this.userService.getAdmin();
+      const admin = await this.userService.getAdmin();
 
       if (!admin) {
         const salt = await bcrypt.genSalt(10);
@@ -36,6 +36,32 @@ export class AuthController {
         });
       }
     })();
+  }
+
+  @Get('init-admin')
+  async initAdmin(req: Request, resp: Response) {
+    const admin = await this.userService.getAdmin();
+
+    if (!admin) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash('salmonella', salt);
+
+      const user = await this.userService.createUser({
+        id: '',
+        firstName: 'admin',
+        lastName: 'admin',
+        isVerified: true,
+        email: 'admin@admin.ru',
+        password: hashedPass,
+        role: Role.Admin,
+      });
+
+      resp.status(HttpStatus.CREATED).json({ user });
+
+      return;
+    }
+
+    resp.status(HttpStatus.CREATED).json({ info: 'already exists', user: admin });
   }
 
   @Post('signup')
