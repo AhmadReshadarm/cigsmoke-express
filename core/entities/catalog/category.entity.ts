@@ -27,7 +27,7 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
-  @Column()
+  @Column({ default: '' })
   image: string;
 
   @CreateDateColumn()
