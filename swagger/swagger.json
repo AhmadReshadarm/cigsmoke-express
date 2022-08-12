@@ -3993,13 +3993,13 @@
           }
         }
       },
-      "post": {
+      "put": {
         "tags": [
           "slide"
         ],
-        "summary": "Create a slide",
+        "summary": "Update slides",
         "description": "",
-        "operationId": "createSlide",
+        "operationId": "updateSlides",
         "produces": [
           "application/json"
         ],
@@ -4017,19 +4017,20 @@
             "description": "",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Slide"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlideDTO"
+              }
             }
           }
         ],
         "responses": {
-          "201": {
-            "description": "Successful created",
+          "200": {
+            "description": "Successful updated",
             "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                }
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Slide"
               }
             }
           },
@@ -4081,50 +4082,6 @@
             "description": "Slide not found"
           }
         }
-      },
-      "delete": {
-        "tags": [
-          "slide"
-        ],
-        "summary": "Delete the slide",
-        "description": "",
-        "operationId": "deleteSlide",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "name": "authorization",
-            "required": true,
-            "in": "header",
-            "description": "admin token"
-          },
-          {
-            "name": "slideId",
-            "in": "path",
-            "description": "id of slide to return",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful deleted",
-            "schema": {
-              "$ref": "#/definitions/Slide"
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Slide not found"
-          }
-        }
       }
     },
     "/advertisements": {
@@ -4150,57 +4107,6 @@
                 "$ref": "#/definitions/Advertisement"
               }
             }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "advertisement"
-        ],
-        "summary": "Create a advertisement",
-        "description": "",
-        "operationId": "createAdvertisement",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "name": "authorization",
-            "required": true,
-            "in": "header",
-            "description": "admin token"
-          },
-          {
-            "in": "body",
-            "name": "body",
-            "description": "",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/Advertisement"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Successful created",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid Advertisement request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           }
         }
       }
@@ -4286,50 +4192,6 @@
           },
           "400": {
             "description": "Invalid Advertisement request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Advertisement not found"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "advertisement"
-        ],
-        "summary": "Delete the advertisement",
-        "description": "",
-        "operationId": "deleteAdvertisement",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "name": "authorization",
-            "required": true,
-            "in": "header",
-            "description": "admin token"
-          },
-          {
-            "name": "advertisementId",
-            "in": "path",
-            "description": "id of advertisement to return",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful deleted",
-            "schema": {
-              "$ref": "#/definitions/Advertisement"
-            }
           },
           "401": {
             "description": "Unauthorized"
@@ -5802,6 +5664,45 @@
         },
         "maxPrice": {
           "type": "number"
+        }
+      }
+    },
+    "Advertisement": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        }
+      }
+    },
+    "Slide": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        }
+      }
+    },
+    "SlideDTO": {
+      "properties": {
+        "image": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
         }
       }
     }
