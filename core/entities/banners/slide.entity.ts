@@ -10,9 +10,14 @@ export class Slide {
   @Column({ unique: true })
   image: string;
 
-  constructor(args?: { image: string }) {
+  @IsNotEmpty()
+  @Column()
+  link: string;
+
+  constructor(args?: { image: string; link: string }) {
     if (args) {
       this.image = args.image;
+      this.link = args.link;
     }
   }
 }

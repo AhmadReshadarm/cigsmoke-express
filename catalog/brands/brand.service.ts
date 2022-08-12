@@ -1,10 +1,9 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { Brand } from '../../core/entities';
-import { validation } from '../../core/lib/validator';
-import { Product } from '../../core/entities';
-import { BrandQueryDTO, ProductDTO } from '../catalog.dtos';
 import { PaginationDTO } from '../../core/lib/dto';
+import { validation } from '../../core/lib/validator';
+import { BrandQueryDTO } from '../catalog.dtos';
 
 @singleton()
 export class BrandService {
@@ -42,7 +41,7 @@ export class BrandService {
       queryBuilder.andWhere('categoryParent.url = :parent', { parent: `${parent}` });
     }
     if (showOnMain) {
-      queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: showOnMain });
+      queryBuilder.andWhere('brand.showOnMain = :showOnMain', { showOnMain: JSON.parse(showOnMain as any) ? 1 : 0 });
     }
 
     queryBuilder.orderBy(`brand.${sortBy}`, orderBy).skip(offset).take(limit);

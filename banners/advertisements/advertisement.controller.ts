@@ -1,4 +1,4 @@
- import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
 import { AdvertisementService } from './advertisement.service';
@@ -8,7 +8,19 @@ import { isAdmin, verifyToken } from '../../core/middlewares';
 @singleton()
 @Controller('/advertisements')
 export class AdvertisementController {
-  constructor(private advertisementService: AdvertisementService) {}
+  constructor(private advertisementService: AdvertisementService) {
+    (async () => {
+      const advertisements = await this.advertisementService.getAdvertisements();
+
+      if (!advertisements.length) {
+        await this.advertisementService.createAdvertisement({
+          image: 'test image',
+          description: 'test desc',
+          link: 'test link',
+        } as any);
+      }
+    })();
+  }
 
   @Get()
   async getAdvertisements(req: Request, resp: Response) {
@@ -25,13 +37,13 @@ export class AdvertisementController {
     resp.json(advertisement);
   }
 
-  @Post('')
-  @Middleware([verifyToken, isAdmin])
-  async createAdvertisement(req: Request, resp: Response) {
-    const created = await this.advertisementService.createAdvertisement(req.body);
+  // @Post('')
+  // @Middleware([verifyToken, isAdmin])
+  // async createAdvertisement(req: Request, resp: Response) {
+  //   const created = await this.advertisementService.createAdvertisement(req.body);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
-  }
+  //   resp.status(HttpStatus.CREATED).json({ id: created.id });
+  // }
 
   @Put(':id')
   @Middleware([verifyToken, isAdmin])
@@ -42,12 +54,12 @@ export class AdvertisementController {
     resp.status(HttpStatus.OK).json(updated);
   }
 
-  @Delete(':id')
-  @Middleware([verifyToken, isAdmin])
-  async removeAdvertisement(req: Request, resp: Response) {
-    const { id } = req.params;
-    const removed = await this.advertisementService.removeAdvertisement(id);
+  // @Delete(':id')
+  // @Middleware([verifyToken, isAdmin])
+  // async removeAdvertisement(req: Request, resp: Response) {
+  //   const { id } = req.params;
+  //   const removed = await this.advertisementService.removeAdvertisement(id);
 
-    resp.status(HttpStatus.OK).json(removed);
-  }
+  //   resp.status(HttpStatus.OK).json(removed);
+  // }
 }
