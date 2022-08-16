@@ -110,7 +110,7 @@ export class AuthController {
     }
 
     if (!user.isVerified) {
-      resp.status(HttpStatus.BAD_REQUEST).json({ message: 'Account is not not verified' });
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'Account is not not verified' });
       return;
     }
 
@@ -176,7 +176,7 @@ export class AuthController {
     const { token, userPassword } = req.body;
 
     if (!token) {
-      resp.status(HttpStatus.UNAUTHORIZED);
+      resp.status(HttpStatus.UNAUTHORIZED).json('No token found');
       return;
     }
 
@@ -194,7 +194,7 @@ export class AuthController {
       const validated = await bcrypt.compare(userPassword, user.password);
 
       if (validated) {
-        resp.status(HttpStatus.FORBIDDEN).json({ message: 'Can not use the same password as previous' });
+        resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
         return;
       }
 

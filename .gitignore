@@ -16,3 +16,6 @@ images/files
 test.http
 http-client.env.json
 tes.json
+
+#cache
+/**/webprojnpm-cache

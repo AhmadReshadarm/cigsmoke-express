@@ -8,11 +8,12 @@ import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decor
 import { Role } from '../../core/enums/roles.enum';
 import { validation } from '../../core/lib/validator';
 import { User } from '../../core/entities';
+import { changePasswordLimiter } from '../functions/rate.limit';
 
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -22,7 +23,7 @@ export class UserController {
     const result = users.rows.map(user => {
       const { password, ...other } = user;
       return other;
-    })
+    });
 
     resp
       .json({
@@ -33,11 +34,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @Middleware([
-    // verifyToken
-    // , isUser
-    // , verifyUserId
-  ])
+  @Middleware([verifyToken, isUser, verifyUserId])
   async getUser(req: Request, resp: Response) {
     const { id } = req.params;
 
@@ -80,6 +77,35 @@ export class UserController {
     const updated = await this.userService.updateUser(id, req.body);
 
     resp.status(HttpStatus.OK).json(updated);
+  }
+
+  @Put('changepsw/:id')
+  @Middleware([verifyToken, isUser, verifyUserId, changePasswordLimiter])
+  async changePassword(req: Request, resp: Response) {
+    const { id } = req.params;
+    const { oldPassword, password } = req.body;
+    console.log(oldPassword, password);
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPass = await bcrypt.hash(password, salt);
+    const user = await this.userService.getUser(id);
+    const validated = await bcrypt.compare(password, user.password);
+    if (validated) {
+      resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
+      return;
+    }
+    const payload = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      password: hashedPass,
+      isVerified: true,
+      role: Role.User,
+    };
+
+    await this.userService.updateUser(id, payload);
+    resp.status(HttpStatus.OK).json({ message: 'password changed' });
   }
 
   @Delete(':id')
