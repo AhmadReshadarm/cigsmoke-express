@@ -37,13 +37,23 @@ export class AdvertisementController {
     resp.json(advertisement);
   }
 
-  // @Post('')
-  // @Middleware([verifyToken, isAdmin])
-  // async createAdvertisement(req: Request, resp: Response) {
-  //   const created = await this.advertisementService.createAdvertisement(req.body);
+  @Post('')
+  @Middleware([verifyToken, isAdmin])
+  async createAdvertisement(req: Request, resp: Response) {
+    const advertisements = await this.advertisementService.getAdvertisements();
 
-  //   resp.status(HttpStatus.CREATED).json({ id: created.id });
-  // }
+    if (!advertisements.length) {
+      const created = await this.advertisementService.createAdvertisement({
+        image: 'test image',
+        description: 'test desc',
+        link: 'test link',
+      } as any);
+
+      resp.status(HttpStatus.CREATED).json({ created });
+    }
+
+    resp.status(HttpStatus.CREATED).json({ advertisements });
+  }
 
   @Put(':id')
   @Middleware([verifyToken, isAdmin])
