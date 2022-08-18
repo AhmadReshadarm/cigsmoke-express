@@ -1,17 +1,17 @@
-import { DataSource } from "typeorm"
-import { Address, Basket, Checkout, OrderProduct, PaymentCard } from '../core/entities';
+import { DataSource } from 'typeorm';
+import { Address, Basket, Checkout, OrderProduct } from '../core/entities';
 
 const dataSource = new DataSource({
-    type: "mysql",
-    host: process.env.MYSQL_HOST ?? 'localhost',
-    port: 3306,
-    username: "root",
-    password: process.env.MYSQL_ROOT_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-    logging: true,
-    synchronize: true,
-    migrationsRun: false,
-    entities: [OrderProduct, Basket, Address, Checkout, PaymentCard],
+  type: 'mysql',
+  host: process.env.MYSQL_HOST ?? 'localhost',
+  port: 3306,
+  username: 'root',
+  password: process.env.MYSQL_ROOT_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  logging: true,
+  synchronize: true,
+  migrationsRun: false,
+  entities: [OrderProduct, Basket, Address, Checkout],
 });
 
 export default dataSource;

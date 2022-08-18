@@ -12,23 +12,27 @@ export class Address {
 
   @IsNotEmpty()
   @Column()
-  firstName: string;
+  receiverName: string;
 
   @IsNotEmpty()
   @Column()
-  lastName: string;
+  receiverPhone: string;
 
   @IsNotEmpty()
   @Column()
   address: string;
 
-  @IsNotEmpty()
   @Column()
-  city: string;
+  roomOrOffice: string;
 
-  @IsNotEmpty()
   @Column()
-  country: string;
+  door: string;
+
+  @Column()
+  floor: string;
+
+  @Column()
+  rignBell: string;
 
   @IsNotEmpty()
   @Column()
@@ -37,13 +41,24 @@ export class Address {
   @OneToMany(() => Checkout, checkout => checkout.address)
   checkouts: Checkout[];
 
-  constructor(args?: { firstName: string, lastName: string, address: string, city: string, country: string, zipCode: string }) {
+  constructor(args?: {
+    receiverName: string;
+    receiverPhone: string;
+    address: string;
+    roomOrOffice: string;
+    door: string;
+    floor: string;
+    rignBell: string;
+    zipCode: string;
+  }) {
     if (args) {
-      this.firstName = args.firstName
-      this.lastName = args.lastName
+      this.receiverName = args.receiverName;
+      this.receiverPhone = args.receiverPhone;
       this.address = args.address;
-      this.city = args.city;
-      this.country = args.country;
+      this.roomOrOffice = args.roomOrOffice;
+      this.door = args.door;
+      this.floor = args.floor;
+      this.rignBell = args.rignBell;
       this.zipCode = args.zipCode;
     }
   }
