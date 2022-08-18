@@ -20,7 +20,7 @@ export class AddressController {
       req.query.userId = String(resp.locals.user.id);
     }
 
-    const addresses = await this.addressService.getAddresses(req.query, req.headers.authorization!);
+    const addresses = await this.addressService.getAddresses(req.query as any, req.headers.authorization!);
 
     resp.json(addresses);
   }
@@ -37,7 +37,7 @@ export class AddressController {
   @Post()
   @Middleware([verifyToken, isUser])
   async createAddress(req: Request, resp: Response) {
-    const newAddress = new Address(req.body)
+    const newAddress = new Address(req.body);
     newAddress.userId = resp.locals.user.id;
 
     await validation(newAddress);

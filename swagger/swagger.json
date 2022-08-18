@@ -3040,13 +3040,6 @@
             "type": "string"
           },
           {
-            "name": "paymentId",
-            "in": "query",
-            "description": "Filtering checkouts by paymentId",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "basketId",
             "in": "query",
             "description": "Filtering checkouts by basketId",
@@ -5197,10 +5190,6 @@
           "type": "object",
           "$ref": "#/definitions/AddressWithoutJoins"
         },
-        "payment": {
-          "type": "object",
-          "$ref": "#/definitions/PaymentCard"
-        },
         "basket": {
           "type": "object",
           "$ref": "#/definitions/BasketWithoutJoins"
@@ -5240,7 +5229,6 @@
     "CheckoutDTO": {
       "required": [
         "address",
-        "payment",
         "basket"
       ],
       "properties": {
@@ -5251,10 +5239,6 @@
         "address": {
           "type": "string",
           "description": "Address ID"
-        },
-        "payment": {
-          "type": "string",
-          "description": "Payment ID"
         },
         "basket": {
           "type": "string",
@@ -5319,36 +5303,6 @@
         "qty": {
           "type": "integer",
           "minimum": 1
-        }
-      }
-    },
-    "PaymentCard": {
-      "required": [
-        "userId",
-        "cardNumber",
-        "expirationMonth",
-        "expirationYear",
-        "cardholder"
-      ],
-      "properties": {
-        "id": {
-          "type": "string",
-          "readOnly": true
-        },
-        "userId": {
-          "type": "string"
-        },
-        "cardNumber": {
-          "type": "string"
-        },
-        "expirationMonth": {
-          "type": "integer"
-        },
-        "expirationYear": {
-          "type": "integer"
-        },
-        "cardholder": {
-          "type": "string"
         }
       }
     },

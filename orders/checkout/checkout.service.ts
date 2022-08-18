@@ -19,41 +19,32 @@ export class CheckoutService {
   }
 
   async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<PaginationDTO<CheckoutDTO>> {
-    const {
-      addressId,
-      paymentId,
-      basketId,
-      userId,
-      sortBy = 'basket',
-      orderBy = 'DESC',
-      offset=0,
-      limit = 10,
-    } = queryParams;
+    const { addressId, basketId, userId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.checkoutRepository
       .createQueryBuilder('checkout')
       .leftJoinAndSelect('checkout.address', 'address')
-      .leftJoinAndSelect('checkout.basket', 'basket')
-      .leftJoinAndSelect('checkout.payment', 'paymentCard');
+      .leftJoinAndSelect('checkout.basket', 'basket');
 
+    if (addressId) {
+      queryBuilder.andWhere('checkout.addressId = :addressId', { addressId: addressId });
+    }
+    if (basketId) {
+      queryBuilder.andWhere('checkout.basketId = :basketId', { basketId: basketId });
+    }
+    if (userId) {
+      queryBuilder.andWhere('checkout.userId = :userId', { userId: userId });
+    }
 
-    if (addressId) { queryBuilder.andWhere('checkout.addressId = :addressId', { addressId: addressId }) }
-    if (paymentId) { queryBuilder.andWhere('checkout.paymentId = :paymentId', { paymentId: paymentId }) }
-    if (basketId) { queryBuilder.andWhere('checkout.basketId = :basketId', { basketId: basketId }) }
-    if (userId) { queryBuilder.andWhere('checkout.userId = :userId', { userId: userId }) }
-
-    queryBuilder
-      .orderBy(`checkout.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit)
+    queryBuilder.orderBy(`checkout.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const checkouts = await queryBuilder.getMany();
-    const result = checkouts.map(async (checkout) => await this.mergeCheckout(checkout, authToken))
+    const result = checkouts.map(async checkout => await this.mergeCheckout(checkout, authToken));
 
-    return  {
+    return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
   async getCheckout(id: string, authToken: string): Promise<CheckoutDTO> {
@@ -61,12 +52,11 @@ export class CheckoutService {
       .createQueryBuilder('checkout')
       .leftJoinAndSelect('checkout.address', 'address')
       .leftJoinAndSelect('checkout.basket', 'basket')
-      .leftJoinAndSelect('checkout.payment', 'paymentCard')
       .where('checkout.id = :id', { id: id })
       .getOne();
 
     if (!queryBuilder) {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND)
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
     return this.mergeCheckout(queryBuilder, authToken);
@@ -76,11 +66,11 @@ export class CheckoutService {
     try {
       const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
         headers: {
-          Authorization: authToken!
-        }
+          Authorization: authToken!,
+        },
       });
 
-      return res.data
+      return res.data;
     } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
@@ -88,29 +78,29 @@ export class CheckoutService {
     }
   }
 
-  async createCheckout(newCheckout: Checkout, authToken: string): Promise<Checkout> {
+  async createCheckout(newCheckout: Checkout): Promise<Checkout> {
     const checkout = await this.checkoutRepository.save(newCheckout);
 
-    if (!await this.validation(checkout.id, authToken)) {
-      await this.checkoutRepository.remove(checkout)
-      throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
-    }
+    // if (!(await this.validation(checkout.id, authToken))) {
+    //   await this.checkoutRepository.remove(checkout);
+    //   throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+    // }
 
-    return checkout
+    return checkout;
   }
 
   async updateCheckout(id: string, checkoutDTO: Checkout, user: UserAuth) {
     const checkout = await this.checkoutRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     await this.isUserCheckoutOwner(checkout, user);
 
     return this.checkoutRepository.save({
       ...checkout,
-      ...checkoutDTO
+      ...checkoutDTO,
     });
   }
 
@@ -118,7 +108,7 @@ export class CheckoutService {
     const checkout = await this.checkoutRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
     await this.isUserCheckoutOwner(checkout, user);
 
@@ -132,16 +122,13 @@ export class CheckoutService {
   }
 
   async validation(id: string, authToken: string): Promise<boolean> {
-    const checkout = await this.getCheckout(id, authToken) as any;
+    const checkout = (await this.getCheckout(id, authToken)) as any;
 
     if (String(checkout.user.id) !== String(checkout.basket.userId)) {
-      return false
+      return false;
     }
     if (String(checkout.user.id) !== String(checkout.address.userId)) {
-      return false
-    }
-    if (String(checkout.user.id) !== String(checkout.payment.userId)) {
-      return false
+      return false;
     }
     return true;
   }
@@ -149,11 +136,10 @@ export class CheckoutService {
   async mergeCheckout(checkout: Checkout, authToken: string): Promise<CheckoutDTO> {
     return {
       id: checkout.id,
-      user: await this.getUserById(checkout.userId, authToken) ?? checkout.userId,
+      user: (await this.getUserById(checkout.userId, authToken)) ?? checkout.userId,
       basket: checkout.basket,
-      payment: checkout.payment,
       address: checkout.address,
-      comment: checkout.comment
-    }
+      comment: checkout.comment,
+    };
   }
 }

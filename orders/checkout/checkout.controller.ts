@@ -1,12 +1,11 @@
-import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
+import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Checkout } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
-import { CheckoutService } from './checkout.service';
 import { isUser, verifyToken } from '../../core/middlewares';
-import { Role } from '../../core/enums/roles.enum';
+import { CheckoutService } from './checkout.service';
 
 @singleton()
 @Controller('/checkouts')
@@ -27,7 +26,7 @@ export class CheckoutController {
   }
 
   @Get(':id')
-  // @Middleware([verifyToken, isUser])
+  @Middleware([verifyToken, isUser])
   async getCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const checkout = await this.checkoutService.getCheckout(id, req.headers.authorization!);
@@ -36,19 +35,19 @@ export class CheckoutController {
   }
 
   @Post()
-  // @Middleware([verifyToken, isUser])
+  @Middleware([verifyToken, isUser])
   async createCheckout(req: Request, resp: Response) {
     const newCheckout = new Checkout(req.body);
     newCheckout.userId = resp.locals.user.id;
 
     await validation(newCheckout);
-    const created = await this.checkoutService.createCheckout(newCheckout, req.headers.authorization!);
+    const created = await this.checkoutService.createCheckout(newCheckout);
 
     resp.status(HttpStatus.CREATED).json({ id: created.id });
   }
 
   @Put(':id')
-  // @Middleware([verifyToken, isUser])
+  @Middleware([verifyToken, isUser])
   async updateCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const updated = await this.checkoutService.updateCheckout(id, req.body, resp.locals.user);
@@ -57,7 +56,7 @@ export class CheckoutController {
   }
 
   @Delete(':id')
-  // @Middleware([verifyToken, isUser])
+  @Middleware([verifyToken, isUser])
   async removeCheckout(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.checkoutService.removeCheckout(id, resp.locals.user);
