@@ -160,7 +160,7 @@ export class AuthController {
     }
 
     if (!user.isVerified) {
-      resp.status(HttpStatus.FORBIDDEN);
+      resp.status(HttpStatus.FORBIDDEN).json({ message: `email is not verified` });
       return;
     }
 
