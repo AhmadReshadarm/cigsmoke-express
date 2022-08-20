@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 
-export const sendMail = (token: any, email: string) => {
+const baseUrl = 'http://localhost:3000'; //TODO change base to the website domain
+const sendMail = (token: any, email: string) => {
   let transporter = nodemailer.createTransport({
     service: 'gmail', // TODO use smtp server
     auth: {
@@ -8,10 +9,28 @@ export const sendMail = (token: any, email: string) => {
       pass: 'nosfoqwaokdxgqtq',
     },
   });
-  const url = `http://localhost:3000/auth/authorize/${token}`; // TODO redirect to the frontend
+  const url = `${baseUrl}/profile/verify/${token}`;
   transporter.sendMail({
     to: email,
     subject: 'cigsmoke confirmation mail',
     html: `Please click this email to confirm your email: <a href="${url}">${url}</a>`, // TODO make the email
   });
 };
+
+const sendMailResetPsw = (token: any, email: string) => {
+  let transporter = nodemailer.createTransport({
+    service: 'gmail', // TODO use smtp server
+    auth: {
+      user: 'armreshad@gmail.com',
+      pass: 'nosfoqwaokdxgqtq',
+    },
+  });
+  const url = `${baseUrl}/profile/pswreset/confirmpsw/${token}`;
+  transporter.sendMail({
+    to: email,
+    subject: 'cigsmoke reset your password',
+    html: `Please click this email reset your password: <a href="${url}">${url}</a>`, // TODO make the email
+  });
+};
+
+export { sendMail, sendMailResetPsw };

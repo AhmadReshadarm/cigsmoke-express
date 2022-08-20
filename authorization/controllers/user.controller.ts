@@ -3,6 +3,9 @@ import { singleton } from 'tsyringe';
 import * as bcrypt from 'bcrypt';
 import { HttpStatus } from '../../core/lib/http-status';
 import { UserService } from '../services/user.service';
+import { emailToken } from '../functions/email.token';
+import { sendMail } from '../functions/send.mail';
+import { emailConfirmationLimiter, sendTokenLimiter } from '../functions/rate.limit';
 import { isAdmin, isUser, verifyToken, verifyUserId } from '../../core/middlewares';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Role } from '../../core/enums/roles.enum';
@@ -18,51 +21,75 @@ export class UserController {
   @Get('')
   @Middleware([verifyToken, isAdmin])
   async getUsers(req: Request, resp: Response) {
-    const users = await this.userService.getUsers(req.query);
+    try {
+      const users = await this.userService.getUsers(req.query);
 
-    const result = users.rows.map(user => {
+      const result = users.rows.map(user => {
+        const { password, ...other } = user;
+        return other;
+      });
+
+      resp
+        .json({
+          rows: result,
+          length: users.length,
+        })
+        .status(HttpStatus.OK);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+  // verifyUserId
+  @Get('user')
+  @Middleware([verifyToken, isUser])
+  async getUser(req: Request, resp: Response) {
+    const { jwt } = resp.locals;
+    try {
+      const user = await this.userService.getUser(jwt.id);
       const { password, ...other } = user;
-      return other;
-    });
-
-    resp
-      .json({
-        rows: result,
-        length: users.length,
-      })
-      .status(HttpStatus.OK);
+      resp.status(HttpStatus.OK).json(other);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
-  @Get(':id')
-  @Middleware([verifyToken, isUser, verifyUserId])
-  async getUser(req: Request, resp: Response) {
-    const { id } = req.params;
+  @Get('email-confirmation')
+  @Middleware([verifyToken, isUser, sendTokenLimiter, emailConfirmationLimiter])
+  async sendMailConfirmation(req: Request, resp: Response) {
+    const { jwt } = resp.locals;
 
-    const user = await this.userService.getUser(id);
-    const { password, ...other } = user;
-
-    resp.json(other).status(HttpStatus.OK);
+    try {
+      const token = emailToken({ id: jwt.id, email: jwt.email });
+      sendMail(token, jwt.email);
+      resp.status(HttpStatus.OK).json({ message: 'token sent successfully' });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Post('')
   @Middleware([verifyToken, isAdmin])
   async createUser(req: Request, resp: Response) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPass = await bcrypt.hash(req.body.password, salt);
-    const payload = {
-      id: '',
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-      isVerified: true,
-      password: hashedPass,
-      role: req.body.isAdmin ? Role.Admin : Role.User,
-    };
-    const newUser = await validation(new User(payload));
-    const created = await this.userService.createUser(newUser);
-    const { id } = created;
+    try {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash(req.body.password, salt);
+      const payload = {
+        id: '',
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        isVerified: true,
+        password: hashedPass,
+        role: req.body.isAdmin ? Role.Admin : Role.User,
+      };
+      const newUser = await validation(new User(payload));
+      const created = await this.userService.createUser(newUser);
+      const { id } = created;
 
-    resp.status(HttpStatus.CREATED).json({ id });
+      resp.status(HttpStatus.CREATED).json({ id });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Put(':id')
@@ -74,47 +101,57 @@ export class UserController {
       req.body.role = undefined;
     }
 
-    const updated = await this.userService.updateUser(id, req.body);
-
-    resp.status(HttpStatus.OK).json(updated);
+    try {
+      const updated = await this.userService.updateUser(id, req.body);
+      const { password, ...others } = updated;
+      resp.status(HttpStatus.OK).json(others);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Put('changepsw/:id')
   @Middleware([verifyToken, isUser, verifyUserId, changePasswordLimiter])
   async changePassword(req: Request, resp: Response) {
     const { id } = req.params;
-    const { oldPassword, password } = req.body;
-    console.log(oldPassword, password);
+    const { password } = req.body;
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPass = await bcrypt.hash(password, salt);
-    const user = await this.userService.getUser(id);
-    const validated = await bcrypt.compare(password, user.password);
-    if (validated) {
-      resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
-      return;
+    try {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash(password, salt);
+      const user = await this.userService.getUser(id);
+      const validated = await bcrypt.compare(password, user.password);
+      if (validated) {
+        resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
+        return;
+      }
+      const payload = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password: hashedPass,
+        isVerified: true,
+        role: Role.User,
+      };
+
+      await this.userService.updateUser(id, payload);
+      resp.status(HttpStatus.OK).json({ message: 'password changed' });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
-    const payload = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: hashedPass,
-      isVerified: true,
-      role: Role.User,
-    };
-
-    await this.userService.updateUser(id, payload);
-    resp.status(HttpStatus.OK).json({ message: 'password changed' });
   }
 
   @Delete(':id')
   @Middleware([verifyToken, isAdmin])
   async removeUser(req: Request, resp: Response) {
     const { id } = req.params;
+    try {
+      const removed = await this.userService.removeUser(id);
 
-    const removed = await this.userService.removeUser(id);
-
-    resp.status(HttpStatus.OK).json(removed);
+      resp.status(HttpStatus.OK).json(removed);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 }
