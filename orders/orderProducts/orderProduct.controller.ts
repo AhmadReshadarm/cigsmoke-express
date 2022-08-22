@@ -9,7 +9,7 @@ import { OrderProductService } from './orderProduct.service';
 @singleton()
 @Controller('/order-products')
 export class OrderProductController {
-  constructor(private orderProductService: OrderProductService) { }
+  constructor(private orderProductService: OrderProductService) {}
 
   @Get()
   @Middleware([verifyToken, isUser])
@@ -30,6 +30,18 @@ export class OrderProductController {
     const orderProduct = await this.orderProductService.getOrderProduct(id, req.headers.authorization!);
 
     resp.json(orderProduct);
+  }
+
+  @Get('inner')
+  async innerGet(req: Request, resp: Response) {
+    const { secretKey } = req.body;
+    if (secretKey !== process.env.INNER_SECRET_KEY) {
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'access denied' });
+      return;
+    }
+    const orders = this.orderProductService.getOrderProductInner();
+
+    resp.json(orders);
   }
 
   // @Delete(':id')

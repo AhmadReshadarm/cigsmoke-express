@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
-import { Address, Basket, Checkout, OrderProduct } from '../core/entities';
+import { Basket, Checkout, OrderProduct } from '../core/entities';
+import { Address } from '../core/entities';
 
 const dataSource = new DataSource({
   type: 'mysql',
