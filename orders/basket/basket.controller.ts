@@ -11,7 +11,7 @@ import { Role } from '../../core/enums/roles.enum';
 @singleton()
 @Controller('/baskets')
 export class BasketController {
-  constructor(private basketService: BasketService) { }
+  constructor(private basketService: BasketService) {}
 
   @Get()
   // @Middleware([verifyToken, isAdmin])
