@@ -26,7 +26,7 @@ export class WishlistProductService {
   }
 
   async createWishlistProduct(newWishlistProduct: WishlistProduct): Promise<WishlistProduct> {
-    newWishlistProduct.id = v4();
+    // newWishlistProduct.id = v4();
 
     const wishlistProduct = await this.wishlistProductRepository.save(newWishlistProduct);
 
