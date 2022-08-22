@@ -4,23 +4,31 @@ import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decor
 import { Checkout } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
-import { isUser, verifyToken } from '../../core/middlewares';
+import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
 import { CheckoutService } from './checkout.service';
 
 @singleton()
 @Controller('/checkouts')
 export class CheckoutController {
-  constructor(private checkoutService: CheckoutService) {}
+  constructor(private checkoutService: CheckoutService) { }
 
   @Get()
-  // @Middleware([verifyToken, isUser])
-  // TODO: add temporary token verification
+  @Middleware([verifyToken, isUser])
   async getCheckouts(req: Request, resp: Response) {
     // if (resp.locals.user.role !== Role.Admin) {
     //   req.query.userId = String(resp.locals.user.id);
     // }
 
-    const checkouts = await this.checkoutService.getCheckouts(req.query, req.headers.authorization!);
+    const checkouts = await this.checkoutService.getCheckouts(req.query, req.headers.authorization!, resp.locals.user.id);
+
+    resp.json(checkouts);
+  }
+
+
+  @Get('all')
+  @Middleware([verifyToken, isAdmin])
+  async getAllCheckouts(req: Request, resp: Response) {
+    const checkouts = await this.checkoutService.getAllCheckouts(req.query, req.headers.authorization!);
 
     resp.json(checkouts);
   }

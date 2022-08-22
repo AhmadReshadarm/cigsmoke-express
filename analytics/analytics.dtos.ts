@@ -1,12 +1,12 @@
-import { BasketStatus } from '../core/enums/basket-status.enum';
-import { Brand, Category, Checkout, Color, OrderProduct, Product, Tag, User } from '../core/entities';
+import { CheckoutStatus } from '../core/enums/checkout-status.enum';
+import { Brand, Category, Checkout, Color, Product, Tag } from '../core/entities';
+import { Steps } from '../core/enums/analytics.enum';
 import { Role } from '../core/enums/roles.enum';
-import { GroupBy, Steps } from '../core/enums/analytics.enum';
 
 export interface SalesQueryDTO {
   updatedFrom?: Date,
   updatedTo?: Date,
-  status?: BasketStatus,
+  status?: CheckoutStatus,
   groupBy?: string,
 }
 
@@ -82,7 +82,7 @@ export interface BasketDTO {
   totalAmount: number,
   createdAt: Date,
   updatedAt: Date,
-  status: BasketStatus;
+  status: CheckoutStatus;
 }
 
 export interface DynamicDTO {
@@ -111,7 +111,7 @@ export interface UnregisteredUser {
   id: string,
 }
 
-export interface UnregisteredUserDTO extends UnregisteredUser{
+export interface UnregisteredUserDTO extends UnregisteredUser {
   qty: number,
   amount: number
   avgRating: number,

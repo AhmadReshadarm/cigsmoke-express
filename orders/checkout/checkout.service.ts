@@ -1,30 +1,62 @@
+import axios from 'axios';
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Basket, Checkout } from '../../core/entities';
-import { HttpStatus } from '../../core/lib/http-status';
-import { BasketDTO, CheckoutDTO, CheckoutQueryDTO, UserAuth, UserDTO } from '../order.dtos';
+import { Checkout } from '../../core/entities';
 import { Role } from '../../core/enums/roles.enum';
-import { scope } from '../../core/middlewares/access.user';
-import axios from 'axios';
 import { PaginationDTO } from '../../core/lib/dto';
+import { HttpStatus } from '../../core/lib/http-status';
+import { scope } from '../../core/middlewares/access.user';
+import { OrderProductService } from '../../orders/orderProducts/orderProduct.service';
+import { CheckoutDTO, CheckoutQueryDTO, UserAuth, UserDTO } from '../order.dtos';
 
 @singleton()
 export class CheckoutService {
   private checkoutRepository: Repository<Checkout>;
 
-  constructor(dataSource: DataSource) {
+  constructor(dataSource: DataSource, private orderProductService: OrderProductService) {
     this.checkoutRepository = dataSource.getRepository(Checkout);
   }
 
-  async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<PaginationDTO<CheckoutDTO>> {
+  async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string, userId: string): Promise<PaginationDTO<CheckoutDTO>> {
+    const { addressId, basketId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+
+    const queryBuilder = this.checkoutRepository
+      .createQueryBuilder('checkout')
+      .leftJoinAndSelect('checkout.address', 'address')
+      .leftJoinAndSelect('checkout.basket', 'basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct');
+
+    if (addressId) {
+      queryBuilder.andWhere('checkout.addressId = :addressId', { addressId: addressId });
+    }
+    if (basketId) {
+      queryBuilder.andWhere('checkout.basketId = :basketId', { basketId: basketId });
+    }
+    if (userId) {
+      queryBuilder.andWhere('checkout.userId = :userId', { userId: userId });
+    }
+
+    queryBuilder.orderBy(`checkout.${sortBy}`, orderBy).skip(offset).take(limit);
+
+    const checkouts = await queryBuilder.getMany();
+    const result = checkouts.map(async checkout => await this.mergeCheckout(checkout, authToken));
+
+    return {
+      rows: await Promise.all(result),
+      length: await queryBuilder.getCount(),
+    };
+  }
+
+  async getAllCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<PaginationDTO<CheckoutDTO>> {
     const { addressId, basketId, userId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.checkoutRepository
       .createQueryBuilder('checkout')
       .leftJoinAndSelect('checkout.address', 'address')
-      .leftJoinAndSelect('checkout.basket', 'basket');
+      .leftJoinAndSelect('checkout.basket', 'basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct');
 
     if (addressId) {
       queryBuilder.andWhere('checkout.addressId = :addressId', { addressId: addressId });
@@ -134,12 +166,22 @@ export class CheckoutService {
   }
 
   async mergeCheckout(checkout: Checkout, authToken: string): Promise<CheckoutDTO> {
+    const orderProducts = checkout.basket.orderProducts.map(
+      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
+    );
+
     return {
       id: checkout.id,
       user: (await this.getUserById(checkout.userId, authToken)) ?? checkout.userId,
-      basket: checkout.basket,
+      createdAt: checkout.createdAt,
+      updatedAt: checkout.updatedAt,
+      basket: {
+        ...checkout.basket,
+        orderProducts: await Promise.all(orderProducts),
+      },
       address: checkout.address,
       comment: checkout.comment,
+      status: checkout.status,
     };
   }
 }
