@@ -28,6 +28,14 @@ export class WishlistController {
     resp.json(wishlist);
   }
 
+  @Get('wishlistProducts/:id')
+  async getWishlistProducts(req: Request, resp: Response) {
+    const { id } = req.params;
+    const products = await this.wishlistService.getWishlistProducts(id);
+
+    resp.json(products);
+  }
+
   @Post()
   async createWishlist(req: Request, resp: Response) {
     const created = await this.wishlistService.createWishlist();

@@ -14,7 +14,7 @@ import { GroupBy, Steps } from '../core/enums/analytics.enum';
 import { CustomExternalError } from '../core/domain/error/custom.external.error';
 import { ErrorCode } from '../core/domain/error/error.code';
 import { HttpStatus } from '../core/lib/http-status';
-import { BasketStatus } from '../core/enums/basket-status.enum';
+import { CheckoutStatus } from '../core/enums/checkout-status.enum';
 
 @singleton()
 export class AnalyticsService {
@@ -97,13 +97,13 @@ export class AnalyticsService {
 
   async getUsers(params: UsersQueryDTO, authToken: string) {
     const users = await axios.get(`${process.env.AUTH_DB}/users`, {
-        headers: {
-          Authorization: authToken
-        },
-        params: {
-          ...params
-        }
+      headers: {
+        Authorization: authToken
+      },
+      params: {
+        ...params
       }
+    }
     );
 
     return users.data
@@ -119,7 +119,7 @@ export class AnalyticsService {
       const data = await this.getAnalytics({
         updatedFrom: date,
         updatedTo: updatedTo,
-        status: BasketStatus.Completed,
+        status: CheckoutStatus.Completed,
       }, authToken)
 
       dynamic.push({
@@ -141,7 +141,7 @@ export class AnalyticsService {
       const data = await this.getAnalytics({
         updatedFrom: date,
         updatedTo: updatedTo,
-        status: BasketStatus.Completed,
+        status: CheckoutStatus.Completed,
       }, authToken)
 
       dynamic.push({
@@ -205,12 +205,12 @@ export class AnalyticsService {
 
   async getRating(params: RatingQueryParams): Promise<number> {
     const reviews = await axios.get(`${process.env.REVIEWS_DB}/reviews`, {
-        params: {
-          ...params,
-          merge: 'false',
-          limit: 100000,
-        }
+      params: {
+        ...params,
+        merge: 'false',
+        limit: 100000,
       }
+    }
     );
 
     let counter: number = 0;

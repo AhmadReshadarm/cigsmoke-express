@@ -29,12 +29,11 @@ export class BasketService {
       userId,
       minTotalAmount,
       maxTotalAmount,
-      status,
       updatedFrom,
       updatedTo,
       sortBy = 'userId',
       orderBy = 'DESC',
-      offset=0,
+      offset = 0,
       limit = 10,
     } = queryParams;
 
@@ -46,7 +45,6 @@ export class BasketService {
     if (userId) { queryBuilder.andWhere('basket.userId = :userId', { userId: userId }) }
     if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', { minAmount: minTotalAmount }) }
     if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', { maxAmount: maxTotalAmount }) }
-    if (status) { queryBuilder.andWhere('basket.status = :status', { status: status }) }
     if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', { dateFrom: updatedFrom }) }
     if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', { dateTo: updatedTo }) }
 
@@ -58,7 +56,7 @@ export class BasketService {
     const baskets = await queryBuilder.getMany();
     const result = baskets.map(async (basket) => await this.mergeBasket(basket))
 
-    return  {
+    return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
     }
@@ -193,7 +191,6 @@ export class BasketService {
       totalAmount: this.getTotalAmount(basket.orderProducts),
       createdAt: basket.createdAt,
       updatedAt: basket.updatedAt,
-      status: basket.status,
     }
   }
 }
