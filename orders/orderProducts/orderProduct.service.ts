@@ -19,7 +19,10 @@ export class OrderProductService {
     this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
 
-  async getOrderProducts(queryParams: OrderProductQueryDTO, authToken: string): Promise<PaginationDTO<OrderProductDTO>> {
+  async getOrderProducts(
+    queryParams: OrderProductQueryDTO,
+    authToken: string,
+  ): Promise<PaginationDTO<OrderProductDTO>> {
     const {
       productId,
       userId,
@@ -29,7 +32,7 @@ export class OrderProductService {
       maxPrice,
       sortBy = 'productId',
       orderBy = 'DESC',
-      offset=0,
+      offset = 0,
       limit = 10,
     } = queryParams;
 
@@ -37,27 +40,40 @@ export class OrderProductService {
       .createQueryBuilder('orderProduct')
       .leftJoinAndSelect('orderProduct.inBasket', 'basket');
 
-    if (productId) { queryBuilder.andWhere('orderProduct.productId = :productId', { productId: productId }) }
-    if (userId) { queryBuilder.andWhere('orderProduct.userId = :userId', { userId: userId }) }
-    if (minQty) { queryBuilder.andWhere('orderProduct.qty >= :qty', { qty: minQty }) }
-    if (maxQty) { queryBuilder.andWhere('orderProduct.qty <= :qty', { qty: maxQty }) }
-    if (minPrice) { queryBuilder.andWhere('orderProduct.productPrice >= :price', { price: minPrice }) }
-    if (maxPrice) { queryBuilder.andWhere('orderProduct.productPrice <= :price', { price: maxPrice }) }
+    if (productId) {
+      queryBuilder.andWhere('orderProduct.productId = :productId', { productId: productId });
+    }
+    if (userId) {
+      queryBuilder.andWhere('orderProduct.userId = :userId', { userId: userId });
+    }
+    if (minQty) {
+      queryBuilder.andWhere('orderProduct.qty >= :qty', { qty: minQty });
+    }
+    if (maxQty) {
+      queryBuilder.andWhere('orderProduct.qty <= :qty', { qty: maxQty });
+    }
+    if (minPrice) {
+      queryBuilder.andWhere('orderProduct.productPrice >= :price', { price: minPrice });
+    }
+    if (maxPrice) {
+      queryBuilder.andWhere('orderProduct.productPrice <= :price', { price: maxPrice });
+    }
 
-    queryBuilder
-      .orderBy(`orderProduct.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit)
+    queryBuilder.orderBy(`orderProduct.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const orderProducts = await queryBuilder.getMany();
-    const result = orderProducts.map(async (orderProduct) => await this.mergeOrderProduct(orderProduct))
+    const result = orderProducts.map(async orderProduct => await this.mergeOrderProduct(orderProduct));
 
-    return  {
+    return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
+  async getOrderProductInner() {
+    const foryous = await this.orderProductRepository.find();
+    return foryous;
+  }
   // async getOrderProductEntity(id: string): Promise<OrderProduct> {
   //   const orderProduct = await this.orderProductRepository.findOneOrFail({
   //     where: {
@@ -76,7 +92,7 @@ export class OrderProductService {
       .getOne();
 
     if (!queryBuilder) {
-      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND)
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
     return this.mergeOrderProduct(queryBuilder);
@@ -86,11 +102,11 @@ export class OrderProductService {
     try {
       const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
         headers: {
-          Authorization: authToken!
-        }
+          Authorization: authToken!,
+        },
       });
 
-      return res.data
+      return res.data;
     } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
@@ -105,7 +121,7 @@ export class OrderProductService {
       return res.data;
     } catch (e: any) {
       if (e.name !== 'AxiosError') {
-        throw new Error(e)
+        throw new Error(e);
       }
     }
   }
@@ -113,13 +129,14 @@ export class OrderProductService {
   async getNewOrderProductId(): Promise<string> {
     const lastElement = await this.orderProductRepository.find({
       order: { id: 'DESC' },
-      take: 1
-    })
+      take: 1,
+    });
 
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
-  async createOrderProduct(newOrderProduct: OrderProduct
+  async createOrderProduct(
+    newOrderProduct: OrderProduct,
     // , authToken: string
   ): Promise<OrderProduct> {
     const product = await this.getProductById(newOrderProduct.productId);
@@ -142,7 +159,7 @@ export class OrderProductService {
       .createQueryBuilder('orderProduct')
       .leftJoinAndSelect('orderProduct.inBasket', 'basket')
       .where('orderProduct.id = :id', { id: id })
-      .getOne()
+      .getOne();
 
     const newOrderProduct = {} as OrderProduct;
 
@@ -162,7 +179,7 @@ export class OrderProductService {
     const orderProduct = await this.orderProductRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     return this.orderProductRepository.remove(orderProduct);
@@ -175,7 +192,7 @@ export class OrderProductService {
   // }
 
   async validation(id: string, authToken: string): Promise<boolean> {
-    const orderProduct = await this.getOrderProduct(id, authToken) as any;
+    const orderProduct = (await this.getOrderProduct(id, authToken)) as any;
 
     return String(orderProduct.user.id) === String(orderProduct.inBasket.userId);
   }
@@ -187,7 +204,7 @@ export class OrderProductService {
       // user: await this.getUserById(orderProduct.userId, authToken) ?? orderProduct.userId,
       qty: orderProduct.qty,
       productPrice: orderProduct.productPrice,
-      inBasket: orderProduct.inBasket
-    }
+      inBasket: orderProduct.inBasket,
+    };
   }
 }
