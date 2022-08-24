@@ -5,4 +5,4 @@ export { Review, Comment, ReactionComment, ReactionReview } from './reviews/';
 export { Wishlist, WishlistProduct } from './wishlists';
 export { Slide, Advertisement } from './banners/';
 export { Basket, OrderProduct, Address, Checkout } from './orders';
-export { Brand, Category, Color, Product, Parameter, Tag, ParameterProducts } from './catalog';
+export { Brand, Category, Color, Product, Parameter, Tag, ParameterProducts, ProductVariant } from './catalog';

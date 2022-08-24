@@ -1,19 +1,18 @@
+import { IsNotEmpty } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
-  Entity, JoinColumn,
-  JoinTable,
+  Entity, JoinTable,
   ManyToMany,
   ManyToOne, OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
-import { Color } from './color.entity';
-import { Category } from './category.entity';
 import { Brand } from './brand.entity';
-import { IsNotEmpty, IsPositive, Min } from 'class-validator';
-import { Tag } from './tag.entity';
+import { Category } from './category.entity';
 import { ParameterProducts } from './parameterProducts.entity';
+import { ProductVariant } from './productVariant.entity';
+import { Tag } from './tag.entity';
 
 @Entity()
 export class Product {
@@ -24,20 +23,8 @@ export class Product {
   @Column()
   name: string;
 
-  @IsNotEmpty()
-  @Column()
-  @IsPositive()
-  price: number;
-
-  @Column({ nullable: true })
-  oldPrice?: number;
-
   @Column('text', { nullable: true })
   desc: string;
-
-  @IsNotEmpty()
-  @Column()
-  available: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -46,20 +33,8 @@ export class Product {
   updatedAt: Date;
 
   @IsNotEmpty()
-  @ManyToMany(
-    () => Color,
-    (color) => color.products,
-    { cascade: true, nullable: false },
-  )
-  @JoinTable()
-  colors: Color[];
-
-  @IsNotEmpty()
   @ManyToOne(() => Category, category => category.id, { nullable: false, cascade: true, onDelete: 'CASCADE' })
   category: Category;
-
-  @Column({ nullable: true })
-  images: string;
 
   @IsNotEmpty()
   @ManyToOne(() => Brand, brand => brand.id, { nullable: false, cascade: true, onDelete: 'CASCADE' })
@@ -78,35 +53,30 @@ export class Product {
   tags?: Tag[];
 
   @OneToMany(() => ParameterProducts, (parameterProducts) => parameterProducts.product)
-  parameterProducts: ParameterProducts[]
+  parameterProducts: ParameterProducts[];
+
+  @OneToMany(() => ProductVariant, productVariant => productVariant.product)
+  productVariants: ProductVariant[];
 
   constructor(args?: {
     name: string,
-    price: number,
     desc: string,
-    available: boolean,
-    colors: Color[],
-    oldPrice?: number,
     category: Category,
-    images: string,
     url: string,
     brand: Brand,
     tags?: Tag[],
     parameterProducts: ParameterProducts[],
+    productVariants: ProductVariant[],
   }) {
     if (args) {
       this.name = args.name;
-      this.price = args.price;
-      this.oldPrice = args.oldPrice;
       this.desc = args.desc;
-      this.available = args.available;
-      this.colors = args.colors;
       this.category = args.category;
-      this.images = args.images;
       this.url = args.url;
       this.brand = args.brand;
       this.tags = args.tags;
       this.parameterProducts = args.parameterProducts;
+      this.productVariants = args.productVariants;
     }
   }
 }

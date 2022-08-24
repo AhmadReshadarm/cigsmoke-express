@@ -29,7 +29,8 @@ export class ColorService {
 
     const queryBuilder = await this.colorRepository
       .createQueryBuilder('color')
-      .leftJoinAndSelect('color.products', 'product')
+      .leftJoinAndSelect('color.productVariants', 'productVariant')
+      .leftJoinAndSelect('productVariant.product', 'product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent');
 
