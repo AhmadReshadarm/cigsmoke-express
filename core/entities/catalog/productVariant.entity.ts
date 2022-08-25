@@ -1,9 +1,8 @@
 import { IsNotEmpty, IsPositive } from 'class-validator';
 import {
-  Column, Entity, JoinTable,
-  ManyToMany,
-  ManyToOne, PrimaryGeneratedColumn
+  Column, Entity, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
+import { OrderProduct } from '../orders';
 import { Color } from './color.entity';
 import { Product } from './product.entity';
 
@@ -50,6 +49,7 @@ export class ProductVariant {
     oldPrice?: number,
     images: string,
     product: Product,
+    orderProducts: OrderProduct[],
   }) {
     if (args) {
       this.product = args.product;

@@ -1,5 +1,5 @@
 import { CheckoutStatus } from '../core/enums/checkout-status.enum';
-import { Address, Basket, Checkout } from '../core/entities';
+import { Address, Basket, Checkout, Product, ProductVariant } from '../core/entities';
 import { Role } from '../core/enums/roles.enum';
 
 export interface UserDTO {
@@ -25,6 +25,16 @@ export interface OrderProductDTO {
   inBasket: Basket;
   qty: number;
   productPrice: number;
+  productVariantId: string;
+}
+
+export interface OrderProductResponse {
+  id: string;
+  product: Product | undefined;
+  inBasket: Basket;
+  qty: number;
+  productPrice: number;
+  productVariant: ProductVariant | undefined;
 }
 
 export interface OrderProductQueryDTO {
@@ -43,7 +53,7 @@ export interface OrderProductQueryDTO {
 export interface BasketDTO {
   id: string;
   userId: string | null;
-  orderProducts: OrderProductDTO[];
+  orderProducts: OrderProductResponse[];
   checkout: Checkout;
   totalAmount: number;
   createdAt: Date;

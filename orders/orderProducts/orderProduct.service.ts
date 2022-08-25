@@ -2,10 +2,10 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { OrderProduct } from '../../core/entities';
+import { OrderProduct, Product } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
-import { OrderProductDTO, OrderProductQueryDTO, ProductDTO, UserAuth, UserDTO } from '../order.dtos';
+import { OrderProductDTO, OrderProductQueryDTO, OrderProductResponse, ProductDTO, UserAuth, UserDTO } from '../order.dtos';
 import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
 import { v4 } from 'uuid';
@@ -22,7 +22,7 @@ export class OrderProductService {
   async getOrderProducts(
     queryParams: OrderProductQueryDTO,
     authToken: string,
-  ): Promise<PaginationDTO<OrderProductDTO>> {
+  ): Promise<PaginationDTO<OrderProductResponse>> {
     const {
       productId,
       userId,
@@ -84,7 +84,7 @@ export class OrderProductService {
   //   return orderProduct;
   // }
 
-  async getOrderProduct(id: string, authToken: string): Promise<OrderProductDTO> {
+  async getOrderProduct(id: string, authToken: string): Promise<OrderProductResponse> {
     const queryBuilder = await this.orderProductRepository
       .createQueryBuilder('orderProduct')
       .leftJoinAndSelect('orderProduct.inBasket', 'basket')
@@ -114,7 +114,7 @@ export class OrderProductService {
     }
   }
 
-  async getProductById(id: string): Promise<ProductDTO | undefined> {
+  async getProductById(id: string): Promise<Product | undefined> {
     try {
       const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
 
@@ -140,8 +140,9 @@ export class OrderProductService {
     // , authToken: string
   ): Promise<OrderProduct> {
     const product = await this.getProductById(newOrderProduct.productId);
+    const productVariant = product?.productVariants.find(variant => variant.id === newOrderProduct.productVariantId);
 
-    newOrderProduct.productPrice = product!.price;
+    newOrderProduct.productPrice = productVariant?.price ?? 0;
     newOrderProduct.id = v4();
 
     const orderProduct = await this.orderProductRepository.save(newOrderProduct);
@@ -197,10 +198,14 @@ export class OrderProductService {
     return String(orderProduct.user.id) === String(orderProduct.inBasket.userId);
   }
 
-  async mergeOrderProduct(orderProduct: OrderProduct): Promise<OrderProductDTO> {
+  async mergeOrderProduct(orderProduct: OrderProduct): Promise<OrderProductResponse> {
+    const product = await this.getProductById(orderProduct.productId);
+    const productVariant = product?.productVariants.find(variant => variant.id.toString() === orderProduct.productVariantId.toString());
+
     return {
       id: orderProduct.id,
-      product: await this.getProductById(orderProduct.productId),
+      product: product,
+      productVariant: productVariant,
       // user: await this.getUserById(orderProduct.userId, authToken) ?? orderProduct.userId,
       qty: orderProduct.qty,
       productPrice: orderProduct.productPrice,
