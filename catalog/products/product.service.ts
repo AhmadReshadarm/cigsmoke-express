@@ -247,7 +247,7 @@ export class ProductService {
         });
 
         if (!variant) {
-          const orderProductData = new ProductVariant({ ...variantDTO });
+          const orderProductData = new ProductVariant({ ...variantDTO as any });
           const newVariant = await this.createProductVariant(orderProductData, product);
           variants.push(newVariant);
         }
