@@ -5314,6 +5314,10 @@
           "type": "object",
           "$ref": "#/definitions/Product"
         },
+        "productVariant": {
+          "type": "object",
+          "$ref": "#/definitions/ProductVariant"
+        },
         "qty": {
           "type": "integer",
           "minimum": 1
@@ -5333,7 +5337,7 @@
         "rows": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/OrderProduct"
+            "$ref": "#/definitions/OrderProductWithJoins"
           }
         },
         "length": {
@@ -5353,6 +5357,37 @@
         "qty": {
           "type": "integer",
           "minimum": 1
+        },
+        "productVariantId": {
+          "type": "string"
+        }
+      }
+    },
+    "OrderProductWithJoins": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "product": {
+          "type": "object",
+          "$ref": "#/definitions/Product"
+        },
+        "productVariant": {
+          "type": "object",
+          "$ref": "#/definitions/ProductVariant"
+        },
+        "qty": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "productPrice": {
+          "type": "integer",
+          "readOnly": true
+        },
+        "inBasket": {
+          "type": "object",
+          "$ref": "#/definitions/Basket"
         }
       }
     },

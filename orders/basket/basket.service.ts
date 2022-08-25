@@ -129,7 +129,7 @@ export class BasketService {
     )
     const orderProducts = await Promise.all(promises);
 
-    for (const { productId, qty } of basketDTO.orderProducts) {
+    for (const { productId, qty, productVariantId } of basketDTO.orderProducts) {
       const orderProduct = await this.orderProductRepository.findOne({
         where: {
           productId: Equal(productId),
@@ -138,7 +138,7 @@ export class BasketService {
       });
 
       if (!orderProduct) {
-        const orderProductData = new OrderProduct({ productId, qty, inBasket: basket });
+        const orderProductData = new OrderProduct({ productId, qty, inBasket: basket, productVariantId });
         const newOrderProduct = await this.orderProductService.createOrderProduct(orderProductData);
         orderProducts.push(await this.orderProductService.mergeOrderProduct(newOrderProduct));
       }
