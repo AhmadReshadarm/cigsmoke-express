@@ -39,6 +39,20 @@ export class UserController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
+
+  @Get(':id')
+  @Middleware([verifyToken, isUser])
+  async getUserById(req: Request, resp: Response) {
+    const { id } = req.params;
+    try {
+      const user = await this.userService.getUser(id);
+
+      return resp.json(user);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+
   // verifyUserId
   @Get('user')
   @Middleware([verifyToken, isUser])
