@@ -60,7 +60,7 @@ export class UserController {
 
     try {
       const token = emailToken({ id: jwt.id, email: jwt.email });
-      sendMail(token, jwt.email);
+      sendMail(token, jwt);
       resp.status(HttpStatus.OK).json({ message: 'token sent successfully' });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
