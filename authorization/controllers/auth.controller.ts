@@ -8,9 +8,9 @@ import { HttpStatus } from '../../core/lib/http-status';
 import { Role } from '../../core/enums/roles.enum';
 import { validation } from '../../core/lib/validator';
 import { accessToken } from '../functions/access.token';
+import { refreshToken } from '../functions/refresh.token';
 import { emailToken } from '../functions/email.token';
 import { changePasswordLimiter, resetPasswordLimiter, sendTokenLimiter } from '../functions/rate.limit';
-import { refreshToken } from '../functions/refresh.token';
 import { sendMail, sendMailResetPsw } from '../functions/send.mail';
 import { UserService } from '../services/user.service';
 
@@ -86,11 +86,15 @@ export class AuthController {
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
       const { password, ...others } = created;
-      const token = emailToken({ id: created.id, email: created.email });
+      const tokenEmail = emailToken({ id: created.id, email: created.email });
+      const accessTokenCreated = accessToken({ ...created, password: undefined });
+      const refreshTokenCreated = refreshToken({ ...created, password: undefined });
 
-      sendMail(token, created.email);
+      sendMail(tokenEmail, created);
 
-      resp.status(HttpStatus.CREATED).json({ ...others, token });
+      resp
+        .status(HttpStatus.CREATED)
+        .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -167,7 +171,7 @@ export class AuthController {
       }
 
       const emailTokenCreated = emailToken({ id: user.id, email: user.email });
-      sendMailResetPsw(emailTokenCreated, email);
+      sendMailResetPsw(emailTokenCreated, user);
 
       resp.status(HttpStatus.OK).json({ message: `We sent you an email to ${email}` });
     } catch (error) {

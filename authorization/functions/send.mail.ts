@@ -1,36 +1,66 @@
 import nodemailer from 'nodemailer';
-
-const baseUrl = 'http://localhost:3000'; //TODO change base to the website domain
-const sendMail = (token: any, email: string) => {
+import { signupEmailTemplate, resetPswEmailTemplate } from './email.template';
+const baseUrl = 'http://localhost:3000';
+const sendMail = (token: any, user: any) => {
   let transporter = nodemailer.createTransport({
-    service: 'gmail', // TODO use smtp server
+    host: 'smtp.beget.com',
+    port: 465,
+    secure: true,
     auth: {
-      user: 'armreshad@gmail.com',
-      pass: 'nosfoqwaokdxgqtq',
+      user: 'info@wuluxe.ru',
+      pass: process.env.EMAIL_SERVICE_SECRET_KEY,
+    },
+    tls: {
+      // do not fail on invalid certs
+      rejectUnauthorized: false,
     },
   });
   const url = `${baseUrl}/profile/verify/${token}`;
-  transporter.sendMail({
-    to: email,
-    subject: 'cigsmoke confirmation mail',
-    html: `Please click this email to confirm your email: <a href="${url}">${url}</a>`, // TODO make the email
-  });
+  transporter.sendMail(
+    {
+      to: user.email,
+      from: 'info@wuluxe.ru',
+      subject: `Подтверждать ${user.email}`,
+      html: signupEmailTemplate(user.firstName, user.email, url),
+    },
+    (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log('Message sent: %s', info.messageId);
+    },
+  );
 };
 
-const sendMailResetPsw = (token: any, email: string) => {
+const sendMailResetPsw = (token: any, user: any) => {
   let transporter = nodemailer.createTransport({
-    service: 'gmail', // TODO use smtp server
+    host: 'smtp.beget.com',
+    port: 465,
+    secure: true,
     auth: {
-      user: 'armreshad@gmail.com',
-      pass: 'nosfoqwaokdxgqtq',
+      user: 'info@wuluxe.ru',
+      pass: process.env.EMAIL_SERVICE_SECRET_KEY,
+    },
+    tls: {
+      // do not fail on invalid certs
+      rejectUnauthorized: false,
     },
   });
   const url = `${baseUrl}/profile/pswreset/confirmpsw/${token}`;
-  transporter.sendMail({
-    to: email,
-    subject: 'cigsmoke reset your password',
-    html: `Please click this email reset your password: <a href="${url}">${url}</a>`, // TODO make the email
-  });
+  transporter.sendMail(
+    {
+      to: user.email,
+      from: 'info@wuluxe.ru',
+      subject: `Сбросить пароль для ${user.email}`,
+      html: resetPswEmailTemplate(user.firstName, user.email, url),
+    },
+    (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log('Message sent: %s', info.messageId);
+    },
+  );
 };
 
 export { sendMail, sendMailResetPsw };
