@@ -62,10 +62,9 @@ export class ForyouController {
       resp.status(HttpStatus.NO_CONTENT).json({ message: 'No content' });
       return;
     }
+    const randomProduct = history[Math.floor(Math.random() * history.length - 1)];
     try {
-      const query: any = `brands=${history[Math.floor(Math.random() * history.length - 1)].brand}&categories=${
-        history[Math.floor(Math.random() * history.length - 1)].category
-      }`;
+      const query: any = `brands=${randomProduct.brand}&categories=${randomProduct.category}`;
       const products = await this.productService.getProducts(query);
       resp.status(HttpStatus.OK).json(products);
     } catch (error) {
@@ -79,36 +78,24 @@ export class ForyouController {
   async getForyouByUserId(req: Request, resp: Response) {
     const { jwt } = resp.locals;
     try {
-      const histroy = await this.foryouService.getForyou(jwt.id);
+      const history: any = await this.foryouService.getForyou(jwt.id);
+      if (!history) {
+        resp.status(HttpStatus.NOT_FOUND).json({ message: 'history is empty' });
+      }
       const historyBasedProduct: any = [];
-      histroy?.productIds.map(async (id: any, index: number) => {
-        if (index > 3) return;
-        historyBasedProduct.push(await this.productService.getProduct(id));
-        // hint: on frontend add most recent viewed product at the start of array
-        // arr = ['1','2','6'];
-        // arr = ['34', ...arr];
-      });
-      const query: any = `brands=${
-        historyBasedProduct[Math.floor(Math.random() * historyBasedProduct.length - 1)].brand
-      }&categories=${historyBasedProduct[Math.floor(Math.random() * historyBasedProduct.length - 1)].category}`;
+      if (history?.productIds.length > 3) {
+        history?.productIds.map(async (id: any, index: number) => {
+          if (index > 3) return;
+          historyBasedProduct.push(await this.productService.getProduct(id));
+          // hint: on frontend add most recent viewed product at the start of array
+          // arr = ['1','2','6'];
+          // arr = ['34', ...arr];
+        });
+      }
+      const randomProduct = history?.productIds[Math.floor(Math.random() * history?.productIds.length - 1)];
+      const query: any = `brands=${randomProduct.brand}&categories=${randomProduct.category}`;
       const products = await this.productService.getProducts(query);
       resp.status(HttpStatus.OK).json(historyBasedProduct.concat(products));
-    } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
-    }
-  }
-
-  @Get('history-check')
-  @Middleware([verifyToken, isUser])
-  async getHasHistory(req: Request, resp: Response) {
-    const { jwt } = resp.locals;
-    try {
-      const histroy = await this.foryouService.getForyou(jwt.id);
-      if (!histroy) {
-        resp.status(HttpStatus.NOT_FOUND).json({ message: 'no history' });
-        return;
-      }
-      resp.status(HttpStatus.OK).json({ message: 'has history' });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
