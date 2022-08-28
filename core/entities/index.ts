@@ -3,6 +3,6 @@ export { Image } from './images/image.entity';
 export { Subscribe, Mailing } from './mailer/';
 export { Review, Comment, ReactionComment, ReactionReview } from './reviews/';
 export { Wishlist, WishlistProduct } from './wishlists';
-export { Slide, Advertisement } from './banners/';
+export { Slide, Advertisement } from './banners';
 export { Basket, OrderProduct, Address, Checkout } from './orders';
 export { Brand, Category, Color, Product, Parameter, Tag, ParameterProducts, Foryou, ProductVariant } from './catalog';
