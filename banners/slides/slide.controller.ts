@@ -8,7 +8,7 @@ import { isAdmin, verifyToken } from '../../core/middlewares';
 @singleton()
 @Controller('/slides')
 export class SlideController {
-  constructor(private slideService: SlideService) { }
+  constructor(private slideService: SlideService) {}
 
   @Get()
   async getSlides(req: Request, resp: Response) {
@@ -25,13 +25,13 @@ export class SlideController {
     resp.json(slide);
   }
 
-  // @Post('')
-  // @Middleware([verifyToken, isAdmin])
-  // async createSlide(req: Request, resp: Response) {
-  //   const created = await this.slideService.createSlide(req.body);
+  @Post('')
+  @Middleware([verifyToken, isAdmin])
+  async createSlide(req: Request, resp: Response) {
+    const created = await this.slideService.createSlide(req.body);
 
-  //   resp.status(HttpStatus.CREATED).json({ id: created.id });
-  // }
+    resp.status(HttpStatus.CREATED).json({ id: created.id });
+  }
 
   @Put()
   @Middleware([verifyToken, isAdmin])
@@ -41,12 +41,12 @@ export class SlideController {
     resp.status(HttpStatus.CREATED).json({ slides });
   }
 
-  // @Delete(':id')
-  // @Middleware([verifyToken, isAdmin])
-  // async removeSlide(req: Request, resp: Response) {
-  //   const { id } = req.params;
-  //   const removed = await this.slideService.removeSlide(id);
+  @Delete(':id')
+  @Middleware([verifyToken, isAdmin])
+  async removeSlide(req: Request, resp: Response) {
+    const { id } = req.params;
+    const removed = await this.slideService.removeSlide(id);
 
-  //   resp.status(HttpStatus.OK).json(removed);
-  // }
+    resp.status(HttpStatus.OK).json(removed);
+  }
 }

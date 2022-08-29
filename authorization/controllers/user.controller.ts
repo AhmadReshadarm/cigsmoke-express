@@ -46,8 +46,8 @@ export class UserController {
     const { id } = req.params;
     try {
       const user = await this.userService.getUser(id);
-
-      return resp.json(user);
+      const { password, ...others } = user;
+      return resp.json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -58,6 +58,7 @@ export class UserController {
   @Middleware([verifyToken, isUser])
   async getUser(req: Request, resp: Response) {
     const { jwt } = resp.locals;
+
     try {
       const user = await this.userService.getUser(jwt.id);
       const { password, ...other } = user;
