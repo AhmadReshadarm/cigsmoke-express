@@ -10,6 +10,7 @@ import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
 import { PaginationDTO } from '../../core/lib/dto';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
+import { CommentService } from '../comment/comment.service';
 
 
 @singleton()
@@ -17,7 +18,7 @@ export class ReviewService {
   private reviewRepository: Repository<Review>;
   private reactionRepository: Repository<ReactionReview>;
 
-  constructor(dataSource: DataSource) {
+  constructor(dataSource: DataSource, private commentService: CommentService) {
     this.reviewRepository = dataSource.getRepository(Review);
     this.reactionRepository = dataSource.getRepository(ReactionReview);
   }
@@ -37,7 +38,8 @@ export class ReviewService {
     const queryBuilder = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.comments', 'comments')
-      .leftJoinAndSelect('review.reactions', 'reactions');
+      .leftJoinAndSelect('review.reactions', 'reactions')
+      .leftJoinAndSelect('comments.reactions', 'commentReactions');
 
 
     if (productId) { queryBuilder.andWhere('review.productId = :productId', { productId: productId }); }
@@ -49,8 +51,31 @@ export class ReviewService {
       .skip(offset)
       .take(limit)
 
-    return  {
-      rows: merge === 'true' ? await this.mergeReviews(queryBuilder) : await queryBuilder.getMany(),
+
+
+    if (merge === 'true') {
+      return {
+        rows: await this.mergeReviews(queryBuilder),
+        length: await queryBuilder.getCount(),
+      }
+    }
+
+    const reviews = await queryBuilder.getMany();
+
+    for (const review of reviews) {
+      const comments = [];
+      for (const comment of review.comments) {
+        const user = await this.getUserById(comment.userId, '');
+        comments.push({
+          ...comment,
+          user,
+        });
+      }
+      review.comments = comments;
+    }
+
+    return {
+      rows: reviews,
       length: await queryBuilder.getCount(),
     }
   }
@@ -112,14 +137,17 @@ export class ReviewService {
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
-  async createReview(newReview: Review): Promise<Review> {
+  async createReview(newReview: Review, authToken: string): Promise<ReviewDTO> {
     if (!await this.getProductById(newReview.productId)) {
       throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
-    newReview.id = await this.getNewReviewId()
+    newReview.id = await this.getNewReviewId();
 
-    return this.reviewRepository.save(newReview);
+    const created = await this.reviewRepository.save(newReview);
+    const fullReview = await this.getReview(created.id, authToken);
+
+    return fullReview;
   }
 
   async createReaction(reaction: CreateReactionDTO): Promise<ReactionReview> {
@@ -179,7 +207,10 @@ export class ReviewService {
 
     await this.isUserReactionOwner(reaction, user);
 
-    return this.reactionRepository.remove(reaction);
+    this.reactionRepository.remove(reaction);
+    return {
+      ...reaction
+    }
   }
 
   isUserReviewOwner(review: Review, user: UserAuth) {
@@ -212,7 +243,8 @@ export class ReviewService {
       product: await this.getProductById(review.productId) ?? review.productId,
       user: await this.getUserById(review.userId, authToken) ?? review.userId,
       comments: review.comments,
-      reactions: review.reactions
+      reactions: review.reactions,
+      images: review.images,
     }
   }
 }

@@ -12,7 +12,7 @@ import { CreateReactionDTO } from '../reviews.dtos';
 @singleton()
 @Controller('/reviews')
 export class ReviewController {
-  constructor(private reviewService: ReviewService) {}
+  constructor(private reviewService: ReviewService) { }
 
   @Get()
   async getReviews(req: Request, resp: Response) {
@@ -41,9 +41,9 @@ export class ReviewController {
     }
 
     await validation(newReview);
-    const created = await this.reviewService.createReview(newReview);
+    const created = await this.reviewService.createReview(newReview, req.headers.authorization!);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Post('reaction')
@@ -57,7 +57,7 @@ export class ReviewController {
 
     const created = await this.reviewService.createReaction(reaction);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Put(':id')

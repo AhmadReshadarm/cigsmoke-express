@@ -10,7 +10,7 @@ import { validation } from '../../core/lib/validator';
 @singleton()
 @Controller('/comments')
 export class CommentController {
-  constructor(private commentService: CommentService) {}
+  constructor(private commentService: CommentService) { }
 
   @Get()
   async getComments(req: Request, resp: Response) {
@@ -34,7 +34,7 @@ export class CommentController {
     req.body.userId = resp.locals.user.id;
     const created = await this.commentService.createComment(req.body);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Post('reaction')
@@ -48,7 +48,7 @@ export class CommentController {
 
     const created = await this.commentService.createReaction(reaction);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Put(':id')
@@ -79,6 +79,8 @@ export class CommentController {
   async removeReaction(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.commentService.removeReaction(id, resp.locals.user);
+
+    console.log(removed);
 
     resp.status(HttpStatus.OK).json(removed);
   }

@@ -29,7 +29,8 @@ export interface ReviewDTO {
   product: ProductDTO | string,
   user: UserDTO | string,
   comments: Comment[],
-  reactions: ReactionReview[]
+  reactions: ReactionReview[],
+  images: string
 }
 
 export interface ReviewQueryDTO {

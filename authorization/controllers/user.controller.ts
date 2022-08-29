@@ -16,7 +16,7 @@ import { changePasswordLimiter } from '../functions/rate.limit';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -41,7 +41,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @Middleware([verifyToken, isUser])
+  // @Middleware([verifyToken, isUser])
   async getUserById(req: Request, resp: Response) {
     const { id } = req.params;
     try {
