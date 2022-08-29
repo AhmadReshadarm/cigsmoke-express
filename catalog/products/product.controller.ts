@@ -41,7 +41,6 @@ export class ProductController {
 
   @Get('productsUnderOneThousand')
   async getProductsUnderOneThousand(req: Request, resp: Response) {
-    console.log('asdas');
     const products = await this.productService.getProducts({ tags: ['UnderOneThousand'] });
 
     resp.json(products);
@@ -60,7 +59,6 @@ export class ProductController {
   async createProduct(req: Request, resp: Response) {
     const { tags } = req.body;
     const newProduct = await validation(new Product(req.body));
-
 
     tags ? newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag))) : null;
     const created = await this.productService.createProduct(newProduct);

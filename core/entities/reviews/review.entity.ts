@@ -21,6 +21,9 @@ export class Review {
   @Column({ default: false })
   showOnMain: boolean;
 
+  @Column({ default: '' })
+  images: string;
+
   @IsNotEmpty()
   @PrimaryColumn()
   productId: string;
@@ -30,24 +33,25 @@ export class Review {
   userId: string;
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
   @OneToMany(() => Comment, (comment) => comment.review)
-  comments: Comment[]
+  comments: Comment[];
 
   @OneToMany(() => ReactionReview, (reaction) => reaction.review)
-  reactions: ReactionReview[]
+  reactions: ReactionReview[];
 
-  constructor(args?: { rating: number, text: string, showOnMain: boolean, productId: string, comments: Comment[] }) {
+  constructor(args?: { rating: number, text: string, showOnMain: boolean, productId: string, comments: Comment[], images: string }) {
     if (args) {
       this.rating = args.rating;
       this.text = args.text;
       this.showOnMain = args.showOnMain;
       this.productId = args.productId;
       this.comments = args.comments;
+      this.images = args.images;
     }
   }
 }

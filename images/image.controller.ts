@@ -6,7 +6,7 @@ import { ImageDto } from './image.dto';
 import { DESTINATION } from './config';
 import { Controller, Get, Middleware, Post } from '../core/decorators';
 import { createDestination } from './middlewares/create.destination';
-import { isAdmin, verifyToken } from '../core/middlewares';
+import { isAdmin, isUser, verifyToken } from '../core/middlewares';
 
 
 @singleton()
@@ -22,7 +22,7 @@ export class ImageController {
   }
 
   @Post()
-  @Middleware([verifyToken, isAdmin, createDestination, multer.array('files')])
+  @Middleware([verifyToken, isUser, createDestination, multer.array('files')])
   async uploadImages(req: Request, resp: Response) {
     const files: ImageDto[] = (req as any).files ?? [];
     await this.imageService.uploadImages(files);

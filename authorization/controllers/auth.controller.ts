@@ -149,7 +149,14 @@ export class AuthController {
           return;
         }
 
-        const accessTokenCreated = accessToken({ id: user.id, email: user.email });
+        const accessTokenCreated = accessToken({
+          isVerified: user.isVerified,
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+        });
 
         resp.status(HttpStatus.CREATED).json({ accessToken: accessTokenCreated });
       });

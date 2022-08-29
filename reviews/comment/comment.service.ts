@@ -48,7 +48,7 @@ export class CommentService {
     const result = comments.map(async (comment) => await this.mergeCommentUserId(comment, ''))
 
 
-    return  {
+    return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
     }
@@ -99,8 +99,8 @@ export class CommentService {
   }
 
   async createComment(commentDTO: CreateCommentDTO): Promise<Comment> {
-    await this.validation(commentDTO)
-    const review = await this.getReview(commentDTO.reviewId)
+    await this.validation(commentDTO);
+    const review = await this.getReview(commentDTO.reviewId);
 
     const newComment = new Comment({
       userId: commentDTO.userId,
@@ -136,24 +136,39 @@ export class CommentService {
     const comment = await this.commentRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
+      relations: ['review']
     });
 
-    await this.isUserCommentOwner(comment, user)
+    await this.isUserCommentOwner(comment, user);
+    await this.commentRepository.remove(comment);
 
-    return this.commentRepository.remove(comment);
+    return {
+      ...comment,
+      id,
+    };
   }
 
   async removeReaction(id: string, user: UserAuth) {
     const reaction = await this.reactionRepository.findOneOrFail({
       where: {
         id: Equal(id)
-      }
-    })
+      },
+      relations: ['commentId']
+    });
+
+    console.log(reaction);
 
     await this.isUserReactionOwner(reaction, user);
+    await this.reactionRepository.remove({
+      ...reaction,
+      commentId: (reaction.commentId as any).id,
+    });
 
-    return this.reactionRepository.remove(reaction);
+    return {
+      ...reaction,
+      commentId: (reaction.commentId as any).id,
+    };
   }
 
   isUserCommentOwner(comment: Comment, user: UserAuth) {

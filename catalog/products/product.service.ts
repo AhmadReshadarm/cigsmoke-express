@@ -2,7 +2,7 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { ParameterProducts, Product, ProductVariant, Review } from '../../core/entities';
+import { ParameterProducts, Product, ProductVariant, Review, User } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
 import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
@@ -142,13 +142,6 @@ export class ProductService {
       return await this.parameterProductsRepository.save(parameter);
     });
   }
-
-  // async createProductVariant(variants: ProductVariant[], product: Product) {
-  //   variants.map(async variant => {
-  //     variant.product = product;
-  //     return await this.productVariantRepository.save(variant);
-  //   });
-  // }
 
   async createProductVariant(variant: ProductVariant, product: Product) {
     variant.product = product;
@@ -318,13 +311,55 @@ export class ProductService {
   }
 
   async mergeProduct(product: Product): Promise<any> {
-    const reviews = await this.getReviewsByProductId(product.id);
-    const rating = reviews ? await this.getProductRatingFromReviews(reviews) : null;
+    const rawReviews = await this.getReviewsByProductId(product.id) as any;
+    const rating = rawReviews ? await this.getProductRatingFromReviews(rawReviews) : null;
+    const reviews = [];
+
+    const users = {} as any;
+    if (Array.isArray(rawReviews?.rows)) {
+      for (const review of rawReviews?.rows) {
+        if (!users[review.userId]) {
+          users[review.userId] = await this.getUserById(review.userId);
+        }
+
+        const comments = [];
+
+        for (const comment of review.comments) {
+          if (!users[comment.userId]) {
+            users[comment.userId] = await this.getUserById(comment.userId);
+          }
+
+          comments.push({
+            ...comment,
+            user: users[review.userId],
+          });
+        }
+
+        reviews.push({
+          ...review,
+          user: users[review.userId],
+          comments: comments,
+        });
+      }
+    }
 
     return {
       ...product,
       rating: rating,
-      reviews: reviews?.rows ?? null,
+      reviews: reviews,
     };
+  }
+
+
+  async getUserById(id: string): Promise<User | undefined> {
+    try {
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+
+      return res.data
+    } catch (e: any) {
+      if (e.name === 'AxiosError' && e.response.status === 403) {
+        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+      }
+    }
   }
 }

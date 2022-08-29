@@ -22,7 +22,7 @@ export class ReactionComment {
   @PrimaryColumn()
   commentId: string
 
-  @Column({type: 'enum', enum: Reaction })
+  @Column({ type: 'enum', enum: Reaction })
   reaction: Reaction
 
   constructor(args?: { userId: string, commentId: string, reaction: Reaction }) {
