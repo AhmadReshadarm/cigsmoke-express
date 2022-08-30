@@ -98,7 +98,7 @@ export class CommentService {
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
-  async createComment(commentDTO: CreateCommentDTO): Promise<Comment> {
+  async createComment(commentDTO: CreateCommentDTO): Promise<CommentDTO> {
     await this.validation(commentDTO);
     const review = await this.getReview(commentDTO.reviewId);
 
@@ -108,7 +108,8 @@ export class CommentService {
       text: commentDTO.text
     })
 
-    return this.commentRepository.save(newComment);
+    const created = await this.commentRepository.save(newComment);
+    return this.mergeCommentUserId(created, '');
   }
 
   async createReaction(reaction: ReactionComment): Promise<ReactionComment> {
@@ -197,7 +198,7 @@ export class CommentService {
       text: comment.text,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      reactions: comment.reactions
+      reactions: comment.reactions ?? []
     }
   }
 }
