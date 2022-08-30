@@ -8,4 +8,5 @@ export enum ErrorCode {
   DYNAMIC_EMPTY_QUERY = 'Query params "from", "to" and "step" should not be empty',
   MAIL_OPTIONS = 'Properties "to", "subject", "html" must be provided',
   VALIDATION_COMMENTS = 'Properties "text" and "reviewId" must be provided',
+  VALIDATION_QUESTION_COMMENTS = 'Properties "text" and " questionId" must be provided',
 }
