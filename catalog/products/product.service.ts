@@ -331,7 +331,7 @@ export class ProductService {
 
           comments.push({
             ...comment,
-            user: users[review.userId],
+            user: users[comment.userId],
           });
         }
 

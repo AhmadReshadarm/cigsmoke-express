@@ -10,7 +10,6 @@ import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
 import { PaginationDTO } from '../../core/lib/dto';
 import { SelectQueryBuilder } from 'typeorm/query-builder/SelectQueryBuilder';
-import { CommentService } from '../comment/comment.service';
 
 
 @singleton()
@@ -18,7 +17,7 @@ export class ReviewService {
   private reviewRepository: Repository<Review>;
   private reactionRepository: Repository<ReactionReview>;
 
-  constructor(dataSource: DataSource, private commentService: CommentService) {
+  constructor(dataSource: DataSource) {
     this.reviewRepository = dataSource.getRepository(Review);
     this.reactionRepository = dataSource.getRepository(ReactionReview);
   }
@@ -51,31 +50,8 @@ export class ReviewService {
       .skip(offset)
       .take(limit)
 
-
-
-    if (merge === 'true') {
-      return {
-        rows: await this.mergeReviews(queryBuilder),
-        length: await queryBuilder.getCount(),
-      }
-    }
-
-    const reviews = await queryBuilder.getMany();
-
-    for (const review of reviews) {
-      const comments = [];
-      for (const comment of review.comments) {
-        const user = await this.getUserById(comment.userId, '');
-        comments.push({
-          ...comment,
-          user,
-        });
-      }
-      review.comments = comments;
-    }
-
     return {
-      rows: reviews,
+      rows: merge === 'true' ? await this.mergeReviews(queryBuilder) : await queryBuilder.getMany(),
       length: await queryBuilder.getCount(),
     }
   }
