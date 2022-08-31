@@ -51,7 +51,7 @@ export class UserController {
     const { id } = req.params;
     try {
       const user = await this.userService.getUser(id);
-      const { password, ...others } = user;
+      const { password, email, ...others } = user;
       return resp.json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });

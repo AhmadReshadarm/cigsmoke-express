@@ -23,18 +23,18 @@ export class CommentService {
   }
 
   async getComments(queryParams: CommentQueryDTO): Promise<PaginationDTO<CommentDTO>> {
-    const { questionId, orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const { userId, orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.question', 'question')
       .leftJoinAndSelect('comment.reactions', 'reactions');
 
-    if (questionId) {
-      queryBuilder.andWhere('comment.questionId = :questionId', { questionId: questionId });
+    if (userId) {
+      queryBuilder.andWhere('comment.userId = :userId', { userId: userId });
     }
 
-    queryBuilder.orderBy(`comment.questionId`, orderBy).skip(offset).take(limit);
+    queryBuilder.orderBy(`comment.userId`, orderBy).skip(offset).take(limit);
 
     const comments = await queryBuilder.getMany();
     const result = comments.map(async comment => await this.mergeCommentUserId(comment));
@@ -187,9 +187,9 @@ export class CommentService {
   async mergeCommentUserId(comment: QuestionComment): Promise<CommentDTO> {
     const user = await this.getUserById(comment.userId);
     const userInDB = {
-      id: user?.id,
       firstName: user?.firstName,
       lastName: user?.lastName,
+      role: user?.role,
     };
     return {
       id: comment.id,

@@ -108,17 +108,17 @@ export class QuestionService {
     }
   }
 
-  // async getProductById(id: string): Promise<ProductDTO | undefined> {
-  //   try {
-  //     const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
+  async getProductById(id: string): Promise<ProductDTO | undefined> {
+    try {
+      const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
 
-  //     return res.data;
-  //   } catch (e: any) {
-  //     if (e.name !== 'AxiosError') {
-  //       throw new Error(e);
-  //     }
-  //   }
-  // }
+      return res.data;
+    } catch (e: any) {
+      if (e.name !== 'AxiosError') {
+        throw new Error(e);
+      }
+    }
+  }
 
   async getNewQuestionId(): Promise<string> {
     const lastElement = await this.questionRepository.find({
@@ -138,10 +138,10 @@ export class QuestionService {
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
-  async createQuestion(newQuestion: Question, authToken: string): Promise<QuestionDTO> {
-    // if (!(await this.getProductById(newQuestion.productId))) {
-    //   throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
-    // }
+  async createQuestion(newQuestion: Question): Promise<QuestionDTO> {
+    if (!(await this.getProductById(newQuestion.productId))) {
+      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
 
     newQuestion.id = await this.getNewQuestionId();
 
@@ -239,16 +239,16 @@ export class QuestionService {
       firstName: user?.firstName,
       lastName: user?.lastName,
     };
+
     return {
       id: question.id,
       text: question.text,
       createdAt: question.createdAt,
       updatedAt: question.updatedAt,
-      product: question.productId,
-      user: userInDB, //?? question.userId,
+      product: (await this.getProductById(question.productId)) ?? question.productId,
+      user: userInDB,
       comments: question.comments,
       reactions: question.reactions,
     };
   }
 }
-//  (await this.getProductById(question.productId)) ??

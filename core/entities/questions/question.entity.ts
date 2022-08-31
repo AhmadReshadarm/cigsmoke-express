@@ -1,11 +1,19 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+  UpdateDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 import { QuestionComment } from './question.comment.entity';
 import { ReactionQuestion } from './reactionQesstion.entity';
 
 @Entity()
 export class Question {
-  @Column({ unique: true })
+  @PrimaryGeneratedColumn()
   id: string;
 
   @IsNotEmpty()

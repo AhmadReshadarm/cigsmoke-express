@@ -7,6 +7,7 @@ export interface UserDTO {
   id: string;
   firstName: string;
   lastName: string;
+  role: Role;
 }
 
 export interface ProductDTO {
@@ -42,7 +43,7 @@ export interface QuestionQueryDTO {
 
 export interface CommentQueryDTO {
   id?: string;
-  questionId?: string;
+  userId?: string;
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
   offset?: number;

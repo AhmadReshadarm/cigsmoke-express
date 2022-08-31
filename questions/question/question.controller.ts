@@ -35,7 +35,7 @@ export class QuestionController {
     newQuestion.userId = resp.locals.user.id;
 
     await validation(newQuestion);
-    const created = await this.questionService.createQuestion(newQuestion, req.headers.authorization!);
+    const created = await this.questionService.createQuestion(newQuestion);
 
     resp.status(HttpStatus.CREATED).json(created);
   }
