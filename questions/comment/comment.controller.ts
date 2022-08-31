@@ -6,6 +6,7 @@ import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decor
 import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
 import { QuestionReactionComment } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
+import { Role } from 'core/enums/roles.enum';
 
 @singleton()
 @Controller('/comments')
@@ -35,6 +36,15 @@ export class CommentController {
 
     resp.status(HttpStatus.CREATED).json(created);
   }
+
+  // @Post('admin-reply')
+  // @Middleware([verifyToken, isAdmin])
+  // async createCommentAdmin(req: Request, resp: Response) {
+  //   req.body.userId = resp.locals.user.id;
+  //   req.body.role = Role.Admin;
+  //   const created = await this.commentService.createComment(req.body);
+  //   resp.status(HttpStatus.CREATED).json(created);
+  // }
 
   @Post('reaction')
   @Middleware([verifyToken, isUser])

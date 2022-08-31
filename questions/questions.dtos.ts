@@ -7,7 +7,6 @@ export interface UserDTO {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
 }
 
 export interface ProductDTO {
@@ -25,7 +24,7 @@ export interface QuestionDTO {
   createdAt: Date;
   updatedAt: Date;
   product: ProductDTO | string;
-  user: UserDTO | string;
+  user: any;
   comments: QuestionComment[];
   reactions: ReactionQuestion[];
 }
@@ -43,7 +42,7 @@ export interface QuestionQueryDTO {
 
 export interface CommentQueryDTO {
   id?: string;
-  userId?: string;
+  questionId?: string;
   orderBy?: 'DESC' | 'ASC';
   limit?: number;
   offset?: number;
@@ -51,7 +50,7 @@ export interface CommentQueryDTO {
 
 export interface CommentDTO {
   id: string;
-  user: UserDTO | string;
+  user: any;
   question: Question;
   text: String;
   createdAt: Date;

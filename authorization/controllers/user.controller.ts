@@ -41,8 +41,13 @@ export class UserController {
   }
 
   @Get('user/:id')
-  // @Middleware([verifyToken, isUser])
   async getUserById(req: Request, resp: Response) {
+    const { secretKey } = req.body;
+
+    if (secretKey !== process.env.INNER_AUTH_CALL_SECRET_KEY) {
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'not authorized' });
+      return;
+    }
     const { id } = req.params;
     try {
       const user = await this.userService.getUser(id);

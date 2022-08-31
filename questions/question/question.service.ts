@@ -60,7 +60,7 @@ export class QuestionService {
     for (const question of questions) {
       const comments = [];
       for (const comment of question.comments) {
-        const user = await this.getUserById(comment.userId, '');
+        const user = await this.getUserById(comment.userId);
         comments.push({
           ...comment,
           user,
@@ -75,7 +75,7 @@ export class QuestionService {
     };
   }
 
-  async getQuestion(id: string, authToken: string): Promise<QuestionDTO> {
+  async getQuestion(id: string): Promise<QuestionDTO> {
     const question = await this.questionRepository
       .createQueryBuilder('question')
       .leftJoinAndSelect('question.comments', 'comments')
@@ -83,17 +83,23 @@ export class QuestionService {
       .where('question.id = :id', { id: id })
       .getOneOrFail();
 
-    return await this.mergeQuestionUserId(question, authToken);
+    return await this.mergeQuestionUserId(question);
   }
 
-  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
+  async getUserById(id: string): Promise<UserDTO | undefined> {
+    const options = {
+      url: `${process.env.USERS_DB}/users/user/${id}`,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      data: {
+        secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY,
+      },
+    };
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/user/${id}`, {
-        headers: {
-          Authorization: authToken!,
-        },
-      });
-
+      const res = await axios(options);
       return res.data;
     } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
@@ -102,17 +108,17 @@ export class QuestionService {
     }
   }
 
-  async getProductById(id: string): Promise<ProductDTO | undefined> {
-    try {
-      const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
+  // async getProductById(id: string): Promise<ProductDTO | undefined> {
+  //   try {
+  //     const res = await axios.get(`${process.env.CATALOG_DB}/products/${id}`);
 
-      return res.data;
-    } catch (e: any) {
-      if (e.name !== 'AxiosError') {
-        throw new Error(e);
-      }
-    }
-  }
+  //     return res.data;
+  //   } catch (e: any) {
+  //     if (e.name !== 'AxiosError') {
+  //       throw new Error(e);
+  //     }
+  //   }
+  // }
 
   async getNewQuestionId(): Promise<string> {
     const lastElement = await this.questionRepository.find({
@@ -133,14 +139,14 @@ export class QuestionService {
   }
 
   async createQuestion(newQuestion: Question, authToken: string): Promise<QuestionDTO> {
-    if (!(await this.getProductById(newQuestion.productId))) {
-      throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
-    }
+    // if (!(await this.getProductById(newQuestion.productId))) {
+    //   throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
+    // }
 
     newQuestion.id = await this.getNewQuestionId();
 
     const created = await this.questionRepository.save(newQuestion);
-    const fullQuestion = await this.getQuestion(created.id, authToken);
+    const fullQuestion = await this.getQuestion(created.id);
 
     return fullQuestion;
   }
@@ -220,21 +226,29 @@ export class QuestionService {
 
   async mergeQuestions(queryBuilder: SelectQueryBuilder<Question>) {
     const questions = await queryBuilder.getMany();
-    const result = questions.map(async question => await this.mergeQuestionUserId(question, ''));
+    const result = questions.map(async question => await this.mergeQuestionUserId(question));
 
     return Promise.all(result);
   }
 
-  async mergeQuestionUserId(question: Question, authToken: string): Promise<QuestionDTO> {
+  async mergeQuestionUserId(question: Question): Promise<QuestionDTO> {
+    const user = await this.getUserById(question.userId);
+
+    const userInDB = {
+      id: user?.id,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+    };
     return {
       id: question.id,
       text: question.text,
       createdAt: question.createdAt,
       updatedAt: question.updatedAt,
-      product: (await this.getProductById(question.productId)) ?? question.productId,
-      user: (await this.getUserById(question.userId, authToken)) ?? question.userId,
+      product: question.productId,
+      user: userInDB, //?? question.userId,
       comments: question.comments,
       reactions: question.reactions,
     };
   }
 }
+//  (await this.getProductById(question.productId)) ??

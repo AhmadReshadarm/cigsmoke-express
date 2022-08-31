@@ -23,7 +23,7 @@ export class QuestionController {
   @Middleware([verifyToken, isUser])
   async getQuestion(req: Request, resp: Response) {
     const { id } = req.params;
-    const question = await this.questionService.getQuestion(id, req.headers.authorization!);
+    const question = await this.questionService.getQuestion(id);
 
     resp.json(question);
   }
