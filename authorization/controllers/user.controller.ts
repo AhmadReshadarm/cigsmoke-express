@@ -40,19 +40,6 @@ export class UserController {
     }
   }
 
-  @Get(':id')
-  // @Middleware([verifyToken, isUser])
-  async getUserById(req: Request, resp: Response) {
-    const { id } = req.params;
-    try {
-      const user = await this.userService.getUser(id);
-      const { password, ...others } = user;
-      return resp.json(others);
-    } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
-    }
-  }
-
   // verifyUserId
   @Get('user')
   @Middleware([verifyToken, isUser])
@@ -63,6 +50,19 @@ export class UserController {
       const user = await this.userService.getUser(jwt.id);
       const { password, ...other } = user;
       resp.status(HttpStatus.OK).json(other);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+
+  @Get(':id')
+  // @Middleware([verifyToken, isUser])
+  async getUserById(req: Request, resp: Response) {
+    const { id } = req.params;
+    try {
+      const user = await this.userService.getUser(id);
+      const { password, ...others } = user;
+      return resp.json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
