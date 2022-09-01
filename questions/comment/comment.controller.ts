@@ -8,9 +8,9 @@ import { QuestionReactionComment } from '../../core/entities';
 import { validation } from '../../core/lib/validator';
 
 @singleton()
-@Controller('/comments')
+@Controller('/question-comments')
 export class CommentController {
-  constructor(private commentService: CommentService) {}
+  constructor(private commentService: CommentService) { }
 
   @Get()
   async getComments(req: Request, resp: Response) {

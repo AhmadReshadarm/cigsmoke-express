@@ -11,7 +11,7 @@ import { CreateReactionDTO } from '../questions.dtos';
 @singleton()
 @Controller('/questions')
 export class QuestionController {
-  constructor(private questionService: QuestionService) {}
+  constructor(private questionService: QuestionService) { }
 
   @Get()
   async getQuestions(req: Request, resp: Response) {
@@ -65,10 +65,12 @@ export class QuestionController {
   }
 
   @Delete(':id')
-  @Middleware([verifyToken, isAdmin])
+  @Middleware([verifyToken, isUser])
   async removeQuestion(req: Request, resp: Response) {
     const { id } = req.params;
     const removed = await this.questionService.removeQuestion(id);
+
+    console.log(removed, 123123213);
 
     resp.status(HttpStatus.OK).json(removed);
   }

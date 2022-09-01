@@ -11,6 +11,7 @@
     "images:dev": "cd ./images && npm run dev",
     "mailer:start": "cd ./mailer && npm run start",
     "orders:dev": "cd ./orders && npm run dev",
+    "questions:dev": "cd ./questions && npm run dev",
     "reviews:dev": "cd ./reviews && npm run dev",
     "swagger:dev": "cd ./swagger && npm run dev",
     "wishlists:dev": "cd ./wishlists && npm run dev",

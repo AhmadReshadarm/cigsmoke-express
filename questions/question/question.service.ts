@@ -88,7 +88,7 @@ export class QuestionService {
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
     const options = {
-      url: `${process.env.USERS_DB}/users/user/${id}`,
+      url: `${process.env.USERS_DB}/users/${id}`,
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -194,7 +194,10 @@ export class QuestionService {
       },
     });
 
-    return this.questionRepository.remove(question);
+    const questionJSON = JSON.stringify(question);
+
+    await this.questionRepository.remove(question);
+    return JSON.parse(questionJSON);
   }
 
   async removeReaction(id: string, user: UserAuth) {
