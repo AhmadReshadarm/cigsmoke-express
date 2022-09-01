@@ -16,7 +16,7 @@ import { changePasswordLimiter } from '../functions/rate.limit';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -40,6 +40,24 @@ export class UserController {
     }
   }
 
+  @Get('user/:id')
+  async getUserById(req: Request, resp: Response) {
+    const { secretKey } = req.body;
+
+    if (secretKey !== process.env.INNER_AUTH_CALL_SECRET_KEY) {
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'not authorized' });
+      return;
+    }
+    const { id } = req.params;
+    try {
+      const user = await this.userService.getUser(id);
+      const { password, email, ...others } = user;
+      return resp.json(others);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+
   // verifyUserId
   @Get('user')
   @Middleware([verifyToken, isUser])
@@ -50,19 +68,6 @@ export class UserController {
       const user = await this.userService.getUser(jwt.id);
       const { password, ...other } = user;
       resp.status(HttpStatus.OK).json(other);
-    } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
-    }
-  }
-
-  @Get(':id')
-  // @Middleware([verifyToken, isUser])
-  async getUserById(req: Request, resp: Response) {
-    const { id } = req.params;
-    try {
-      const user = await this.userService.getUser(id);
-      const { password, ...others } = user;
-      return resp.json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }

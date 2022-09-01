@@ -2,9 +2,9 @@ import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { Comment, ReactionComment, Review } from '../../core/entities';
+import { QuestionComment, QuestionReactionComment, Question } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
-import { CommentQueryDTO, UserAuth, UserDTO, CommentDTO, CreateCommentDTO } from '../reviews.dtos';
+import { CommentQueryDTO, UserAuth, UserDTO, CommentDTO, CreateCommentDTO } from '../questions.dtos';
 import axios from 'axios';
 import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
@@ -12,14 +12,14 @@ import { PaginationDTO } from '../../core/lib/dto';
 
 @singleton()
 export class CommentService {
-  private commentRepository: Repository<Comment>;
-  private reviewRepository: Repository<Review>;
-  private reactionRepository: Repository<ReactionComment>;
+  private commentRepository: Repository<QuestionComment>;
+  private questionRepository: Repository<Question>;
+  private reactionRepository: Repository<QuestionReactionComment>;
 
   constructor(dataSource: DataSource) {
-    this.commentRepository = dataSource.getRepository(Comment);
-    this.reviewRepository = dataSource.getRepository(Review);
-    this.reactionRepository = dataSource.getRepository(ReactionComment);
+    this.commentRepository = dataSource.getRepository(QuestionComment);
+    this.questionRepository = dataSource.getRepository(Question);
+    this.reactionRepository = dataSource.getRepository(QuestionReactionComment);
   }
 
   async getComments(queryParams: CommentQueryDTO): Promise<PaginationDTO<CommentDTO>> {
@@ -27,7 +27,7 @@ export class CommentService {
 
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.review', 'review')
+      .leftJoinAndSelect('comment.question', 'question')
       .leftJoinAndSelect('comment.reactions', 'reactions');
 
     if (userId) {
@@ -37,7 +37,7 @@ export class CommentService {
     queryBuilder.orderBy(`comment.userId`, orderBy).skip(offset).take(limit);
 
     const comments = await queryBuilder.getMany();
-    const result = comments.map(async comment => await this.mergeCommentUserId(comment, ''));
+    const result = comments.map(async comment => await this.mergeCommentUserId(comment));
 
     return {
       rows: await Promise.all(result),
@@ -45,15 +45,15 @@ export class CommentService {
     };
   }
 
-  async getComment(id: string, authToken: string): Promise<CommentDTO> {
+  async getComment(id: string): Promise<CommentDTO> {
     const comment = await this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.review', 'review')
+      .leftJoinAndSelect('comment.question', 'question')
       .leftJoinAndSelect('comment.reactions', 'reactions')
       .where('comment.id = :id', { id: id })
       .getOneOrFail();
 
-    return await this.mergeCommentUserId(comment, authToken);
+    return await this.mergeCommentUserId(comment);
   }
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
@@ -78,8 +78,8 @@ export class CommentService {
     }
   }
 
-  async getReview(id: string) {
-    return this.reviewRepository.findOneOrFail({
+  async getQuestion(id: string) {
+    return this.questionRepository.findOneOrFail({
       where: {
         id: Equal(id),
       },
@@ -95,29 +95,28 @@ export class CommentService {
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
 
-  async createComment(commentDTO: CreateCommentDTO): Promise<CommentDTO> {
+  async createComment(commentDTO: CreateCommentDTO): Promise<QuestionComment> {
     await this.validation(commentDTO);
-    const review = await this.getReview(commentDTO.reviewId);
+    const question = await this.getQuestion(commentDTO.questionId);
 
-    const newComment = new Comment({
+    const newComment = new QuestionComment({
       userId: commentDTO.userId,
-      review: review,
+      question: question,
       text: commentDTO.text,
     });
 
-    const created = await this.commentRepository.save(newComment);
-    return this.mergeCommentUserId(created, '');
+    return this.commentRepository.save(newComment);
   }
 
-  async createReaction(reaction: ReactionComment): Promise<ReactionComment> {
+  async createReaction(reaction: QuestionReactionComment): Promise<QuestionReactionComment> {
     return this.reactionRepository.save(reaction);
   }
 
   async updateComment(id: string, commentDTO: CreateCommentDTO, user: UserAuth, authToken: string) {
-    const comment = await this.getComment(id, authToken);
-    const { reviewId, ...others } = commentDTO;
+    const comment = await this.getComment(id);
+    const { questionId, ...others } = commentDTO;
 
-    const newComment: Comment = {
+    const newComment: QuestionComment = {
       ...comment,
       ...others,
     };
@@ -135,7 +134,7 @@ export class CommentService {
       where: {
         id: Equal(id),
       },
-      relations: ['review'],
+      relations: ['question'],
     });
 
     await this.isUserCommentOwner(comment, user);
@@ -155,8 +154,6 @@ export class CommentService {
       relations: ['commentId'],
     });
 
-    console.log(reaction);
-
     await this.isUserReactionOwner(reaction, user);
     await this.reactionRepository.remove({
       ...reaction,
@@ -169,33 +166,39 @@ export class CommentService {
     };
   }
 
-  isUserCommentOwner(comment: Comment, user: UserAuth) {
+  isUserCommentOwner(comment: QuestionComment, user: UserAuth) {
     if (scope(String(comment.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
-  isUserReactionOwner(reaction: ReactionComment, user: UserAuth) {
+  isUserReactionOwner(reaction: QuestionReactionComment, user: UserAuth) {
     if (scope(String(reaction.userId), String(user.id)) && user.role !== Role.Admin) {
       throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
     }
   }
 
   validation(newComment: CreateCommentDTO) {
-    if (!newComment.userId || !newComment.reviewId || !newComment.text) {
-      throw new CustomExternalError([ErrorCode.VALIDATION_COMMENTS], HttpStatus.BAD_REQUEST);
+    if (!newComment.userId || !newComment.questionId || !newComment.text) {
+      throw new CustomExternalError([ErrorCode.VALIDATION_QUESTION_COMMENTS], HttpStatus.BAD_REQUEST);
     }
   }
 
-  async mergeCommentUserId(comment: Comment, authToken: string): Promise<CommentDTO> {
+  async mergeCommentUserId(comment: QuestionComment): Promise<CommentDTO> {
+    const user = await this.getUserById(comment.userId);
+    const userInDB = {
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      role: user?.role,
+    };
     return {
       id: comment.id,
-      user: (await this.getUserById(comment.userId)) ?? comment.userId,
-      review: comment.review,
+      user: userInDB,
+      question: comment.question,
       text: comment.text,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      reactions: comment.reactions ?? [],
+      reactions: comment.reactions,
     };
   }
 }
