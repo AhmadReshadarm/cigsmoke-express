@@ -39,6 +39,12 @@ apiEndpoints:
       '/reviews*',
       '/comments*'
     ]
+  questions:
+    host: localhost
+    paths: [
+      '/questions*',
+      '/question-comments*'
+    ]
   swagger:
     host: localhost
     paths: [ '/api-docs*' ]
@@ -73,6 +79,8 @@ serviceEndpoints:
     url: ${ORDERS_DB}
   reviewsSrv:
     url: ${REVIEWS_DB}
+  questionsSrv:
+    url: ${QUESTIONS_DB}
   swaggerSrv:
     url: ${SWAGGER_DB}
   wishlistsSrv:
@@ -126,6 +134,14 @@ pipelines:
       - proxy:
           - action:
               serviceEndpoint: reviewsSrv
+              changeOrigin: true
+  pipeQuestions:
+    apiEndpoints:
+      - questions
+    policies:
+      - proxy:
+          - action:
+              serviceEndpoint: questionsSrv
               changeOrigin: true
   pipeSwagger:
     apiEndpoints:

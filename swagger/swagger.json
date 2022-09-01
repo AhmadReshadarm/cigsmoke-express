@@ -3556,6 +3556,379 @@
         }
       }
     },
+    "/questions": {
+      "get": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Get array of questions",
+        "description": "",
+        "operationId": "getQuestions",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "query",
+            "description": "Filtering questions by productId",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "Filtering questions by userId",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "merge",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "default": "true"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Sorting questions by property",
+            "default": "productId",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Ordering results. ASC | DESC",
+            "default": "DESC",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "default": 0,
+            "description": "qty rows to skip for pagination"
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "default": 10,
+            "description": "qty rows to take for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/QuestionResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Create a question",
+        "description": "",
+        "operationId": "createQuestion",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/QuestionDTO"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Review request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/questions/{questionId}": {
+      "get": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Find question by id",
+        "operationId": "findQuestionById",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "description": "ID of question to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Question"
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Question not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Update the question",
+        "description": "",
+        "operationId": "updateQuestion",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "description": "ID of question to return",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/QuestionDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful updated",
+            "schema": {
+              "$ref": "#/definitions/Question"
+            }
+          },
+          "400": {
+            "description": "Invalid Review request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Question not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Delete the question",
+        "description": "",
+        "operationId": "deleteQuestion",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "description": "ID of question to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful deleted",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/Question"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Review not found"
+          }
+        }
+      }
+    },
+    "/questions/reaction": {
+      "post": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Create a question reaction",
+        "description": "",
+        "operationId": "createQuestionReaction",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReactionQuestion"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Question request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/questions/reaction/{reactionId}": {
+      "delete": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Deletes question reaction",
+        "description": "",
+        "operationId": "deleteQuestionReaction",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "reactionId",
+            "in": "path",
+            "description": "ID of reaction to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "raw": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": ""
+                },
+                "affected": {
+                  "type": "integer",
+                  "description": "qty of deleted raws"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Reaction not found"
+          }
+        }
+      }
+    },
     "/reviews": {
       "get": {
         "tags": [
@@ -3931,6 +4304,204 @@
         "summary": "Deletes review reaction",
         "description": "",
         "operationId": "deleteReviewReaction",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "reactionId",
+            "in": "path",
+            "description": "ID of reaction to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "raw": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": ""
+                },
+                "affected": {
+                  "type": "integer",
+                  "description": "qty of deleted raws"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Reaction not found"
+          }
+        }
+      }
+    },
+    "/question-comments": {
+      "post": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Create a question comment",
+        "description": "",
+        "operationId": "createQuestionComment",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateQuestionCommentDTO"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Comment request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/question-comments/{commentId}": {
+      "delete": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Deletes question comment",
+        "description": "",
+        "operationId": "deleteQuestionComment",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "ID of comment to return",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "raw": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": ""
+                },
+                "affected": {
+                  "type": "integer",
+                  "description": "qty of deleted raws"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Reaction not found"
+          }
+        }
+      }
+    },
+    "/question-comments/reaction": {
+      "post": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Create a question comment reaction",
+        "description": "",
+        "operationId": "createQuestionCommentReaction",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "authorization",
+            "required": true,
+            "in": "header",
+            "description": "admin-token or user-token"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CommentReaction"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Review request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/question-comments/reaction/{reactionId}": {
+      "delete": {
+        "tags": [
+          "question"
+        ],
+        "summary": "Deletes question comment reaction",
+        "description": "",
+        "operationId": "deleteQuestionCommentReaction",
         "produces": [
           "application/json"
         ],
@@ -5223,6 +5794,12 @@
             "$ref": "#/definitions/ReviewWithoutJoins"
           }
         },
+        "questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Question"
+          }
+        },
         "parameterProducts": {
           "type": "array",
           "items": {
@@ -5846,6 +6423,28 @@
         }
       }
     },
+    "QuestionDTO": {
+      "required": [
+        "productId",
+        "userId",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "text": {
+          "type": "string"
+        },
+        "productId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
     "ReviewDTO": {
       "required": [
         "rating",
@@ -5934,6 +6533,43 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/ReviewReaction"
+          }
+        }
+      }
+    },
+    "Question": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "text": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "product": {
+          "type": "object",
+          "$ref": "#/definitions/Product"
+        },
+        "user": {
+          "type": "object",
+          "$ref": "#/definitions/User"
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/QuestionComment"
+          }
+        },
+        "reactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReactionQuestion"
           }
         }
       }
@@ -6044,6 +6680,23 @@
         }
       }
     },
+    "ReactionQuestion": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "questionId": {
+          "type": "string"
+        },
+        "reaction": {
+          "type": "string",
+          "default": "Like"
+        }
+      }
+    },
     "User": {
       "required": [
         "firstName",
@@ -6114,6 +6767,37 @@
         }
       }
     },
+    "QuestionComment": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user": {
+          "type": "object",
+          "$ref": "#/definitions/User"
+        },
+        "question": {
+          "type": "object",
+          "$ref": "#/definitions/Question"
+        },
+        "text": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "reactions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/CommentReaction"
+          }
+        }
+      }
+    },
     "CommentReaction": {
       "properties": {
         "id": {
@@ -6156,6 +6840,20 @@
         "readOnly": true
       },
       "reviewId": {
+        "type": "string",
+        "readOnly": true
+      }
+    },
+    "CreateQuestionCommentDTO": {
+      "userId": {
+        "type": "string",
+        "readOnly": true
+      },
+      "text": {
+        "type": "string",
+        "readOnly": true
+      },
+      "questionId": {
         "type": "string",
         "readOnly": true
       }

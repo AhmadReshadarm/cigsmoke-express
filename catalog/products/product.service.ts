@@ -285,6 +285,18 @@ export class ProductService {
     return reviews.data.length > 0 ? reviews.data : null;
   }
 
+  async getQuestionsByProductId(id: string): Promise<PaginationDTO<Review> | null> {
+    const reviews = await axios.get(`${process.env.QUESTIONS_DB}/questions/`, {
+      params: {
+        productId: id,
+        merge: 'false',
+        limit: 100000,
+      },
+    });
+
+    return reviews.data.length > 0 ? reviews.data : null;
+  }
+
   async getProductRatingFromReviews(reviews: PaginationDTO<Review>): Promise<RatingDTO | null> {
     let counter: number = 0;
     let totalRating: number = 0;
@@ -312,6 +324,7 @@ export class ProductService {
 
   async mergeProduct(product: Product): Promise<any> {
     const rawReviews = await this.getReviewsByProductId(product.id) as any;
+    const rawQuestions = await this.getQuestionsByProductId(product.id) as any;
     const rating = rawReviews ? await this.getProductRatingFromReviews(rawReviews) : null;
     const reviews = [];
 
@@ -343,17 +356,49 @@ export class ProductService {
       }
     }
 
+    const questions = [];
+
+    if (Array.isArray(rawQuestions?.rows)) {
+      for (const question of rawQuestions?.rows) {
+        if (!users[question.userId]) {
+          users[question.userId] = await this.getUserById(question.userId);
+        }
+
+        const comments = [];
+
+        for (const comment of question.comments) {
+          if (!users[comment.userId]) {
+            users[comment.userId] = await this.getUserById(comment.userId);
+          }
+
+          comments.push({
+            ...comment,
+            user: users[comment.userId],
+          });
+        }
+
+        questions.push({
+          ...question,
+          user: users[question.userId],
+          comments: comments,
+        });
+      }
+    }
+
     return {
       ...product,
       rating: rating,
       reviews: reviews,
+      questions: questions,
     };
   }
 
 
   async getUserById(id: string): Promise<User | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`);
+      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
+        data: { secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY }
+      });
 
       return res.data
     } catch (e: any) {
