@@ -94,16 +94,23 @@ export class CheckoutService {
     return this.mergeCheckout(queryBuilder, authToken);
   }
 
-  async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
+  async getUserById(id: string): Promise<UserDTO | undefined> {
+    const options = {
+      url: `${process.env.USERS_DB}/users/${id}`,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      data: {
+        secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY,
+      },
+    };
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
-        headers: {
-          Authorization: authToken!,
-        },
-      });
-
+      const res = await axios(options);
       return res.data;
     } catch (e: any) {
+      console.log(process.env.INNER_AUTH_CALL_SECRET_KEY, id);
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
       }
@@ -172,7 +179,7 @@ export class CheckoutService {
 
     return {
       id: checkout.id,
-      user: (await this.getUserById(checkout.userId, authToken)) ?? checkout.userId,
+      user: (await this.getUserById(checkout.userId)) ?? checkout.userId,
       createdAt: checkout.createdAt,
       updatedAt: checkout.updatedAt,
       basket: {
