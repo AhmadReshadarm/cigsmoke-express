@@ -7,8 +7,6 @@ export async function verifyUserId(req: Request, resp: Response, next: NextFunct
   const id = req.params.id;
   const { jwt } = resp.locals;
 
-  console.log(jwt.role);
-
   if (scope(String(jwt.id), id) && jwt.role !== Role.Admin) {
     resp.status(HttpStatus.FORBIDDEN).json({ message: 'You are forbidden to access this data' });
     return;
