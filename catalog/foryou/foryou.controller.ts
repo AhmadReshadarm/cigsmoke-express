@@ -16,7 +16,6 @@ export class ForyouController {
 
   @Get('anonymous')
   async getForyouAnonymous(req: Request, resp: Response) {
-    let productIds: any = [];
     const options = {
       url: `${process.env.ORDERS_DB}/order-products/inner`,
       method: 'GET',
@@ -28,51 +27,24 @@ export class ForyouController {
         secretKey: process.env.INNER_SECRET_KEY,
       },
     };
-    await axios(options)
-      .then((response: any) => {
-        productIds = response.filter(
-          (element: any, index: number, array: any) => array.indexOf(element.productId) !== index,
-        );
-      })
-      .catch(err => {
-        console.log(err.message);
-      });
-    if (productIds.length === 0) {
-      resp.status(HttpStatus.NOT_FOUND).json({ message: 'reques faild' });
-      return;
-    }
-    try {
-      const id = productIds[Math.floor(Math.random() * productIds.length - 1)].productId;
-      const product = await this.productService.getProduct(id);
-      const queryArray = [product.brand, product.category];
 
-      const query: any = `brands=${queryArray[0]}&categories=${queryArray[1]}`;
-
-      const products = await this.productService.getProducts(query);
-      resp.status(HttpStatus.OK).json(products);
-    } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
-    }
-  }
-  // for users with browsing history but no sign in
-  @Get('by-history')
-  async getForyouByHistory(req: Request, resp: Response) {
-    const { history } = req.body;
-    if (!history) {
-      resp.status(HttpStatus.NO_CONTENT).json({ message: 'No content' });
-      return;
-    }
-    const randomProduct = history[Math.floor(Math.random() * history.length - 1)];
     try {
-      const query: any = `brands=${randomProduct.brand}&categories=${randomProduct.category}`;
-      const products = await this.productService.getProducts(query);
-      resp.status(HttpStatus.OK).json(products);
+      const response = await axios(options);
+      const ids = response.data.filter(
+        (element: any, index: number, array: any) => array.indexOf(element.productId) !== index,
+      );
+      if (ids.length === 0) {
+        resp.status(HttpStatus.NOT_FOUND).json({ message: 'request faild' });
+        return;
+      }
+      const id = ids[Math.floor(Math.random() * ids.length - 1)];
+      const product = this.productService.getProduct(id);
+      resp.status(HttpStatus.OK).json(product);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
 
-  //   for users with signed in state
   @Get('')
   @Middleware([verifyToken, isUser])
   async getForyouByUserId(req: Request, resp: Response) {
@@ -82,20 +54,7 @@ export class ForyouController {
       if (!history) {
         resp.status(HttpStatus.NOT_FOUND).json({ message: 'history is empty' });
       }
-      const historyBasedProduct: any = [];
-      if (history?.productIds.length > 3) {
-        history?.productIds.map(async (id: any, index: number) => {
-          if (index > 3) return;
-          historyBasedProduct.push(await this.productService.getProduct(id));
-          // hint: on frontend add most recent viewed product at the start of array
-          // arr = ['1','2','6'];
-          // arr = ['34', ...arr];
-        });
-      }
-      const randomProduct = history?.productIds[Math.floor(Math.random() * history?.productIds.length - 1)];
-      const query: any = `brands=${randomProduct.brand}&categories=${randomProduct.category}`;
-      const products = await this.productService.getProducts(query);
-      resp.status(HttpStatus.OK).json(historyBasedProduct.concat(products));
+      resp.status(HttpStatus.OK).json(history.productId);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -125,8 +84,24 @@ export class ForyouController {
   @Middleware([verifyToken, isUser])
   async updateProduct(req: Request, resp: Response) {
     const { jwt } = resp.locals;
+    const { history } = req.body;
+    if (!req.body.history) {
+      resp.status(HttpStatus.BAD_REQUEST).json({ message: 'history not found' });
+      return;
+    }
     try {
-      const updated = await this.foryouService.updateForyou(jwt.id, req.body);
+      const newHistroy: any = [];
+      history.map(async (ids: any) => {
+        const isConflict = await this.foryouService.getProductId(ids);
+        if (!isConflict) {
+          newHistroy.push(ids);
+        }
+      });
+      if (newHistroy.length == 0) {
+        resp.status(HttpStatus.NOT_ACCEPTABLE).json({ message: 'no new history' });
+        return;
+      }
+      const updated = await this.foryouService.updateForyou(jwt.id, { id: '', userId: jwt.id, productIds: newHistroy });
       resp.status(HttpStatus.OK).json(updated.id);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });

@@ -28,6 +28,15 @@ export class ForyouService {
     return foryou;
   }
 
+  async getProductId(id: string) {
+    const productId = await this.foryouRepository.findOne({
+      where: {
+        productIds: Equal(id),
+      },
+    });
+    return productId;
+  }
+
   async createForyou(newForyou: Foryou): Promise<Foryou> {
     return this.foryouRepository.save(newForyou);
   }
