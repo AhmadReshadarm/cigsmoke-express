@@ -100,7 +100,7 @@ export class OrderProductService {
 
   async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
+      const res = await axios.get(`${process.env.USERS_DB}/users/inner/${id}`, {
         headers: {
           Authorization: authToken!,
         },

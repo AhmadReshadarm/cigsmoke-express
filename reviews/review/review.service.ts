@@ -46,7 +46,7 @@ export class ReviewService {
       queryBuilder.andWhere('review.userId = :userId', { userId: userId });
     }
     if (showOnMain) {
-      queryBuilder.andWhere('review.showOnMain = :showOnMain', { showOnMain: showOnMain });
+      queryBuilder.andWhere('review.showOnMain = :showOnMain', { showOnMain: JSON.parse(showOnMain as any) });
     }
 
     queryBuilder.orderBy(`review.${sortBy}`, orderBy).skip(offset).take(limit);
