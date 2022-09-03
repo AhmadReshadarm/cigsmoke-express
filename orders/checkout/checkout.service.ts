@@ -96,7 +96,7 @@ export class CheckoutService {
 
   async getUserById(id: string): Promise<UserDTO | undefined> {
     const options = {
-      url: `${process.env.USERS_DB}/users/${id}`,
+      url: `${process.env.USERS_DB}/users/inner/${id}`,
       method: 'GET',
       headers: {
         'Accept': 'application/json',
