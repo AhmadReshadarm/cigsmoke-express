@@ -194,7 +194,7 @@ export class ProductService {
       where: {
         id: Equal(id),
       },
-      relations: ['productVariants']
+      relations: ['productVariants'],
     });
 
     const { parameterProducts, productVariants, ...others } = productDTO;
@@ -216,7 +216,7 @@ export class ProductService {
       await this.createParameters(parameterProducts, product.id);
     }
 
-    let variants: ProductVariant[] = []
+    let variants: ProductVariant[] = [];
 
     if (productVariants) {
       await validation(productVariants);
@@ -226,7 +226,7 @@ export class ProductService {
 
         if (!curVariant) {
           this.productVariantRepository.remove(variant);
-          product.productVariants = product.productVariants?.filter(curVariant => curVariant.id !== variant.id)
+          product.productVariants = product.productVariants?.filter(curVariant => curVariant.id !== variant.id);
         }
       });
 
@@ -240,7 +240,7 @@ export class ProductService {
         });
 
         if (!variant) {
-          const orderProductData = new ProductVariant({ ...variantDTO as any });
+          const orderProductData = new ProductVariant({ ...(variantDTO as any) });
           const newVariant = await this.createProductVariant(orderProductData, product);
           variants.push(newVariant);
         }
@@ -257,7 +257,7 @@ export class ProductService {
       productVariants: variants.map(variant => {
         const { product, ...others } = variant;
         return {
-          ...others
+          ...others,
         };
       }),
     };
@@ -323,8 +323,8 @@ export class ProductService {
   }
 
   async mergeProduct(product: Product): Promise<any> {
-    const rawReviews = await this.getReviewsByProductId(product.id) as any;
-    const rawQuestions = await this.getQuestionsByProductId(product.id) as any;
+    const rawReviews = (await this.getReviewsByProductId(product.id)) as any;
+    const rawQuestions = (await this.getQuestionsByProductId(product.id)) as any;
     const rating = rawReviews ? await this.getProductRatingFromReviews(rawReviews) : null;
     const reviews = [];
 
@@ -393,14 +393,13 @@ export class ProductService {
     };
   }
 
-
   async getUserById(id: string): Promise<User | undefined> {
     try {
-      const res = await axios.get(`${process.env.USERS_DB}/users/${id}`, {
-        data: { secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY }
+      const res = await axios.get(`${process.env.USERS_DB}/users/inner/${id}`, {
+        data: { secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY },
       });
 
-      return res.data
+      return res.data;
     } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);

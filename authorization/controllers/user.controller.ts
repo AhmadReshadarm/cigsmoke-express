@@ -16,7 +16,7 @@ import { changePasswordLimiter } from '../functions/rate.limit';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -40,7 +40,7 @@ export class UserController {
     }
   }
 
-  @Get(':id')
+  @Get('/inner:id')
   async getUserById(req: Request, resp: Response) {
     const { secretKey } = req.body;
 
@@ -58,9 +58,8 @@ export class UserController {
     }
   }
 
-  // verifyUserId
-  @Get('user')
-  @Middleware([verifyToken, isUser])
+  @Get('user/:id')
+  @Middleware([verifyToken, isUser, verifyUserId])
   async getUser(req: Request, resp: Response) {
     const { jwt } = resp.locals;
 
@@ -112,16 +111,32 @@ export class UserController {
     }
   }
 
-  @Put(':id')
+  @Put('user/:id')
   @Middleware([verifyToken, isUser, verifyUserId])
   async updateUser(req: Request, resp: Response) {
     const { id } = req.params;
+    const { email } = req.body;
+
     if (resp.locals.user.role !== Role.Admin) {
-      req.body.isVerified = undefined;
       req.body.role = undefined;
     }
 
     try {
+      if (email && resp.locals.user.role !== Role.Admin) {
+        const user = await this.userService.getUser(id);
+        const changedEmail = await this.userService.updateUser(id, {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: email,
+          password: user.password,
+          isVerified: false,
+          role: Role.User,
+        });
+        const { password, ...others } = changedEmail;
+        resp.status(HttpStatus.OK).json(others);
+        return;
+      }
       const updated = await this.userService.updateUser(id, req.body);
       const { password, ...others } = updated;
       resp.status(HttpStatus.OK).json(others);
@@ -162,7 +177,7 @@ export class UserController {
     }
   }
 
-  @Delete(':id')
+  @Delete('user:id')
   @Middleware([verifyToken, isAdmin])
   async removeUser(req: Request, resp: Response) {
     const { id } = req.params;

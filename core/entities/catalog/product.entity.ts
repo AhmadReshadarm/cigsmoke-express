@@ -2,11 +2,13 @@ import { IsNotEmpty } from 'class-validator';
 import {
   Column,
   CreateDateColumn,
-  Entity, JoinTable,
+  Entity,
+  JoinTable,
   ManyToMany,
-  ManyToOne, OneToMany,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { Brand } from './brand.entity';
 import { Category } from './category.entity';
@@ -44,29 +46,25 @@ export class Product {
   @Column({ unique: true })
   url: string;
 
-  @ManyToMany(
-    () => Tag,
-    (tag) => tag.products,
-    { cascade: true, nullable: true },
-  )
+  @ManyToMany(() => Tag, tag => tag.products, { cascade: true, nullable: true })
   @JoinTable()
   tags?: Tag[];
 
-  @OneToMany(() => ParameterProducts, (parameterProducts) => parameterProducts.product)
+  @OneToMany(() => ParameterProducts, parameterProducts => parameterProducts.product)
   parameterProducts: ParameterProducts[];
 
   @OneToMany(() => ProductVariant, productVariant => productVariant.product)
   productVariants: ProductVariant[];
 
   constructor(args?: {
-    name: string,
-    desc: string,
-    category: Category,
-    url: string,
-    brand: Brand,
-    tags?: Tag[],
-    parameterProducts: ParameterProducts[],
-    productVariants: ProductVariant[],
+    name: string;
+    desc: string;
+    category: Category;
+    url: string;
+    brand: Brand;
+    tags?: Tag[];
+    parameterProducts: ParameterProducts[];
+    productVariants: ProductVariant[];
   }) {
     if (args) {
       this.name = args.name;
