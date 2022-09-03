@@ -40,7 +40,7 @@ export class UserController {
     }
   }
 
-  @Get('/inner:id')
+  @Get('inner/:id')
   async getUserById(req: Request, resp: Response) {
     const { secretKey } = req.body;
 
@@ -124,6 +124,10 @@ export class UserController {
     try {
       if (email && resp.locals.user.role !== Role.Admin) {
         const user = await this.userService.getUser(id);
+        if (email === user.email) {
+          resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
+          return;
+        }
         const changedEmail = await this.userService.updateUser(id, {
           id: user.id,
           firstName: user.firstName,
@@ -177,7 +181,7 @@ export class UserController {
     }
   }
 
-  @Delete('user:id')
+  @Delete('user/:id')
   @Middleware([verifyToken, isAdmin])
   async removeUser(req: Request, resp: Response) {
     const { id } = req.params;

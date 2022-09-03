@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { signupEmailTemplate, resetPswEmailTemplate } from './email.template';
-const baseUrl = 'http://localhost:3000';
+
 const sendMail = (token: any, user: any) => {
   let transporter = nodemailer.createTransport({
     host: 'smtp.beget.com',
@@ -15,7 +15,7 @@ const sendMail = (token: any, user: any) => {
       rejectUnauthorized: false,
     },
   });
-  const url = `${baseUrl}/profile/verify/${token}`;
+  const url = `${process.env.BASE_URL}/profile/verify/${token}`;
   transporter.sendMail(
     {
       to: user.email,
@@ -46,7 +46,7 @@ const sendMailResetPsw = (token: any, user: any) => {
       rejectUnauthorized: false,
     },
   });
-  const url = `${baseUrl}/profile/pswreset/confirmpsw/${token}`;
+  const url = `${process.env.BASE_URL}/profile/pswreset/confirmpsw/${token}`;
   transporter.sendMail(
     {
       to: user.email,
