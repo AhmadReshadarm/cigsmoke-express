@@ -16,7 +16,7 @@ import { changePasswordLimiter } from '../functions/rate.limit';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
