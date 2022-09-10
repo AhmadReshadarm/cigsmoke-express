@@ -1,16 +1,19 @@
-import { IGetPaymentList, YooCheckout } from '@a2seven/yoo-checkout';
+import { IGetPaymentList, ICreateRefund, YooCheckout } from '@a2seven/yoo-checkout';
+import { isAdmin, isUser, verifyToken, verifyUserId } from 'core/middlewares';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { v4 } from 'uuid';
-import { Controller, Get, Post } from '../../core/decorators';
+import { Controller, Delete, Get, Middleware, Post } from '../../core/decorators';
 import { HttpStatus } from '../../core/lib/http-status';
-
+import { CheckoutService } from '../checkout/checkout.service';
 const { SHOP_ID, SHOP_SEECRET_KEY } = process.env;
 
 @singleton()
 @Controller('/payments')
 export class PaymentController {
+  constructor(private checkoutService: CheckoutService) {}
   @Get(':id')
+  @Middleware([verifyToken, isUser, verifyUserId])
   async getPayment(req: Request, resp: Response) {
     const { id } = req.params;
 
@@ -28,6 +31,7 @@ export class PaymentController {
   }
 
   @Get()
+  @Middleware([verifyToken, isAdmin])
   async getPayments(req: Request, resp: Response) {
     const checkout = new YooCheckout({
       shopId: SHOP_ID!,
@@ -44,6 +48,7 @@ export class PaymentController {
   }
 
   @Post()
+  @Middleware([verifyToken, isUser, verifyUserId])
   async createPayment(req: Request, resp: Response) {
     const checkout = new YooCheckout({
       shopId: SHOP_ID!,
@@ -68,6 +73,54 @@ export class PaymentController {
       resp.status(HttpStatus.CREATED).json(payment);
     } catch (error: any) {
       resp.status(HttpStatus.CONFLICT).json({ error: error.response.data });
+    }
+  }
+
+  @Delete('')
+  @Middleware([verifyToken, isUser, verifyUserId])
+  async createRefund(req: Request, resp: Response) {
+    const { pyamentId } = req.body;
+    const checkoutsByPaymentId = await this.checkoutService.getCheckoutByPyamentId(
+      pyamentId,
+      req.headers.authorization!,
+    );
+    if (!checkoutsByPaymentId) {
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'Not allowed!' });
+      return;
+    }
+    const timeCheck = (orderDate: any) => {
+      const oneDay = 24 * 60 * 60 * 1000;
+      const currentDate = new Date().getTime();
+      const dateOnDB = new Date(orderDate).getTime() + oneDay;
+      return currentDate >= dateOnDB;
+    };
+
+    if (timeCheck(checkoutsByPaymentId.createdAt)) {
+      resp.status(HttpStatus.REQUEST_TIMEOUT).json({ message: 'request timedout' });
+      return;
+    }
+
+    const checkout = new YooCheckout({
+      shopId: SHOP_ID!,
+      secretKey: SHOP_SEECRET_KEY!,
+    });
+    const idempotenceKey = v4();
+    const { paymentId, totalAmount, id }: any = checkoutsByPaymentId;
+
+    const createRefundPayload: ICreateRefund = {
+      payment_id: paymentId,
+      amount: {
+        value: `${totalAmount}`,
+        currency: 'RUB',
+      },
+    };
+
+    try {
+      await this.checkoutService.removeCheckout(id, resp.locals.user);
+      const refund = await checkout.createRefund(createRefundPayload, idempotenceKey);
+      resp.status(HttpStatus.CREATED).json(refund);
+    } catch (error: any) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.response.data });
     }
   }
 }

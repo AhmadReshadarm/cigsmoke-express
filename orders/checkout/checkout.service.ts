@@ -19,7 +19,11 @@ export class CheckoutService {
     this.checkoutRepository = dataSource.getRepository(Checkout);
   }
 
-  async getCheckouts(queryParams: CheckoutQueryDTO, authToken: string, userId: string): Promise<PaginationDTO<CheckoutDTO>> {
+  async getCheckouts(
+    queryParams: CheckoutQueryDTO,
+    authToken: string,
+    userId: string,
+  ): Promise<PaginationDTO<CheckoutDTO>> {
     const { addressId, basketId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.checkoutRepository
@@ -85,6 +89,21 @@ export class CheckoutService {
       .leftJoinAndSelect('checkout.address', 'address')
       .leftJoinAndSelect('checkout.basket', 'basket')
       .where('checkout.id = :id', { id: id })
+      .getOne();
+
+    if (!queryBuilder) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
+
+    return this.mergeCheckout(queryBuilder, authToken);
+  }
+
+  async getCheckoutByPyamentId(paymentId: string, authToken: string): Promise<CheckoutDTO> {
+    const queryBuilder = await this.checkoutRepository
+      .createQueryBuilder('checkout')
+      .leftJoinAndSelect('checkout.address', 'address')
+      .leftJoinAndSelect('checkout.basket', 'basket')
+      .where('checkout.paymentId = :paymentId', { paymentId: paymentId })
       .getOne();
 
     if (!queryBuilder) {
@@ -173,12 +192,14 @@ export class CheckoutService {
   }
 
   async mergeCheckout(checkout: Checkout, authToken: string): Promise<CheckoutDTO> {
-    const orderProducts = checkout.basket.orderProducts.map(
-      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
+    const orderProducts = checkout.basket.orderProducts.map(orderProduct =>
+      this.orderProductService.mergeOrderProduct(orderProduct),
     );
 
     return {
       id: checkout.id,
+      paymentId: checkout.paymentId,
+      totalAmount: checkout.totalAmount,
       user: (await this.getUserById(checkout.userId)) ?? checkout.userId,
       createdAt: checkout.createdAt,
       updatedAt: checkout.updatedAt,

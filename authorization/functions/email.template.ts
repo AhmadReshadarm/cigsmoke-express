@@ -4,7 +4,7 @@ const signupEmailTemplate = (userName: string, email: string, confirmationUrl: s
        <br />
       <span>
         Пожалуйста, нажмите на ссылку ниже, чтобы подтвердить свой адрес
-        электронной почты на <a href="https://www.wuluxe.ru">wuluxe.ru</a>
+        электронной почты на <a href="https://wuluxe.ru">wuluxe.ru</a>
       </span>
        <br />
       <a href="${confirmationUrl}">Нажмите здесь для подтверждения ${email}</a>

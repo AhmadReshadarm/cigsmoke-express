@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Address } from './address.entity';
 import { Basket } from './basket.entity';
 import { IsNotEmpty } from 'class-validator';
@@ -8,9 +17,13 @@ import { CheckoutStatus } from '../../../core/enums/checkout-status.enum';
 export class Checkout {
   @PrimaryGeneratedColumn()
   id: string;
-
+  @IsNotEmpty()
   @Column()
   paymentId: string;
+
+  @IsNotEmpty()
+  @Column()
+  totalAmount: number;
 
   @Column()
   userId: string;
@@ -37,11 +50,20 @@ export class Checkout {
   updatedAt: Date;
 
   @Column({ type: 'enum', enum: CheckoutStatus, default: CheckoutStatus.New })
-  status: CheckoutStatus
+  status: CheckoutStatus;
 
-  constructor(args?: { paymentId: string; address: Address; basket: Basket; comment: string; leaveNearDoor: boolean, status: CheckoutStatus }) {
+  constructor(args?: {
+    paymentId: string;
+    totalAmount: number;
+    address: Address;
+    basket: Basket;
+    comment: string;
+    leaveNearDoor: boolean;
+    status: CheckoutStatus;
+  }) {
     if (args) {
       this.paymentId = args.paymentId;
+      this.totalAmount = args.totalAmount;
       this.address = args.address;
       this.basket = args.basket;
       this.comment = args.comment;

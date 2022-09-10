@@ -124,6 +124,10 @@ export class UserController {
     try {
       if (email && resp.locals.user.role !== Role.Admin) {
         const user = await this.userService.getUser(id);
+        if (email === user.email) {
+          resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
+          return;
+        }
         const changedEmail = await this.userService.updateUser(id, {
           id: user.id,
           firstName: user.firstName,
