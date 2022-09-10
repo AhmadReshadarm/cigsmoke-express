@@ -235,18 +235,18 @@ export class ProductService {
       for (const variantDTO of productDTO.productVariants) {
         const variant = await this.productVariantRepository.findOne({
           where: {
-            id: Equal(id),
+            id: Equal(variantDTO.id),
           },
         });
 
         if (!variant) {
-          const orderProductData = new ProductVariant({ ...(variantDTO as any) });
-          const newVariant = await this.createProductVariant(orderProductData, product);
+          const variantData = new ProductVariant({ ...(variantDTO as any) });
+          const newVariant = await this.createProductVariant(variantData, product);
           variants.push(newVariant);
         }
 
         if (variant) {
-          await this.productVariantRepository.save({ ...variantDTO });
+          await this.productVariantRepository.save({ ...variant, ...variantDTO });
         }
       }
     }

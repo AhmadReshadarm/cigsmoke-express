@@ -1,5 +1,5 @@
 import { IGetPaymentList, ICreateRefund, YooCheckout } from '@a2seven/yoo-checkout';
-import { isAdmin, isUser, verifyToken, verifyUserId } from 'core/middlewares';
+import { isAdmin, isUser, verifyToken, verifyUserId } from '../../core/middlewares';
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { v4 } from 'uuid';
@@ -11,9 +11,9 @@ const { SHOP_ID, SHOP_SEECRET_KEY } = process.env;
 @singleton()
 @Controller('/payments')
 export class PaymentController {
-  constructor(private checkoutService: CheckoutService) {}
+  constructor(private checkoutService: CheckoutService) { }
   @Get(':id')
-  @Middleware([verifyToken, isUser, verifyUserId])
+  @Middleware([verifyToken, isUser])
   async getPayment(req: Request, resp: Response) {
     const { id } = req.params;
 
@@ -48,7 +48,7 @@ export class PaymentController {
   }
 
   @Post()
-  @Middleware([verifyToken, isUser, verifyUserId])
+  @Middleware([verifyToken, isUser])
   async createPayment(req: Request, resp: Response) {
     const checkout = new YooCheckout({
       shopId: SHOP_ID!,
@@ -77,11 +77,12 @@ export class PaymentController {
   }
 
   @Delete('')
-  @Middleware([verifyToken, isUser, verifyUserId])
-  async createRefund(req: Request, resp: Response) {
-    const { pyamentId } = req.body;
-    const checkoutsByPaymentId = await this.checkoutService.getCheckoutByPyamentId(
-      pyamentId,
+  @Middleware([verifyToken, isUser])
+  async removePayment(req: Request, resp: Response) {
+    const { paymentId } = req.body;
+    console.log(paymentId);
+    const checkoutsByPaymentId = await this.checkoutService.getCheckoutByPaymentId(
+      paymentId,
       req.headers.authorization!,
     );
     if (!checkoutsByPaymentId) {
@@ -105,18 +106,17 @@ export class PaymentController {
       secretKey: SHOP_SEECRET_KEY!,
     });
     const idempotenceKey = v4();
-    const { paymentId, totalAmount, id }: any = checkoutsByPaymentId;
 
     const createRefundPayload: ICreateRefund = {
-      payment_id: paymentId,
+      payment_id: checkoutsByPaymentId.paymentId!,
       amount: {
-        value: `${totalAmount}`,
+        value: `${checkoutsByPaymentId.totalAmount}`,
         currency: 'RUB',
       },
     };
 
     try {
-      await this.checkoutService.removeCheckout(id, resp.locals.user);
+      await this.checkoutService.removeCheckout(checkoutsByPaymentId.id, resp.locals.user);
       const refund = await checkout.createRefund(createRefundPayload, idempotenceKey);
       resp.status(HttpStatus.CREATED).json(refund);
     } catch (error: any) {
