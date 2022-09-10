@@ -15,16 +15,6 @@ const getProducts = async (orderProducts: OrderProduct[]) => {
   }
 
   return products;
-  // const products = await orderProducts?.map(async (orderProduct: any) => {
-  //   const product = await axios.get(`${process.env.CATALOG_DB}/products/${orderProduct.productId}`);
-  //   return {
-  //     item: product.data.name,
-  //     description: `${product.data.desc.slice(0, 70)}...`,
-  //     quantity: orderProduct.qty,
-  //     price: orderProduct.productPrice,
-  //   };
-  // });
-  // return products;
 };
 const createInvoice = async (checkout: Checkout, user: { name: string }) => {
   const invoiceDetail = {
@@ -50,11 +40,11 @@ const createInvoice = async (checkout: Checkout, user: { name: string }) => {
     },
     currency_symbol: '₽',
     date: {
-      billing_date: checkout.createdAt,
+      billing_date: new Date(checkout.createdAt).toLocaleDateString('ru-RU'),
     },
   };
-
-  return niceInvoice(invoiceDetail, 'wuluxe.pdf');
+  return invoiceDetail;
+  // return niceInvoice(invoiceDetail, 'wuluxe.pdf');
 };
 
 export { createInvoice };
