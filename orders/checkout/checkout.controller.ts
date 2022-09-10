@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
-import { createInvoice } from 'orders/functions/createInvoice';
-import { sendInvoice } from 'orders/functions/send.mail';
 import { singleton } from 'tsyringe';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Checkout } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
+import { createInvoice } from '../../orders/functions/createInvoice';
+import { sendInvoice } from '../../orders/functions/send.mail';
 import { CheckoutService } from './checkout.service';
 
 @singleton()
 @Controller('/checkouts')
 export class CheckoutController {
-  constructor(private checkoutService: CheckoutService) {}
+  constructor(private checkoutService: CheckoutService) { }
 
   @Get()
   @Middleware([verifyToken, isUser])
@@ -52,12 +52,14 @@ export class CheckoutController {
   async createCheckout(req: Request, resp: Response) {
     const newCheckout = new Checkout(req.body);
     newCheckout.userId = resp.locals.user.id;
+    const name = resp.locals.user.name;
 
     await validation(newCheckout);
     const created = await this.checkoutService.createCheckout(newCheckout);
-    const invoice = await createInvoice(created);
+    console.log(created);
+    const invoice = await createInvoice(created!, { name });
     sendInvoice(invoice, resp.locals.user.email);
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+    resp.status(HttpStatus.CREATED).json(created);
   }
 
   @Put(':id')

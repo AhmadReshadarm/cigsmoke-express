@@ -1,21 +1,35 @@
 const niceInvoice = require('nice-invoice');
 import axios from 'axios';
-const getProducts = async (orderProducts: any) => {
-  const products = await orderProducts.map(async (orderProduct: any) => {
-    const product = await axios.get(`http://localhost:4002/products${orderProduct.productId}`);
-    return {
+import { Checkout, OrderProduct } from 'core/entities';
+const getProducts = async (orderProducts: OrderProduct[]) => {
+  const products = [];
+  for (const orderProduct of orderProducts) {
+    const product = await axios.get(`${process.env.CATALOG_DB}/products/${orderProduct.productId}`);
+    products.push({
       item: product.data.name,
       description: `${product.data.desc.slice(0, 70)}...`,
       quantity: orderProduct.qty,
       price: orderProduct.productPrice,
-    };
-  });
+      tax: '',
+    });
+  }
+
   return products;
+  // const products = await orderProducts?.map(async (orderProduct: any) => {
+  //   const product = await axios.get(`${process.env.CATALOG_DB}/products/${orderProduct.productId}`);
+  //   return {
+  //     item: product.data.name,
+  //     description: `${product.data.desc.slice(0, 70)}...`,
+  //     quantity: orderProduct.qty,
+  //     price: orderProduct.productPrice,
+  //   };
+  // });
+  // return products;
 };
-const createInvoice = async (checkout: any) => {
+const createInvoice = async (checkout: Checkout, user: { name: string }) => {
   const invoiceDetail = {
     shipping: {
-      name: 'Micheal',
+      name: user.name,
       address: checkout.address.address,
       city: '_',
       state: '_',
@@ -24,8 +38,8 @@ const createInvoice = async (checkout: any) => {
     },
     items: await getProducts(checkout.basket.orderProducts),
 
-    subtotal: checkout.total,
-    total: checkout.total,
+    subtotal: checkout.totalAmount,
+    total: checkout.totalAmount,
     order_number: checkout.id,
     header: {
       company_name: 'Wuluxe',

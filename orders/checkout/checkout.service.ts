@@ -98,7 +98,7 @@ export class CheckoutService {
     return this.mergeCheckout(queryBuilder, authToken);
   }
 
-  async getCheckoutByPyamentId(paymentId: string, authToken: string): Promise<CheckoutDTO> {
+  async getCheckoutByPaymentId(paymentId: string, authToken: string): Promise<CheckoutDTO> {
     const queryBuilder = await this.checkoutRepository
       .createQueryBuilder('checkout')
       .leftJoinAndSelect('checkout.address', 'address')
@@ -136,8 +136,16 @@ export class CheckoutService {
     }
   }
 
-  async createCheckout(newCheckout: Checkout): Promise<Checkout> {
-    const checkout = await this.checkoutRepository.save(newCheckout);
+  async createCheckout(newCheckout: Checkout): Promise<Checkout | null> {
+    const created = await this.checkoutRepository.save(newCheckout);
+
+    const checkout = await this.checkoutRepository
+      .createQueryBuilder('checkout')
+      .leftJoinAndSelect('checkout.address', 'address')
+      .leftJoinAndSelect('checkout.basket', 'basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
+      .where('checkout.id = :id', { id: created.id })
+      .getOne();
 
     // if (!(await this.validation(checkout.id, authToken))) {
     //   await this.checkoutRepository.remove(checkout);
@@ -192,9 +200,9 @@ export class CheckoutService {
   }
 
   async mergeCheckout(checkout: Checkout, authToken: string): Promise<CheckoutDTO> {
-    const orderProducts = checkout.basket.orderProducts.map(orderProduct =>
+    const orderProducts = checkout.basket.orderProducts?.map(orderProduct =>
       this.orderProductService.mergeOrderProduct(orderProduct),
-    );
+    ) ?? [];
 
     return {
       id: checkout.id,
