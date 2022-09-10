@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-
+import path from 'path';
 const sendInvoice = (pdf: any, userEmail: any) => {
   let transporter = nodemailer.createTransport({
     host: 'smtp.beget.com',
@@ -19,7 +19,14 @@ const sendInvoice = (pdf: any, userEmail: any) => {
       to: userEmail,
       from: 'checkout@wuluxe.ru',
       subject: `Счет на оплату на ${userEmail}`,
-      html: pdf,
+      html: path.join(__dirname, './index.html'),
+      // attachments: [
+      //   {
+      //     filename: 'wuluxe.pdf',
+      //     path: path.join(__dirname, '../wuluxe.pdf'),
+      //     contentType: 'application/pdf',
+      //   },
+      // ],
     },
     (error, info) => {
       if (error) {
