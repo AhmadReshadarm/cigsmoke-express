@@ -1,10 +1,5 @@
 import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
-import { CustomExternalError } from '../../core/domain/error/custom.external.error';
-import { ErrorCode } from '../../core/domain/error/error.code';
-import { HttpStatus } from '../../core/lib/http-status';
-import axios from 'axios';
-import { validation } from '../../core/lib/validator';
 import { Foryou } from '../../core/entities';
 
 @injectable()

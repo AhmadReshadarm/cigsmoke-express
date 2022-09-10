@@ -14,9 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "@a2seven/yoo-checkout": "^1.1.2",
+    "@types/nodemailer": "^6.4.5",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "nice-invoice": "^1.1.8",
+    "nodemailer": "^6.7.8",
     "tsyringe": "^4.7.0"
   },
   "devDependencies": {

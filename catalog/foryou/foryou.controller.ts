@@ -53,6 +53,7 @@ export class ForyouController {
       const history: any = await this.foryouService.getForyou(jwt.id);
       if (!history) {
         resp.status(HttpStatus.NOT_FOUND).json({ message: 'history is empty' });
+        return;
       }
       resp.status(HttpStatus.OK).json(history.productId);
     } catch (error) {
