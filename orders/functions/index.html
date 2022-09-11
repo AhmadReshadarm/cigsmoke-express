@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -89,7 +89,7 @@
             gap: 20px;
         }
     </style>
-    <script>
+    <!-- <script>
         const address = document.querySelector('.address');
         const orderNumber = document.querySelector('.number');
         const orderDate = document.querySelector('.order_date');
@@ -110,27 +110,35 @@
             <td>${item.quantity}</td>
             <td>${item.quantity * item.price} ₽</td>`
         })
-       })
-        
-        
-        
-    </script>
+       })     
+    </script> -->
     <div class="header">
         <a href="https://wuluxe.ru"><img src="wuluxe.svg" alt="logo"></a>
-        <span class="address"></span>
+        <span class="address">
+            <span>{{shipping.name}}</span>
+            <span>{{shipping.address}}</span>
+            <span>{{shipping.postal_code}}</span>
+        </span>
     </div>
     <div class="spacer"></div>
     <div class="order-details">
-    <div class="order_number"><span></span>Заказ №<span class="number"></span></div>
-    <span class="order_date"></span>
+    <div class="order_number"><span></span>Заказ №<span class="number">{{order_number}}</span></div>
+    <span class="order_date">Дата оформления: {{date.billing_date}}</span>
     </div>
    <div class="spacer"></div>
     <table class="item-table">
         <thead><tr><th>Товар</th><th>Описание</th><th>Цена</th><th>шт</th><th>Итого</th></tr></thead>
-       <tr class="item-data"></tr>
+       <tr class="item-data">{{#each item}} 
+        <td>{{this.item}}</td>
+        <td>{{this.description}}</td>
+        <td>{{this.price}} ₽</td>
+        <td>{{this.quantity}}</td>
+        <td>{{this.quantity * this.price}}</td>
+        {{/each}}
+       </tr>
     </table>
     <div class="total-wrapper">
-      <span>Итого</span>  <b><span class="total"></span></b>
+      <span>Итого</span>  <b><span class="total">{{total}}</span></b>
     </div>
 </body>
 </html>

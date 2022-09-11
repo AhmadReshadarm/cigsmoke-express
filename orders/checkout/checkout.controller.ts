@@ -12,7 +12,7 @@ import { CheckoutService } from './checkout.service';
 @singleton()
 @Controller('/checkouts')
 export class CheckoutController {
-  constructor(private checkoutService: CheckoutService) { }
+  constructor(private checkoutService: CheckoutService) {}
 
   @Get()
   @Middleware([verifyToken, isUser])
@@ -56,7 +56,7 @@ export class CheckoutController {
 
     await validation(newCheckout);
     const created = await this.checkoutService.createCheckout(newCheckout);
-    console.log(created);
+
     const invoice = await createInvoice(created!, { name });
     sendInvoice(invoice, resp.locals.user.email);
     resp.status(HttpStatus.CREATED).json(created);
