@@ -50,6 +50,8 @@ services:
     command: sh -c 'wait-for db:3306 -- npm run start'
     depends_on:
       - db
+    volumes:
+      - images_data:/app/images/files
   reviews:
     build:
       context: .
@@ -109,3 +111,5 @@ services:
 
 volumes:
   db_data:
+  images_data:
+    driver: local
