@@ -57,8 +57,8 @@ export class CheckoutController {
     await validation(newCheckout);
     const created = await this.checkoutService.createCheckout(newCheckout);
 
-    const invoice = await createInvoice(created!, { name });
-    sendInvoice(invoice, resp.locals.user.email);
+   // const invoice = await createInvoice(created!, { name });
+   // sendInvoice(invoice, resp.locals.user.email);
     resp.status(HttpStatus.CREATED).json(created);
   }
 

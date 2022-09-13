@@ -15,7 +15,7 @@ const sendMail = (token: any, user: any) => {
       rejectUnauthorized: false,
     },
   });
-  const url = `${process.env.BASE_URL}/profile/verify/${token}`;
+  const url = `https://wuluxe.ru/profile/verify/${token}`;
   transporter.sendMail(
     {
       to: user.email,
@@ -46,7 +46,7 @@ const sendMailResetPsw = (token: any, user: any) => {
       rejectUnauthorized: false,
     },
   });
-  const url = `${process.env.BASE_URL}/profile/pswreset/confirmpsw/${token}`;
+  const url = `https://wuluxe.ru/profile/pswreset/confirmpsw/${token}`;
   transporter.sendMail(
     {
       to: user.email,
