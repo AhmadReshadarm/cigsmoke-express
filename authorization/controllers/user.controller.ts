@@ -16,7 +16,7 @@ import { changePasswordLimiter } from '../functions/rate.limit';
 @singleton()
 @Controller('/users')
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @Get('')
   @Middleware([verifyToken, isAdmin])
@@ -51,7 +51,7 @@ export class UserController {
     const { id } = req.params;
     try {
       const user = await this.userService.getUser(id);
-      const { password, email, ...others } = user;
+      const { password, ...others } = user;
       return resp.json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
