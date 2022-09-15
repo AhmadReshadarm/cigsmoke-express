@@ -222,7 +222,7 @@ export class ProductService {
       await validation(productVariants);
 
       product.productVariants?.forEach(variant => {
-        const curVariant = productDTO.productVariants?.find(({ id }) => variant.id === id?.toString());
+        const curVariant = productDTO.productVariants?.find(({ id }) => variant.id == id?.toString());
 
         if (!curVariant) {
           this.productVariantRepository.remove(variant);
@@ -246,7 +246,7 @@ export class ProductService {
         }
 
         if (variant) {
-          await this.productVariantRepository.save({ ...variant, ...variantDTO });
+          await this.productVariantRepository.update(variant.id, { ...variant, ...variantDTO });
         }
       }
     }
