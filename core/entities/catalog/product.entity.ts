@@ -27,6 +27,10 @@ export class Product {
 
   @Column('text', { nullable: true })
   desc: string;
+  @Column('text', { nullable: true })
+  shortDesc: string;
+  @Column('text', { nullable: true })
+  keywords: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -59,6 +63,8 @@ export class Product {
   constructor(args?: {
     name: string;
     desc: string;
+    shortDesc: string;
+    keywords: string;
     category: Category;
     url: string;
     brand: Brand;
@@ -69,6 +75,8 @@ export class Product {
     if (args) {
       this.name = args.name;
       this.desc = args.desc;
+      this.shortDesc = args.shortDesc;
+      this.keywords = args.keywords;
       this.category = args.category;
       this.url = args.url;
       this.brand = args.brand;
