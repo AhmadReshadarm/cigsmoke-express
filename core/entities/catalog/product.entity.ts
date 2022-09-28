@@ -27,6 +27,10 @@ export class Product {
 
   @Column('text', { nullable: true })
   desc: string;
+  @Column('text', { nullable: true })
+  shortDesc: string;
+  @Column('text', { nullable: true })
+  keywords: string;
 
   @CreateDateColumn()
   createdAt: Date;
