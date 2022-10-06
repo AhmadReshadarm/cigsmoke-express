@@ -50,7 +50,7 @@ export class Product {
   @Column({ unique: true })
   url: string;
 
-  @ManyToMany(() => Tag, tag => tag.products, { cascade: true, nullable: true })
+  @ManyToMany(() => Tag, tag => tag.products, { cascade: true, nullable: false })
   @JoinTable()
   tags?: Tag[];
 

@@ -25,6 +25,7 @@ export interface TagQueryDTO {
   readonly name?: string;
   readonly products?: string;
   readonly url?: string;
+  readonly parent?: string;
   readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
