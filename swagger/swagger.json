@@ -1582,6 +1582,16 @@
             }
           },
           {
+            "name": "sizes",
+            "in": "query",
+            "description": "Filtering products by sizes URLs in array",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
             "name": "parent",
             "in": "query",
             "description": "Filtering products by parent url",

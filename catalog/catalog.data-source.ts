@@ -8,6 +8,7 @@ import {
   Product,
   ProductVariant,
   Tag,
+  Size,
   Foryou,
 } from '../core/entities';
 
@@ -21,7 +22,7 @@ const dataSource = new DataSource({
   logging: true,
   synchronize: true,
   migrationsRun: false,
-  entities: [Product, Category, Color, Brand, Parameter, Tag, ParameterProducts, ProductVariant, Foryou],
+  entities: [Product, Category, Color, Brand, Parameter, Tag, Size, ParameterProducts, ProductVariant, Foryou],
 });
 
 export default dataSource;

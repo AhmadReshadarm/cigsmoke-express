@@ -6,4 +6,15 @@ export { Question, QuestionComment, QuestionReactionComment, ReactionQuestion } 
 export { Wishlist, WishlistProduct } from './wishlists';
 export { Slide, Advertisement } from './banners';
 export { Basket, OrderProduct, Address, Checkout } from './orders';
-export { Brand, Category, Color, Product, Parameter, Tag, ParameterProducts, Foryou, ProductVariant } from './catalog';
+export {
+  Brand,
+  Category,
+  Color,
+  Size,
+  Product,
+  Parameter,
+  Tag,
+  ParameterProducts,
+  Foryou,
+  ProductVariant,
+} from './catalog';

@@ -6,68 +6,37 @@ admin:
 apiEndpoints:
   auth:
     host: localhost
-    paths: [
-      '/users*',
-      '/auth*',
-      '/admin*',
-    ]
+    paths: ['/users*', '/auth*', '/admin*']
   catalog:
     host: localhost
-    paths: [
-      '/products*',
-      '/tags*',
-      '/categories*',
-      '/brands*',
-      '/colors*',
-      '/parameters*'
-    ]
+    paths: ['/products*', '/tags*', '/sizes*', '/categories*', '/brands*', '/colors*', '/parameters*']
   images:
     host: localhost
-    paths: [ '/images*' ]
+    paths: ['/images*']
   orders:
     host: localhost
-    paths: [
-      '/addresses*',
-      '/baskets*',
-      '/checkouts*',
-      '/order-products*',
-      '/payments*',
-    ]
+    paths: ['/addresses*', '/baskets*', '/checkouts*', '/order-products*', '/payments*']
   reviews:
     host: localhost
-    paths: [
-      '/reviews*',
-      '/comments*'
-    ]
+    paths: ['/reviews*', '/comments*']
   questions:
     host: localhost
-    paths: [
-      '/questions*',
-      '/question-comments*'
-    ]
+    paths: ['/questions*', '/question-comments*']
   swagger:
     host: localhost
-    paths: [ '/api-docs*' ]
+    paths: ['/api-docs*']
   wishlists:
     host: localhost
-    paths: [ '/wishlists*' ]
+    paths: ['/wishlists*']
   banners:
     host: localhost
-    paths: [
-      '/slides*',
-      '/advertisements*'
-    ]
+    paths: ['/slides*', '/advertisements*']
   analytics:
     host: localhost
-    paths: [
-      '/analytics*',
-    ]
+    paths: ['/analytics*']
   mailer:
     host: localhost
-    paths: [
-      '/subscribe*',
-      '/mailings*',
-    ]
+    paths: ['/subscribe*', '/mailings*']
 serviceEndpoints:
   authSrv:
     url: ${AUTH_DB}
