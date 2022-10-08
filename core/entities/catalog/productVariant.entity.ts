@@ -26,7 +26,7 @@ export class ProductVariant {
   @JoinTable()
   color: Color;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   images: string;
 
   @ManyToOne(() => Product, product => product.productVariants, { cascade: true, onDelete: 'CASCADE' })
