@@ -33,6 +33,7 @@ export class ProductService {
       parent,
       brands,
       tags,
+      sizes,
       sortBy = 'name',
       orderBy = 'DESC',
       offset = 0,
@@ -44,6 +45,7 @@ export class ProductService {
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color');
@@ -77,6 +79,9 @@ export class ProductService {
     }
     if (tags) {
       queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags });
+    }
+    if (sizes) {
+      queryBuilder.andWhere('size.url IN (:...sizes)', { sizes: sizes });
     }
 
     queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
@@ -122,6 +127,7 @@ export class ProductService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('category.parameters', 'parameter')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
@@ -155,6 +161,7 @@ export class ProductService {
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('parameterProducts.parameter', 'parameter')
       .leftJoinAndSelect('product.productVariants', 'productVariant')

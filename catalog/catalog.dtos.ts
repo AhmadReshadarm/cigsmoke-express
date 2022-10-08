@@ -1,4 +1,4 @@
-import { Brand, Category, Color, Parameter, ParameterProducts, Review, Tag } from '../core/entities';
+import { Brand, Category, Color, Parameter, ParameterProducts, Review, Size, Tag } from '../core/entities';
 import { RatingDTO } from '../core/lib/dto';
 import { IsBoolean, IsNotEmpty, IsPositive, IsString } from 'class-validator';
 import { Column, CreateDateColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, UpdateDateColumn } from 'typeorm';
@@ -15,6 +15,7 @@ export interface ProductQueryDTO {
   readonly parent?: string;
   readonly brands?: string | string[];
   readonly tags?: string | string[];
+  readonly sizes?: string | string[];
   readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly offset?: number;
@@ -48,6 +49,17 @@ export interface ColorQueryDTO {
   readonly parent: string;
   readonly url?: string;
   readonly code?: string;
+  readonly sortBy?: string;
+  readonly orderBy?: 'DESC' | 'ASC';
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+export interface SizeQueryDTO {
+  readonly name?: string;
+  readonly products?: string;
+  readonly parent: string;
+  readonly url?: string;
   readonly sortBy?: string;
   readonly orderBy?: 'DESC' | 'ASC';
   readonly limit?: number;
@@ -99,6 +111,7 @@ export interface ProductDTO {
   readonly brand: Brand;
   readonly colors?: Color[];
   readonly tags?: Tag[];
+  readonly sizes?: Size[];
   readonly rating: RatingDTO | null;
   readonly reviews: Review[] | null;
   readonly parameterProducts: ParameterProducts[] | null;
