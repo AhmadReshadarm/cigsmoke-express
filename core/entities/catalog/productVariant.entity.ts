@@ -18,7 +18,7 @@ export class ProductVariant {
   oldPrice?: number;
 
   @IsNotEmpty()
-  @Column()
+  @Column({ default: false })
   available: boolean;
 
   @IsNotEmpty()

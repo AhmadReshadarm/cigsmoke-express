@@ -14,7 +14,17 @@ export class TagService {
   }
 
   async getTags(queryParams: TagQueryDTO): Promise<PaginationDTO<Tag>> {
-    const { name, products, url, parent, sortBy = 'name', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const {
+      name,
+      products,
+      url,
+      parent,
+      children,
+      sortBy = 'name',
+      orderBy = 'DESC',
+      offset = 0,
+      limit = 10,
+    } = queryParams;
 
     const queryBuilder = await this.tagRepository
       .createQueryBuilder('tag')
@@ -33,6 +43,9 @@ export class TagService {
     }
     if (parent) {
       queryBuilder.andWhere('categoryParent.url = :parent', { parent: `${parent}` });
+    }
+    if (children) {
+      queryBuilder.andWhere('category.url = :children', { children: `${children}` });
     }
     queryBuilder.orderBy(`tag.${sortBy}`, orderBy).skip(offset).take(limit);
 
