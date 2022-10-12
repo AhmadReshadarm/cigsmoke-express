@@ -59,13 +59,17 @@ export class ProductController {
   @Middleware([verifyToken, isAdmin])
   async createProduct(req: Request, resp: Response) {
     const { tags, sizes } = req.body;
-    const newProduct = await validation(new Product(req.body));
+    try {
+      const newProduct = await validation(new Product(req.body));
 
-    tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
-    sizes ? (newProduct.sizes = await this.sizeService.getSizesByIds(sizes.map((size: Size) => String(size)))) : null;
-    const created = await this.productService.createProduct(newProduct);
+      tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
+      sizes ? (newProduct.sizes = await this.sizeService.getSizesByIds(sizes.map((size: Size) => String(size)))) : null;
+      const created = await this.productService.createProduct(newProduct);
 
-    resp.status(HttpStatus.CREATED).json({ id: created.id });
+      resp.status(HttpStatus.CREATED).json({ id: created.id });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong ${error}` });
+    }
   }
 
   @Put(':id')
@@ -73,22 +77,30 @@ export class ProductController {
   async updateProduct(req: Request, resp: Response) {
     const { id } = req.params;
     const { tags, sizes } = req.body;
-    const newProduct = new Product(req.body);
+    try {
+      const newProduct = new Product(req.body);
 
-    tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
-    sizes ? (newProduct.sizes = await this.sizeService.getSizesByIds(sizes.map((size: Size) => String(size)))) : null;
+      tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
+      sizes ? (newProduct.sizes = await this.sizeService.getSizesByIds(sizes.map((size: Size) => String(size)))) : null;
 
-    const updated = await this.productService.updateProduct(id, newProduct);
+      const updated = await this.productService.updateProduct(id, newProduct);
 
-    resp.status(HttpStatus.OK).json(updated);
+      resp.status(HttpStatus.OK).json(updated);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong ${error}` });
+    }
   }
 
   @Delete(':id')
   @Middleware([verifyToken, isAdmin])
   async removeProduct(req: Request, resp: Response) {
     const { id } = req.params;
-    const removed = await this.productService.removeProduct(id);
+    try {
+      const removed = await this.productService.removeProduct(id);
 
-    resp.status(HttpStatus.OK).json(removed);
+      resp.status(HttpStatus.OK).json(removed);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong ${error}` });
+    }
   }
 }
