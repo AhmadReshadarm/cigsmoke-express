@@ -11,7 +11,7 @@ const { SHOP_ID, SHOP_SEECRET_KEY } = process.env;
 @singleton()
 @Controller('/payments')
 export class PaymentController {
-  constructor(private checkoutService: CheckoutService) { }
+  constructor(private checkoutService: CheckoutService) {}
   @Get(':id')
   @Middleware([verifyToken, isUser])
   async getPayment(req: Request, resp: Response) {
@@ -101,24 +101,24 @@ export class PaymentController {
       return;
     }
 
-    const checkout = new YooCheckout({
-      shopId: SHOP_ID!,
-      secretKey: SHOP_SEECRET_KEY!,
-    });
-    const idempotenceKey = v4();
+    // const checkout = new YooCheckout({
+    //   shopId: SHOP_ID!,
+    //   secretKey: SHOP_SEECRET_KEY!,
+    // });
+    // const idempotenceKey = v4();
 
-    const createRefundPayload: ICreateRefund = {
-      payment_id: checkoutsByPaymentId.paymentId!,
-      amount: {
-        value: `${checkoutsByPaymentId.totalAmount}`,
-        currency: 'RUB',
-      },
-    };
+    // const createRefundPayload: ICreateRefund = {
+    //   payment_id: checkoutsByPaymentId.paymentId!,
+    //   amount: {
+    //     value: `${checkoutsByPaymentId.totalAmount}`,
+    //     currency: 'RUB',
+    //   },
+    // };
 
     try {
       await this.checkoutService.removeCheckout(checkoutsByPaymentId.id, resp.locals.user);
-      const refund = await checkout.createRefund(createRefundPayload, idempotenceKey);
-      resp.status(HttpStatus.CREATED).json(refund);
+      // const refund = await checkout.createRefund(createRefundPayload, idempotenceKey);
+      resp.status(HttpStatus.CREATED).json('ok');
     } catch (error: any) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.response.data });
     }

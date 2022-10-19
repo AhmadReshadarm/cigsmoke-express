@@ -38,11 +38,15 @@ export class BasketController {
   // @Middleware([verifyToken, isUser])
   async createBasket(req: Request, resp: Response) {
     const newBasket = new Basket(req.body);
-    await validation(newBasket);
+    try {
+      await validation(newBasket);
 
-    const created = await this.basketService.createBasket(newBasket);
+      const created = await this.basketService.createBasket(newBasket);
 
-    resp.status(HttpStatus.CREATED).json(created);
+      resp.status(HttpStatus.CREATED).json(created);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`somthing went wrong ${error}`);
+    }
   }
 
   @Put(':id')
@@ -50,17 +54,24 @@ export class BasketController {
   async updateBasket(req: Request, resp: Response) {
     const { id } = req.params;
 
-    const updated = await this.basketService.updateBasket(id, req.body, resp.locals.user);
-
-    resp.status(HttpStatus.OK).json(updated);
+    try {
+      const updated = await this.basketService.updateBasket(id, req.body, resp.locals.user);
+      resp.status(HttpStatus.OK).json(updated);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`somthing went wrong ${error}`);
+    }
   }
 
   @Delete(':id')
   @Middleware([verifyToken, isUser])
   async removeBasket(req: Request, resp: Response) {
     const { id } = req.params;
-    const removed = await this.basketService.removeBasket(id, resp.locals.user);
+    try {
+      const removed = await this.basketService.removeBasket(id, resp.locals.user);
 
-    resp.status(HttpStatus.OK).json(removed);
+      resp.status(HttpStatus.OK).json(removed);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`somthing went wrong ${error}`);
+    }
   }
 }
