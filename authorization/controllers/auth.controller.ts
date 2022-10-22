@@ -20,11 +20,9 @@ export class AuthController {
   constructor(private userService: UserService) {
     // (async () => {
     //   const admin = await this.userService.getAdmin();
-
     //   if (!admin) {
     //     const salt = await bcrypt.genSalt(10);
     //     const hashedPass = await bcrypt.hash('salmonella', salt);
-
     //     await this.userService.createUser({
     //       firstName: 'admin',
     //       lastName: 'admin',
@@ -94,7 +92,7 @@ export class AuthController {
 
       resp
         .status(HttpStatus.CREATED)
-        .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+        .json({ user: { ...others }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -232,7 +230,7 @@ export class AuthController {
 
         resp
           .status(HttpStatus.OK)
-          .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+          .json({ user: { ...others }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
       });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
@@ -282,7 +280,7 @@ export class AuthController {
 
         resp
           .status(HttpStatus.OK)
-          .json({ ...others, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
+          .json({ user: { ...others }, accessToken: accessTokenCreated, refreshToken: refreshTokenCreated });
       });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
