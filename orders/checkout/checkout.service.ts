@@ -200,9 +200,9 @@ export class CheckoutService {
   }
 
   async mergeCheckout(checkout: Checkout, authToken: string): Promise<CheckoutDTO> {
-    const orderProducts = checkout.basket.orderProducts?.map(orderProduct =>
-      this.orderProductService.mergeOrderProduct(orderProduct),
-    ) ?? [];
+    const orderProducts =
+      checkout.basket.orderProducts?.map(orderProduct => this.orderProductService.mergeOrderProduct(orderProduct)) ??
+      [];
 
     return {
       id: checkout.id,
