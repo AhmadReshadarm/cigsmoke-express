@@ -17,9 +17,9 @@ import { CheckoutStatus } from '../../../core/enums/checkout-status.enum';
 export class Checkout {
   @PrimaryGeneratedColumn()
   id: string;
-  @IsNotEmpty()
-  @Column()
-  paymentId: string;
+  // @IsNotEmpty()
+  // @Column()
+  // paymentId: string;
 
   @IsNotEmpty()
   @Column()
@@ -53,7 +53,7 @@ export class Checkout {
   status: CheckoutStatus;
 
   constructor(args?: {
-    paymentId: string;
+    // paymentId: string;
     totalAmount: number;
     address: Address;
     basket: Basket;
@@ -62,7 +62,7 @@ export class Checkout {
     status: CheckoutStatus;
   }) {
     if (args) {
-      this.paymentId = args.paymentId;
+      // this.paymentId = args.paymentId;
       this.totalAmount = args.totalAmount;
       this.address = args.address;
       this.basket = args.basket;

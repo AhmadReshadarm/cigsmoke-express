@@ -9,7 +9,7 @@ import { createDestination } from './middlewares/create.destination';
 import { isAdmin, isUser, verifyToken } from '../core/middlewares';
 import { HttpStatus } from '../core/lib/http-status';
 import fs from 'fs';
-import { unlink } from 'node:fs';
+// import { unlink } from 'node:fs';
 @singleton()
 @Controller('/images')
 export class ImageController {
@@ -59,7 +59,7 @@ export class ImageController {
     const { fileName } = req.params;
     try {
       await this.imageService.removeImage(fileName);
-      unlink(`${DESTINATION}/${fileName}`, err => {
+      fs.unlink(`${DESTINATION}/${fileName}`, err => {
         if (err) {
           resp.status(HttpStatus.NOT_FOUND).json({ message: 'the file your looking for does not exist' });
           return;

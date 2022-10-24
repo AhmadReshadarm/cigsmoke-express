@@ -84,7 +84,7 @@ export class AuthController {
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
       const { password, ...others } = created;
-      const tokenEmail = emailToken({ id: created.id, email: created.email });
+      const tokenEmail = emailToken({ ...others });
       const accessTokenCreated = accessToken({ ...created, password: undefined });
       const refreshTokenCreated = refreshToken({ ...created, password: undefined });
 
@@ -175,7 +175,7 @@ export class AuthController {
         return;
       }
 
-      const emailTokenCreated = emailToken({ id: user.id, email: user.email });
+      const emailTokenCreated = emailToken({ ...user });
       sendMailResetPsw(emailTokenCreated, user);
 
       resp.status(HttpStatus.OK).json({ message: `We sent you an email to ${email}` });
