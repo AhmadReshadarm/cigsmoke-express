@@ -17,6 +17,9 @@ export class ProductVariant {
   @Column({ nullable: true })
   oldPrice?: number;
 
+  @Column({ nullable: true })
+  wholeSalePrice?: number;
+
   @IsNotEmpty()
   @Column({ default: false })
   available: boolean;
@@ -37,6 +40,7 @@ export class ProductVariant {
     available: boolean;
     color: Color;
     oldPrice?: number;
+    wholeSalePrice?: number;
     images: string;
     product: Product;
     orderProducts: OrderProduct[];
@@ -45,6 +49,7 @@ export class ProductVariant {
       this.product = args.product;
       this.price = args.price;
       this.oldPrice = args.oldPrice;
+      this.wholeSalePrice = args.wholeSalePrice;
       this.available = args.available;
       this.color = args.color;
       this.images = args.images;

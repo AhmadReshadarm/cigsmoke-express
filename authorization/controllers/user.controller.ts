@@ -99,7 +99,7 @@ export class UserController {
         email: req.body.email,
         isVerified: true,
         password: hashedPass,
-        role: req.body.isAdmin ? Role.Admin : Role.User,
+        role: req.body.role,
       };
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
@@ -117,13 +117,9 @@ export class UserController {
     const { id } = req.params;
     const { email } = req.body;
 
-    if (resp.locals.user.role !== Role.Admin) {
-      req.body.role = undefined;
-    }
-
     try {
+      const user = await this.userService.getUser(id);
       if (email && resp.locals.user.role !== Role.Admin) {
-        const user = await this.userService.getUser(id);
         if (email === user.email) {
           resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
           return;
@@ -138,6 +134,34 @@ export class UserController {
           role: Role.User,
         });
         const { password, ...others } = changedEmail;
+        resp.status(HttpStatus.OK).json(others);
+        return;
+      }
+      if (resp.locals.user.role === Role.SuperUser) {
+        const updatedSuperUser = await this.userService.updateUser(id, {
+          id: user.id,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          email: user.email,
+          password: user.password,
+          isVerified: true,
+          role: Role.SuperUser,
+        });
+        const { password, ...others } = updatedSuperUser;
+        resp.status(HttpStatus.OK).json(others);
+        return;
+      }
+      if (resp.locals.user.role === Role.User) {
+        const updatedUser = await this.userService.updateUser(id, {
+          id: user.id,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          email: user.email,
+          password: user.password,
+          isVerified: true,
+          role: Role.User,
+        });
+        const { password, ...others } = updatedUser;
         resp.status(HttpStatus.OK).json(others);
         return;
       }
@@ -164,18 +188,32 @@ export class UserController {
         resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
         return;
       }
-      const payload = {
+      if (resp.locals.user.role !== Role.Admin) {
+        const payload = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          password: hashedPass,
+          isVerified: true,
+          role: Role.User,
+        };
+
+        await this.userService.updateUser(id, payload);
+        resp.status(HttpStatus.OK).json({ message: 'password changed' });
+        return;
+      }
+      const payloadAdmin = {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         password: hashedPass,
         isVerified: true,
-        role: Role.User,
+        role: Role.Admin,
       };
-
-      await this.userService.updateUser(id, payload);
-      resp.status(HttpStatus.OK).json({ message: 'password changed' });
+      await this.userService.updateUser(id, payloadAdmin);
+      resp.status(HttpStatus.OK).json({ message: 'Admin password changed' });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }

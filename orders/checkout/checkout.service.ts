@@ -206,7 +206,7 @@ export class CheckoutService {
 
     return {
       id: checkout.id,
-      paymentId: checkout.paymentId,
+      // paymentId: checkout.paymentId,
       totalAmount: checkout.totalAmount,
       user: (await this.getUserById(checkout.userId)) ?? checkout.userId,
       createdAt: checkout.createdAt,
