@@ -57,15 +57,15 @@ export class UserController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
-
+  // isUser, verifyUserId
   @Get('user/:id')
   @Middleware([verifyToken, isUser, verifyUserId])
   async getUser(req: Request, resp: Response) {
     const { jwt } = resp.locals;
 
     try {
-      const user = await this.userService.getUser(jwt.id);
-      const { password, ...other } = user;
+      const userById = await this.userService.getUser(jwt.id);
+      const { password, ...other } = userById;
       resp.status(HttpStatus.OK).json(other);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
@@ -78,7 +78,7 @@ export class UserController {
     const { jwt } = resp.locals;
 
     try {
-      const token = emailToken({ id: jwt.id, email: jwt.email });
+      const token = emailToken({ ...jwt });
       sendMail(token, jwt);
       resp.status(HttpStatus.OK).json({ message: 'token sent successfully' });
     } catch (error) {
@@ -130,57 +130,24 @@ export class UserController {
   @Middleware([verifyToken, isUser, verifyUserId])
   async updateUser(req: Request, resp: Response) {
     const { id } = req.params;
-    const { email } = req.body;
+    const { email, firstName, lastName } = req.body;
+    const { jwt } = resp.locals;
 
     try {
       const user = await this.userService.getUser(id);
-      if (email && resp.locals.user.role !== Role.Admin) {
-        if (email === user.email) {
-          resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
-          return;
-        }
-        const changedEmail = await this.userService.updateUser(id, {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: email,
-          password: user.password,
-          isVerified: false,
-          role: Role.User,
-        });
-        const { password, ...others } = changedEmail;
-        resp.status(HttpStatus.OK).json(others);
+      if (email === user.email) {
+        resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
         return;
       }
-      if (resp.locals.user.role === Role.SuperUser) {
-        const updatedSuperUser = await this.userService.updateUser(id, {
-          id: user.id,
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          email: user.email,
-          password: user.password,
-          isVerified: true,
-          role: Role.SuperUser,
-        });
-        const { password, ...others } = updatedSuperUser;
-        resp.status(HttpStatus.OK).json(others);
-        return;
-      }
-      if (resp.locals.user.role === Role.User) {
-        const updatedUser = await this.userService.updateUser(id, {
-          id: user.id,
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          email: user.email,
-          password: user.password,
-          isVerified: true,
-          role: Role.User,
-        });
-        const { password, ...others } = updatedUser;
-        resp.status(HttpStatus.OK).json(others);
-        return;
-      }
-      const updated = await this.userService.updateUser(id, req.body);
+      const updated = await this.userService.updateUser(id, {
+        id: user.id,
+        firstName: firstName ?? user.firstName,
+        lastName: lastName ?? user.lastName,
+        email: email ?? user.email,
+        password: user.password,
+        isVerified: user.isVerified ? (email ? false : true) : false,
+        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
+      });
       const { password, ...others } = updated;
       resp.status(HttpStatus.OK).json(others);
     } catch (error) {
@@ -192,43 +159,35 @@ export class UserController {
   @Middleware([verifyToken, isUser, verifyUserId, changePasswordLimiter])
   async changePassword(req: Request, resp: Response) {
     const { id } = req.params;
-    const { password } = req.body;
-
+    const { password, oldPassword } = req.body;
+    const { jwt } = resp.locals;
     try {
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(password, salt);
       const user = await this.userService.getUser(id);
+      const validatedOldPsw = await bcrypt.compare(oldPassword, user.password);
+      if (!validatedOldPsw) {
+        resp.status(HttpStatus.UNAUTHORIZED).json({ message: 'Old password did not matches' });
+        return;
+      }
       const validated = await bcrypt.compare(password, user.password);
       if (validated) {
         resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
         return;
       }
-      if (resp.locals.user.role !== Role.Admin) {
-        const payload = {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          password: hashedPass,
-          isVerified: true,
-          role: Role.User,
-        };
 
-        await this.userService.updateUser(id, payload);
-        resp.status(HttpStatus.OK).json({ message: 'password changed' });
-        return;
-      }
-      const payloadAdmin = {
+      const payload = {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         password: hashedPass,
-        isVerified: true,
-        role: Role.Admin,
+        isVerified: user.isVerified ? true : false,
+        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
       };
-      await this.userService.updateUser(id, payloadAdmin);
-      resp.status(HttpStatus.OK).json({ message: 'Admin password changed' });
+
+      await this.userService.updateUser(id, payload);
+      resp.status(HttpStatus.OK).json({ message: 'password changed' });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
