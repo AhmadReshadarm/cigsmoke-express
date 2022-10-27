@@ -17,48 +17,7 @@ import { UserService } from '../services/user.service';
 @singleton()
 @Controller('/auth')
 export class AuthController {
-  constructor(private userService: UserService) {
-    // (async () => {
-    //   const admin = await this.userService.getAdmin();
-    //   if (!admin) {
-    //     const salt = await bcrypt.genSalt(10);
-    //     const hashedPass = await bcrypt.hash('salmonella', salt);
-    //     await this.userService.createUser({
-    //       firstName: 'admin',
-    //       lastName: 'admin',
-    //       isVerified: true,
-    //       email: 'admin@admin.ru',
-    //       password: hashedPass,
-    //       role: Role.Admin,
-    //     } as any);
-    //   }
-    // })();
-  }
-
-  // @Get('init-admin')
-  // async initAdmin(req: Request, resp: Response) {
-  //   const admin = await this.userService.getAdmin();
-
-  //   if (!admin) {
-  //     const salt = await bcrypt.genSalt(10);
-  //     const hashedPass = await bcrypt.hash('salmonella', salt);
-
-  //     const user = await this.userService.createUser({
-  //       firstName: 'admin',
-  //       lastName: 'admin',
-  //       isVerified: true,
-  //       email: 'admin@admin.ru',
-  //       password: hashedPass,
-  //       role: Role.Admin,
-  //     } as any);
-
-  //     resp.status(HttpStatus.CREATED).json({ user });
-
-  //     return;
-  //   }
-
-  //   resp.status(HttpStatus.CREATED).json({ info: 'already exists', user: admin });
-  // }
+  constructor(private userService: UserService) {}
 
   @Post('signup')
   async signUp(req: Request, resp: Response) {
@@ -84,7 +43,7 @@ export class AuthController {
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
       const { password, ...others } = created;
-      const tokenEmail = emailToken({ id: created.id, email: created.email });
+      const tokenEmail = emailToken({ ...others });
       const accessTokenCreated = accessToken({ ...created, password: undefined });
       const refreshTokenCreated = refreshToken({ ...created, password: undefined });
 
@@ -163,6 +122,27 @@ export class AuthController {
     }
   }
 
+  @Post('session')
+  async tokenSession(req: Request, resp: Response) {
+    const { token } = req.body;
+    if (!token) {
+      resp.status(HttpStatus.UNAUTHORIZED).json({ message: 'no token found' });
+      return;
+    }
+    try {
+      const { ACCESS_SECRET_TOKEN } = process.env;
+      jwt.verify(token, ACCESS_SECRET_TOKEN, async (error: any, user: any) => {
+        if (error) {
+          resp.status(HttpStatus.FORBIDDEN).json({ message: 'Access token is expired' });
+          return;
+        }
+        resp.status(HttpStatus.OK).json({ message: 'token is valid' });
+      });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong ${error}` });
+    }
+  }
+
   @Post('reset')
   @Middleware([sendTokenLimiter, resetPasswordLimiter])
   async reset(req: Request, resp: Response) {
@@ -175,7 +155,7 @@ export class AuthController {
         return;
       }
 
-      const emailTokenCreated = emailToken({ id: user.id, email: user.email });
+      const emailTokenCreated = emailToken({ ...user });
       sendMailResetPsw(emailTokenCreated, user);
 
       resp.status(HttpStatus.OK).json({ message: `We sent you an email to ${email}` });
@@ -219,8 +199,9 @@ export class AuthController {
           lastName: user.lastName,
           email: user.email,
           password: hashedPass,
-          isVerified: true,
-          role: Role.User,
+          isVerified: user.isVerified ? true : false,
+          role:
+            decoded.role !== Role.Admin ? (decoded.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
         };
 
         await this.userService.updateUser(decoded.id, payload);
@@ -269,7 +250,8 @@ export class AuthController {
           email: user.email,
           password: user.password,
           isVerified: true,
-          role: Role.User,
+          role:
+            decoded.role !== Role.Admin ? (decoded.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
         };
 
         await this.userService.updateUser(decoded.id, payload);

@@ -1,5 +1,6 @@
 export enum CheckoutStatus {
   New,
   InDelivery,
-  Completed
+  Completed,
+  Canceled,
 }

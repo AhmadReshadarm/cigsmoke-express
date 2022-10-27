@@ -57,16 +57,16 @@ export class UserController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
-
+  // isUser, verifyUserId
   @Get('user/:id')
   @Middleware([verifyToken, isUser, verifyUserId])
   async getUser(req: Request, resp: Response) {
     const { jwt } = resp.locals;
 
     try {
-      const user = await this.userService.getUser(jwt.id);
-      const { password, ...other } = user;
-      resp.status(HttpStatus.OK).json(other);
+      const userById = await this.userService.getUser(jwt.id);
+      const { password, ...other } = userById;
+      resp.status(HttpStatus.OK).json({ user: { ...other } });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -78,9 +78,24 @@ export class UserController {
     const { jwt } = resp.locals;
 
     try {
-      const token = emailToken({ id: jwt.id, email: jwt.email });
+      const token = emailToken({ ...jwt });
       sendMail(token, jwt);
       resp.status(HttpStatus.OK).json({ message: 'token sent successfully' });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+
+  @Get('get-by-email')
+  @Middleware([verifyToken, isAdmin])
+  async getUserByEmail(req: Request, resp: Response) {
+    const { email } = req.body;
+    try {
+      const user = await this.userService.getByEmail(email);
+      if (!user) {
+        resp.status(HttpStatus.NOT_FOUND).json({ message: 'User not fount' });
+      }
+      resp.status(HttpStatus.OK).json(user);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -99,7 +114,7 @@ export class UserController {
         email: req.body.email,
         isVerified: true,
         password: hashedPass,
-        role: req.body.isAdmin ? Role.Admin : Role.User,
+        role: req.body.role,
       };
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
@@ -115,35 +130,26 @@ export class UserController {
   @Middleware([verifyToken, isUser, verifyUserId])
   async updateUser(req: Request, resp: Response) {
     const { id } = req.params;
-    const { email } = req.body;
-
-    if (resp.locals.user.role !== Role.Admin) {
-      req.body.role = undefined;
-    }
+    const { email, firstName, lastName } = req.body;
+    const { jwt } = resp.locals;
 
     try {
-      if (email && resp.locals.user.role !== Role.Admin) {
-        const user = await this.userService.getUser(id);
-        if (email === user.email) {
-          resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
-          return;
-        }
-        const changedEmail = await this.userService.updateUser(id, {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: email,
-          password: user.password,
-          isVerified: false,
-          role: Role.User,
-        });
-        const { password, ...others } = changedEmail;
-        resp.status(HttpStatus.OK).json(others);
+      const user = await this.userService.getUser(id);
+      if (email === user.email) {
+        resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
         return;
       }
-      const updated = await this.userService.updateUser(id, req.body);
+      const updated = await this.userService.updateUser(id, {
+        id: user.id,
+        firstName: firstName ?? user.firstName,
+        lastName: lastName ?? user.lastName,
+        email: email ?? user.email,
+        password: user.password,
+        isVerified: user.isVerified ? (email ? false : true) : false,
+        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
+      });
       const { password, ...others } = updated;
-      resp.status(HttpStatus.OK).json(others);
+      resp.status(HttpStatus.OK).json({ user: { ...others } });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -153,25 +159,31 @@ export class UserController {
   @Middleware([verifyToken, isUser, verifyUserId, changePasswordLimiter])
   async changePassword(req: Request, resp: Response) {
     const { id } = req.params;
-    const { password } = req.body;
-
+    const { password, oldPassword } = req.body;
+    const { jwt } = resp.locals;
     try {
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(password, salt);
       const user = await this.userService.getUser(id);
+      const validatedOldPsw = await bcrypt.compare(oldPassword, user.password);
+      if (!validatedOldPsw) {
+        resp.status(HttpStatus.UNAUTHORIZED).json({ message: 'Old password did not matches' });
+        return;
+      }
       const validated = await bcrypt.compare(password, user.password);
       if (validated) {
         resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
         return;
       }
+
       const payload = {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         password: hashedPass,
-        isVerified: true,
-        role: Role.User,
+        isVerified: user.isVerified ? true : false,
+        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
       };
 
       await this.userService.updateUser(id, payload);

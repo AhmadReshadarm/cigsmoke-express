@@ -105,7 +105,7 @@ export interface AddressQueryDTO {
 
 export interface CheckoutDTO {
   id: string;
-  paymentId: string | undefined;
+  // paymentId: string | undefined;
   totalAmount: number;
   user: UserDTO | string;
   address: Address;

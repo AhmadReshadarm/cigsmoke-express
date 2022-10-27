@@ -20,39 +20,58 @@ export class ProductController {
 
   @Get()
   async getProducts(req: Request, resp: Response) {
-    const products = await this.productService.getProducts(req.query);
-
-    resp.json(products);
+    try {
+      const products = await this.productService.getProducts(req.query);
+      resp.json(products);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Get('priceRange')
   async getProductsPriceRange(req: Request, resp: Response) {
-    const products = await this.productService.getProductsPriceRange(req.query);
+    try {
+      const products = await this.productService.getProductsPriceRange(req.query);
 
-    resp.json(products);
+      resp.json(products);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Get('by-url/:url')
   async getProductByUrl(req: Request, resp: Response) {
     const { url } = req.params;
-    const product = await this.productService.getProductByUrl(url);
+    try {
+      const product = await this.productService.getProductByUrl(url);
 
-    resp.json(product);
+      resp.json(product);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Get('productsUnderOneThousand')
   async getProductsUnderOneThousand(req: Request, resp: Response) {
-    const products = await this.productService.getProducts({ tags: ['UnderOneThousand'] });
+    try {
+      const products = await this.productService.getProducts({ tags: ['UnderOneThousand'] });
 
-    resp.json(products);
+      resp.json(products);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Get(':id')
   async getProduct(req: Request, resp: Response) {
     const { id } = req.params;
-    const product = await this.productService.getProduct(id);
+    try {
+      const product = await this.productService.getProduct(id);
 
-    resp.json(product);
+      resp.json(product);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Post()

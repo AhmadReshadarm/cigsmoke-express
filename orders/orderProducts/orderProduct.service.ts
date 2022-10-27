@@ -5,7 +5,14 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { OrderProduct, Product } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
-import { OrderProductDTO, OrderProductQueryDTO, OrderProductResponse, ProductDTO, UserAuth, UserDTO } from '../order.dtos';
+import {
+  OrderProductDTO,
+  OrderProductQueryDTO,
+  OrderProductResponse,
+  ProductDTO,
+  UserAuth,
+  UserDTO,
+} from '../order.dtos';
 import { scope } from '../../core/middlewares/access.user';
 import { Role } from '../../core/enums/roles.enum';
 import { v4 } from 'uuid';
@@ -200,7 +207,9 @@ export class OrderProductService {
 
   async mergeOrderProduct(orderProduct: OrderProduct): Promise<OrderProductResponse> {
     const product = await this.getProductById(orderProduct.productId);
-    const productVariant = product?.productVariants.find(variant => variant.id.toString() === orderProduct.productVariantId.toString());
+    const productVariant = product?.productVariants.find(
+      variant => variant.id.toString() === orderProduct.productVariantId.toString(),
+    );
 
     return {
       id: orderProduct.id,

@@ -55,7 +55,7 @@ export class BasketController {
     const { id } = req.params;
 
     try {
-      const updated = await this.basketService.updateBasket(id, req.body, resp.locals.user);
+      const updated = await this.basketService.updateBasket(id, req.body);
       resp.status(HttpStatus.OK).json(updated);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`somthing went wrong ${error}`);
