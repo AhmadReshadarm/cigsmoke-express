@@ -16,10 +16,7 @@ export class BasketService {
   private basketRepository: Repository<Basket>;
   private orderProductRepository: Repository<OrderProduct>;
 
-  constructor(
-    dataSource: DataSource,
-    private orderProductService: OrderProductService,
-  ) {
+  constructor(dataSource: DataSource, private orderProductService: OrderProductService) {
     this.basketRepository = dataSource.getRepository(Basket);
     this.orderProductRepository = dataSource.getRepository(OrderProduct);
   }
@@ -40,26 +37,33 @@ export class BasketService {
     const queryBuilder = this.basketRepository
       .createQueryBuilder('basket')
       .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
-      .leftJoinAndSelect('basket.checkout', 'checkout')
+      .leftJoinAndSelect('basket.checkout', 'checkout');
 
-    if (userId) { queryBuilder.andWhere('basket.userId = :userId', { userId: userId }) }
-    if (minTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', { minAmount: minTotalAmount }) }
-    if (maxTotalAmount) { queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', { maxAmount: maxTotalAmount }) }
-    if (updatedFrom) { queryBuilder.andWhere('basket.updatedAt >= :dateFrom', { dateFrom: updatedFrom }) }
-    if (updatedTo) { queryBuilder.andWhere('basket.updatedAt <= :dateTo', { dateTo: updatedTo }) }
+    if (userId) {
+      queryBuilder.andWhere('basket.userId = :userId', { userId: userId });
+    }
+    if (minTotalAmount) {
+      queryBuilder.andWhere('basket.productTotalAmount >= :minAmount', { minAmount: minTotalAmount });
+    }
+    if (maxTotalAmount) {
+      queryBuilder.andWhere('basket.productTotalAmount <= :maxAmount', { maxAmount: maxTotalAmount });
+    }
+    if (updatedFrom) {
+      queryBuilder.andWhere('basket.updatedAt >= :dateFrom', { dateFrom: updatedFrom });
+    }
+    if (updatedTo) {
+      queryBuilder.andWhere('basket.updatedAt <= :dateTo', { dateTo: updatedTo });
+    }
 
-    queryBuilder
-      .orderBy(`basket.${sortBy}`, orderBy)
-      .skip(offset)
-      .take(limit)
+    queryBuilder.orderBy(`basket.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const baskets = await queryBuilder.getMany();
-    const result = baskets.map(async (basket) => await this.mergeBasket(basket))
+    const result = baskets.map(async basket => await this.mergeBasket(basket));
 
     return {
       rows: await Promise.all(result),
       length: await queryBuilder.getCount(),
-    }
+    };
   }
 
   async getBasket(id: string): Promise<BasketDTO> {
@@ -70,20 +74,22 @@ export class BasketService {
       .where('basket.id = :id', { id: id })
       .getOne();
 
-    if (!queryBuilder) { throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND) }
+    if (!queryBuilder) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
 
-    return this.mergeBasket(queryBuilder)
+    return this.mergeBasket(queryBuilder);
   }
 
   async getUserById(id: string, authToken: string): Promise<UserDTO | undefined> {
     try {
       const res = await axios.get(`${process.env.USERS_DB}/users/inner/${id}`, {
         headers: {
-          Authorization: authToken!
-        }
+          Authorization: authToken!,
+        },
       });
 
-      return res.data
+      return res.data;
     } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
@@ -103,7 +109,7 @@ export class BasketService {
     return this.basketRepository.save(newBasket);
   }
 
-  async updateBasket(id: string, basketDTO: Basket, user: UserAuth) {
+  async updateBasket(id: string, basketDTO: Basket) {
     const basket = await this.basketRepository.findOneOrFail({
       where: {
         id: Equal(id),
@@ -111,22 +117,22 @@ export class BasketService {
       relations: ['orderProducts'],
     });
 
-    if (user) {
-      await this.checkIfUserBasketOwner(basket, user);
-    }
+    // if (user) {
+    //   await this.checkIfUserBasketOwner(basket, user);
+    // }
 
     basket.orderProducts.forEach(orderProduct => {
-      const curOrderProduct = basketDTO.orderProducts.find(({ productId }) => orderProduct.productId === productId.toString());
+      const curOrderProduct = basketDTO.orderProducts.find(
+        ({ productId }) => orderProduct.productId === productId.toString(),
+      );
 
       if (!curOrderProduct) {
         this.orderProductRepository.remove(orderProduct);
-        basket.orderProducts = basket.orderProducts.filter(curOrderProduct => curOrderProduct.id !== orderProduct.id)
+        basket.orderProducts = basket.orderProducts.filter(curOrderProduct => curOrderProduct.id !== orderProduct.id);
       }
     });
 
-    const promises = basket.orderProducts.map(
-      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
-    )
+    const promises = basket.orderProducts.map(orderProduct => this.orderProductService.mergeOrderProduct(orderProduct));
     const orderProducts = await Promise.all(promises);
 
     for (const { productId, qty, productVariantId } of basketDTO.orderProducts) {
@@ -146,7 +152,7 @@ export class BasketService {
       if (orderProduct && orderProduct.qty !== qty) {
         const newOrderProduct = await this.orderProductService.updateOrderProduct(orderProduct.id, {
           ...orderProduct,
-          qty
+          qty,
         });
         const curOrderProduct = orderProducts.find(orderProduct => orderProduct.id === newOrderProduct.id)!;
         curOrderProduct.qty = qty;
@@ -156,14 +162,14 @@ export class BasketService {
     return {
       ...basket,
       orderProducts,
-    }
+    };
   }
 
   async removeBasket(id: string, user: UserAuth) {
     const basket = await this.basketRepository.findOneOrFail({
       where: {
         id: Equal(id),
-      }
+      },
     });
 
     if (user) {
@@ -180,8 +186,8 @@ export class BasketService {
   }
 
   async mergeBasket(basket: Basket): Promise<BasketDTO> {
-    const orderProducts = basket.orderProducts.map(
-      (orderProduct) => this.orderProductService.mergeOrderProduct(orderProduct)
+    const orderProducts = basket.orderProducts.map(orderProduct =>
+      this.orderProductService.mergeOrderProduct(orderProduct),
     );
     return {
       id: basket.id,
@@ -191,6 +197,6 @@ export class BasketService {
       totalAmount: this.getTotalAmount(basket.orderProducts),
       createdAt: basket.createdAt,
       updatedAt: basket.updatedAt,
-    }
+    };
   }
 }

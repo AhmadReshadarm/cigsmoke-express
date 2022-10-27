@@ -22,12 +22,8 @@ export class CheckoutController {
     // if (resp.locals.user.role !== Role.Admin) {
     //   req.query.userId = String(resp.locals.user.id);
     // }
-
-    const checkouts = await this.checkoutService.getCheckouts(
-      req.query,
-      req.headers.authorization!,
-      resp.locals.user.id,
-    );
+    const { jwt } = resp.locals;
+    const checkouts = await this.checkoutService.getCheckouts(req.query, req.headers.authorization!, jwt.id);
 
     resp.json(checkouts);
   }
