@@ -1,15 +1,16 @@
-import { CheckoutStatus } from 'core/enums/checkout-status.enum';
+import webpush from 'web-push';
 import { Role } from '../../core/enums/roles.enum';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { singleton } from 'tsyringe';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
-import { Checkout } from '../../core/entities';
+import { Checkout, Subscription } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
 import { createInvoice } from '../../orders/functions/createInvoice';
 import { sendInvoice } from '../../orders/functions/send.mail';
 import { CheckoutService } from './checkout.service';
+import { invoiceTamplate } from '../functions/invoice.tamplate';
 
 @singleton()
 @Controller('/checkouts')
@@ -50,14 +51,71 @@ export class CheckoutController {
   async createCheckout(req: Request, resp: Response) {
     const newCheckout = new Checkout(req.body);
     newCheckout.userId = resp.locals.user.id;
-    const name = resp.locals.user.name;
+    const { jwt } = resp.locals;
+    let created: any;
+    try {
+      await validation(newCheckout);
+    } catch (error) {
+      console.log(`validation faild: ${error}`);
+    }
+    try {
+      created = await this.checkoutService.createCheckout(newCheckout);
+      resp.status(HttpStatus.CREATED).json(created);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `saving order faild: ${error}` });
+    }
+    try {
+      const invoiceData: any = await createInvoice(created!, jwt.name);
+      sendInvoice(invoiceTamplate(invoiceData), jwt.email);
+      console.log('invoice send succsfuly');
+    } catch (error) {
+      console.log(`sending invoice faild: ${error}`);
+    }
+    try {
+      const subscrition = await this.checkoutService.getSubscribers();
+      if (!subscrition || subscrition.length === 0) return;
+      const payload = JSON.stringify({
+        title: `Заказ №: ${created?.id}`,
+        message: `Сума: ${created?.totalAmount}`,
+        url: `https:wuluxe.ru/admin/checkouts/${created?.id}`,
+      });
+      webpush.setVapidDetails(
+        'mailto:checkout@wuluxe.ru',
+        process.env.NOTIFACATION_PUBLIC_KEY!,
+        process.env.NOTIFACATION_PRIVATE_KEY!,
+      );
+      for (let i = 0; i < subscrition.length; i++) {
+        webpush.sendNotification(JSON.parse(`${subscrition[i].subscriber}`), payload);
+      }
+    } catch (error) {
+      console.log(`sending notification faild: ${error}`);
+    }
+  }
 
-    await validation(newCheckout);
-    const created = await this.checkoutService.createCheckout(newCheckout);
+  @Post('subscribe')
+  @Middleware([verifyToken, isAdmin])
+  async createSubscriber(req: Request, resp: Response, next: NextFunction) {
+    try {
+      const subscrition = await this.checkoutService.getSubscribers();
+      if (subscrition && subscrition.length !== 0) {
+        for (let i = 0; i < subscrition.length; i++) {
+          if (subscrition[i].subscriber === req.body.subscriber) {
+            resp.status(HttpStatus.ACCEPTED).json({ message: 'Your are all set' });
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      next();
+    }
 
-    // const invoice = await createInvoice(created!, { name });
-    // sendInvoice(invoice, resp.locals.user.email);
-    resp.status(HttpStatus.CREATED).json(created);
+    try {
+      const newSubscrition = await validation(new Subscription({ subscriber: req.body.subscriber }));
+      const created = await this.checkoutService.createSubscriber(newSubscrition);
+      resp.status(HttpStatus.OK).json(created);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
   }
 
   @Put(':id')

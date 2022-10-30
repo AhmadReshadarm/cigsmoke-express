@@ -1,9 +1,6 @@
 import nodemailer from 'nodemailer';
-import handlebars from 'handlebars';
-import { promisify } from 'util';
-import fs from 'fs';
+
 const sendInvoice = async (data: any, userEmail: any) => {
-  const readFile = promisify(fs.readFile);
   let transporter = nodemailer.createTransport({
     host: 'smtp.beget.com',
     port: 465,
@@ -17,15 +14,13 @@ const sendInvoice = async (data: any, userEmail: any) => {
       rejectUnauthorized: false,
     },
   });
-  let html = await readFile('./index.html', 'utf8');
-  let template = handlebars.compile(html);
-  let htmlToSend = template(data);
+
   transporter.sendMail(
     {
       to: userEmail,
       from: 'checkout@wuluxe.ru',
-      subject: `Счет на оплату на ${userEmail}`,
-      html: htmlToSend,
+      subject: `Ваш заказ на wuluxe.ru: ${userEmail}`,
+      html: data,
     },
     (error, info) => {
       if (error) {
