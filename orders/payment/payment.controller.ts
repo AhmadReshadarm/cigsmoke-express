@@ -80,7 +80,6 @@ export class PaymentController {
   @Middleware([verifyToken, isUser])
   async removePayment(req: Request, resp: Response) {
     const { paymentId } = req.body;
-    console.log(paymentId);
     const checkoutsByPaymentId = await this.checkoutService.getCheckoutByPaymentId(
       paymentId,
       req.headers.authorization!,

@@ -19,10 +19,12 @@ export class BasketController {
     // if (resp.locals.user?.role !== Role.Admin) {
     //   req.query.userId = String(resp.locals.user?.id);
     // }
-
-    const baskets = await this.basketService.getBaskets(req.query);
-
-    resp.json(baskets);
+    try {
+      const baskets = await this.basketService.getBaskets(req.query);
+      resp.json(baskets);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`somthing went wrong ${error}`);
+    }
   }
 
   @Get(':id')

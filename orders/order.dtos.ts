@@ -131,3 +131,25 @@ export interface UserAuth {
   id: string;
   role: Role;
 }
+
+export interface ShippingDTO {
+  shipping: {
+    name: string;
+    address: string;
+    door: string;
+    floor: string;
+    receverName: string;
+    postal_code: string;
+  };
+  items: [
+    {
+      name: string;
+      description: string;
+      quantity: number;
+      price: number;
+    },
+  ];
+  total: number;
+  order_number: string;
+  billingDate: Date;
+}

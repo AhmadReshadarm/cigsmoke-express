@@ -4,6 +4,7 @@ import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
 import { Checkout } from '../../core/entities';
+import { Subscription } from '../../core/entities';
 import { Role } from '../../core/enums/roles.enum';
 import { PaginationDTO } from '../../core/lib/dto';
 import { HttpStatus } from '../../core/lib/http-status';
@@ -14,9 +15,11 @@ import { CheckoutDTO, CheckoutQueryDTO, UserAuth, UserDTO } from '../order.dtos'
 @singleton()
 export class CheckoutService {
   private checkoutRepository: Repository<Checkout>;
+  private subscribersRepository: Repository<Subscription>;
 
   constructor(dataSource: DataSource, private orderProductService: OrderProductService) {
     this.checkoutRepository = dataSource.getRepository(Checkout);
+    this.subscribersRepository = dataSource.getRepository(Subscription);
   }
 
   async getCheckouts(
@@ -134,6 +137,18 @@ export class CheckoutService {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
       }
     }
+  }
+
+  async createSubscriber(newSubscrition: Subscription): Promise<Subscription | null> {
+    return this.subscribersRepository.save(newSubscrition);
+  }
+
+  async getSubscribers(): Promise<any> {
+    return await this.subscribersRepository.find({
+      order: {
+        id: 'DESC',
+      },
+    });
   }
 
   async createCheckout(newCheckout: Checkout): Promise<Checkout | null> {
