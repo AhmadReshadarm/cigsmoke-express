@@ -5,6 +5,9 @@
 /**/dist
 /**/.env
 /**/.env.local
+package-lock.json
+/**/package-lock.json
+**/package-lock.json
 
 .env
 docker-compose.local.yml

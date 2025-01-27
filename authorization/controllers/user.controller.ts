@@ -4,15 +4,13 @@ import * as bcrypt from 'bcrypt';
 import { HttpStatus } from '../../core/lib/http-status';
 import { UserService } from '../services/user.service';
 import { emailToken } from '../functions/email.token';
-import { sendMail } from '../functions/send.mail';
-import { emailConfirmationLimiter, sendTokenLimiter } from '../functions/rate.limit';
+import { sendHelpDiskMail, sendMailToken } from '../functions/send.mail';
 import { isAdmin, isUser, verifyToken, verifyUserId } from '../../core/middlewares';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
 import { Role } from '../../core/enums/roles.enum';
 import { validation } from '../../core/lib/validator';
 import { User } from '../../core/entities';
 import { changePasswordLimiter } from '../functions/rate.limit';
-
 @singleton()
 @Controller('/users')
 export class UserController {
@@ -57,6 +55,34 @@ export class UserController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
+
+  @Put('inner/:id')
+  async updateUserById(req: Request, resp: Response) {
+    const { firstName, lastName, secretKey } = req.body;
+
+    if (secretKey !== process.env.INNER_AUTH_CALL_SECRET_KEY) {
+      resp.status(HttpStatus.FORBIDDEN).json({ message: 'not authorized' });
+      return;
+    }
+    const { id } = req.params;
+    try {
+      const user = await this.userService.getUser(id);
+      const updated = await this.userService.updateUser(id, {
+        id: user.id,
+        firstName: firstName ?? user.firstName,
+        lastName: lastName ?? user.lastName,
+        email: user.email,
+        password: user.password,
+        isVerified: user.isVerified,
+        role: user.role,
+        image: user.image,
+      });
+      const { password, ...others } = updated;
+      resp.status(HttpStatus.OK).json({ user: { ...others } });
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
   // isUser, verifyUserId
   @Get('user/:id')
   @Middleware([verifyToken, isUser, verifyUserId])
@@ -71,31 +97,46 @@ export class UserController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
   }
-
-  @Get('email-confirmation')
-  @Middleware([verifyToken, isUser, sendTokenLimiter, emailConfirmationLimiter])
+  // sendTokenLimiter, emailConfirmationLimiter
+  @Post('email-confirmation')
+  @Middleware([verifyToken, isUser])
   async sendMailConfirmation(req: Request, resp: Response) {
     const { jwt } = resp.locals;
+    const payload = {
+      isVerified: false,
+      id: jwt.id,
+      firstName: jwt.firstName,
+      lastName: jwt.lastName,
+      email: jwt.email,
+      role: jwt.role !== Role.Admin ? Role.User : Role.Admin,
+    };
 
     try {
-      const token = emailToken({ ...jwt });
-      sendMail(token, jwt);
-      resp.status(HttpStatus.OK).json({ message: 'token sent successfully' });
+      const token = emailToken(payload);
+      sendMailToken({
+        userName: payload.email,
+        confirmationURL: `https://nbhoz.ru/profile/verify/${token}`,
+        email: payload.email,
+      });
+      resp.status(HttpStatus.OK).json(payload);
     } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(`server error :${error}`);
     }
   }
 
-  @Get('get-by-email')
+  @Get('get-by-email/:email')
   @Middleware([verifyToken, isAdmin])
   async getUserByEmail(req: Request, resp: Response) {
-    const { email } = req.body;
+    const { email } = req.params;
     try {
       const user = await this.userService.getByEmail(email);
+
       if (!user) {
-        resp.status(HttpStatus.NOT_FOUND).json({ message: 'User not fount' });
+        resp.status(HttpStatus.NOT_FOUND).json({ message: 'User not found' });
+        return;
       }
-      resp.status(HttpStatus.OK).json(user);
+      const { password, ...others } = user;
+      resp.status(HttpStatus.OK).json(others);
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
     }
@@ -107,14 +148,16 @@ export class UserController {
     try {
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(req.body.password, salt);
+      const { firstName, lastName, email, role, image } = req.body;
       const payload = {
         id: '',
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
         isVerified: true,
         password: hashedPass,
-        role: req.body.role,
+        role: role,
+        image: image ?? '',
       };
       const newUser = await validation(new User(payload));
       const created = await this.userService.createUser(newUser);
@@ -122,7 +165,7 @@ export class UserController {
 
       resp.status(HttpStatus.CREATED).json({ id });
     } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
     }
   }
 
@@ -130,7 +173,7 @@ export class UserController {
   @Middleware([verifyToken, isUser, verifyUserId])
   async updateUser(req: Request, resp: Response) {
     const { id } = req.params;
-    const { email, firstName, lastName } = req.body;
+    const { email, firstName, lastName, image } = req.body;
     const { jwt } = resp.locals;
 
     try {
@@ -139,6 +182,17 @@ export class UserController {
         resp.status(HttpStatus.CONFLICT).json({ message: "can't change the email" });
         return;
       }
+
+      if (email) {
+        const { password, ...others } = user;
+        const token = emailToken(others);
+        const payload = {
+          email: user.email,
+          userName: user.firstName,
+          token: token,
+        };
+        sendMailToken(payload);
+      }
       const updated = await this.userService.updateUser(id, {
         id: user.id,
         firstName: firstName ?? user.firstName,
@@ -146,7 +200,8 @@ export class UserController {
         email: email ?? user.email,
         password: user.password,
         isVerified: user.isVerified ? (email ? false : true) : false,
-        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
+        role: jwt.role !== Role.Admin ? Role.User : Role.Admin,
+        image: image ?? user.image,
       });
       const { password, ...others } = updated;
       resp.status(HttpStatus.OK).json({ user: { ...others } });
@@ -161,17 +216,21 @@ export class UserController {
     const { id } = req.params;
     const { password, oldPassword } = req.body;
     const { jwt } = resp.locals;
+    // if (password === oldPassword) {
+    //   resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
+    //   return;
+    // }
     try {
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(password, salt);
       const user = await this.userService.getUser(id);
       const validatedOldPsw = await bcrypt.compare(oldPassword, user.password);
       if (!validatedOldPsw) {
-        resp.status(HttpStatus.UNAUTHORIZED).json({ message: 'Old password did not matches' });
+        resp.status(HttpStatus.UNAUTHORIZED).json({ message: 'Old password did not match' });
         return;
       }
-      const validated = await bcrypt.compare(password, user.password);
-      if (validated) {
+      const newPasswordSameAsBeforePassword = await bcrypt.compare(password, user.password);
+      if (newPasswordSameAsBeforePassword) {
         resp.status(HttpStatus.CONFLICT).json({ message: 'Can not use the same password as previous' });
         return;
       }
@@ -183,13 +242,29 @@ export class UserController {
         email: user.email,
         password: hashedPass,
         isVerified: user.isVerified ? true : false,
-        role: jwt.role !== Role.Admin ? (jwt.role !== Role.SuperUser ? Role.User : Role.SuperUser) : Role.Admin,
+        role: jwt.role !== Role.Admin ? Role.User : Role.Admin,
+        image: user.image,
       };
 
       await this.userService.updateUser(id, payload);
       resp.status(HttpStatus.OK).json({ message: 'password changed' });
     } catch (error) {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+    }
+  }
+
+  @Post('help')
+  async helpUser(req: Request, resp: Response) {
+    const { email, text } = req.body;
+    try {
+      const admins = await this.userService.getUsers({ role: Role.Admin });
+      const filteredAdmins = admins.rows.filter(admin => admin.email !== 'admin@admin.ru');
+      filteredAdmins.map(admin => {
+        sendHelpDiskMail(email, admin.email, text);
+      });
+      resp.send(HttpStatus.OK);
+    } catch (error) {
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
     }
   }
 
@@ -202,7 +277,7 @@ export class UserController {
 
       resp.status(HttpStatus.OK).json(removed);
     } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
     }
   }
 }
