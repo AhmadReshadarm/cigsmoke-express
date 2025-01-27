@@ -2,9 +2,9 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { ParameterProducts, Product, ProductVariant, Review, User } from '../../core/entities';
+import { ParameterProducts, Product, ProductVariant, Review, User, Parameter } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
-import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
+import { ParameterQueryDTO, ProductDTO, ProductQueryDTO } from '../catalog.dtos';
 import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
 import axios from 'axios';
 import { validation } from '../../core/lib/validator';
@@ -14,59 +14,96 @@ export class ProductService {
   private productRepository: Repository<Product>;
   private parameterProductsRepository: Repository<ParameterProducts>;
   private productVariantRepository: Repository<ProductVariant>;
+  private parameterRepository: Repository<Parameter>;
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
     this.parameterProductsRepository = dataSource.getRepository(ParameterProducts);
     this.productVariantRepository = dataSource.getRepository(ProductVariant);
+    this.parameterRepository = dataSource.getRepository(Parameter);
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
     const {
       name,
+      artical,
       minPrice,
       maxPrice,
       desc,
       available,
       colors,
+      color,
       categories,
       parent,
-      brands,
+      category,
       tags,
-      sizes,
+      tag,
       sortBy = 'name',
       orderBy = 'DESC',
       offset = 0,
       limit = 10,
+      image,
     } = queryParams;
     const queryBuilder = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent')
-      .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
-      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color');
 
+    // if (name) {
+    //   queryBuilder
+    //     .andWhere('LOWER(product.name) LIKE LOWER(:name)', { name: `%${name}%` })
+    //     .orWhere('LOWER(productVariant.artical) LIKE LOWER(:artical)', { artical: `%${name}%` })
+    //     .orWhere('LOWER(product.keywords) LIKE LOWER(:keywords)', { keywords: `%${name}%` });
+    // }
+
     if (name) {
-      queryBuilder.andWhere('product.name LIKE :name', { name: `%${name}%` });
+      const keywords = name.toLowerCase().split(/\s+/);
+
+      let query = queryBuilder;
+
+      keywords.forEach((keyword, index) => {
+        if (index === 0) {
+          query = query.where(
+            `LOWER(product.name) LIKE :keyword 
+        OR LOWER(productVariant.artical) LIKE :keyword 
+        OR LOWER(product.keywords) LIKE :keyword`,
+            { keyword: `%${keyword}%` },
+          );
+        } else {
+          query = query.orWhere(
+            `LOWER(product.name) LIKE :keyword 
+        OR LOWER(productVariant.artical) LIKE :keyword 
+        OR LOWER(product.keywords) LIKE :keyword`,
+            { keyword: `%${keyword}%` },
+          );
+        }
+      });
     }
+
     if (minPrice) {
       queryBuilder.andWhere('productVariant.price >= :minPrice', { minPrice: minPrice });
     }
     if (maxPrice) {
       queryBuilder.andWhere('productVariant.price <= :maxPrice', { maxPrice: maxPrice });
     }
+    if (image) {
+      queryBuilder.andWhere('productVariant.images LIKE :image', { image: `%${image}%` });
+    }
     if (desc) {
       queryBuilder.andWhere('product.desc LIKE :desc', { desc: `%${desc}%` });
     }
     if (available) {
-      queryBuilder.andWhere('productVariant.available EQUAL :available', { available: `%${available}%` });
+      queryBuilder.andWhere('productVariant.available = :available', { available: `%${available}%` });
     }
     if (colors) {
       queryBuilder.andWhere('color.url IN (:...colors)', { colors: colors });
+    }
+    if (color) {
+      queryBuilder.andWhere('color.url = :color', { color: color });
     }
     if (parent) {
       queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent });
@@ -74,23 +111,30 @@ export class ProductService {
     if (categories) {
       queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories });
     }
-    if (brands) {
-      queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands });
+    if (category) {
+      queryBuilder.andWhere('category.url = :category', { category: category });
     }
+    // if (brands) {
+    //   queryBuilder.andWhere('brand.url IN (:...brands)', { brands: brands });
+    // }
+    // if (brand) {
+    //   queryBuilder.andWhere('brand.url = :brand', { brand: brand });
+    // }
     if (tags) {
       queryBuilder.andWhere('tag.url IN (:...tags)', { tags: tags });
     }
-    if (sizes) {
-      queryBuilder.andWhere('size.url IN (:...sizes)', { sizes: sizes });
+    if (tag) {
+      queryBuilder.andWhere('tag.url = :tag', { tag: tag });
     }
 
     queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const products = await queryBuilder.getMany();
-    const result = products.map(async product => await this.mergeProduct(product));
+
+    const results = products.map(async product => await this.mergeProduct(product));
 
     return {
-      rows: await Promise.all(result),
+      rows: await Promise.all(results),
       length: await queryBuilder.getCount(),
     };
   }
@@ -114,7 +158,7 @@ export class ProductService {
     if (categories) {
       queryBuilder.andWhere('category.url IN (:...categories)', { categories: categories });
     }
-
+    //  TODO add price rang based on tags, colors
     return queryBuilder
       .select('MIN(productVariant.price)', 'minPrice')
       .addSelect('MAX(productVariant.price)', 'maxPrice')
@@ -125,9 +169,8 @@ export class ProductService {
     const product = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.brand', 'brand')
+      // .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
-      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('category.parameters', 'parameter')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
@@ -142,12 +185,20 @@ export class ProductService {
     return this.mergeProduct(product);
   }
 
-  async createParameters(parameters: ParameterProducts[], id: string) {
-    parameters.map(async parameter => {
-      parameter.productId = id;
-      return await this.parameterProductsRepository.save(parameter);
-    });
-  }
+  // async createParameters(parameters: ParameterProducts[], id: string) {
+  //   parameters.map(async parameter => {
+  //     parameter.productId = id;
+  //     return await this.parameterProductsRepository.save(parameter);
+  //   });
+  // }
+  createParameters = async (parameters: ParameterProducts[], id: string, counter: number) => {
+    if (parameters.length > counter) {
+      parameters[counter].productId = id;
+      await this.parameterProductsRepository.save(parameters[counter]);
+      counter = counter + 1;
+      this.createParameters(parameters, id, counter);
+    }
+  };
 
   async createProductVariant(variant: ProductVariant, product: Product) {
     variant.product = product;
@@ -159,9 +210,8 @@ export class ProductService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent')
-      .leftJoinAndSelect('product.brand', 'brand')
+      // .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
-      .leftJoinAndSelect('product.sizes', 'size')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('parameterProducts.parameter', 'parameter')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
@@ -173,24 +223,29 @@ export class ProductService {
       throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
-    return this.mergeProduct(product);
+    return await this.mergeProduct(product);
   }
 
   async createProduct(newProduct: Product): Promise<Product> {
-    if (newProduct.parameterProducts) {
-      await validation(newProduct.parameterProducts);
-    }
-
     const created = await this.productRepository.save(new Product(newProduct));
-
+    let counter = 0;
     if (newProduct.productVariants) {
-      newProduct.productVariants.map(async variant => {
-        await this.createProductVariant(variant, created);
-      });
+      // });
+      counter = 0;
+
+      const addAllVariants = async (variants: ProductVariant[], product: Product) => {
+        if (variants.length > counter) {
+          await this.createProductVariant(variants[counter], product);
+          counter = counter + 1;
+          addAllVariants(variants, product);
+        }
+      };
+      addAllVariants(newProduct.productVariants, created);
     }
 
     if (newProduct.parameterProducts) {
-      await this.createParameters(newProduct.parameterProducts, created.id);
+      counter = 0;
+      await this.createParameters(newProduct.parameterProducts, created.id, counter);
     }
 
     return created;
@@ -215,12 +270,14 @@ export class ProductService {
       await validation(parameterProducts);
 
       if (product.parameterProducts) {
-        product.parameterProducts.map(async parameterProduct => {
-          await this.parameterProductsRepository.remove(parameterProduct);
-        });
+        await Promise.all(
+          product.parameterProducts.map(async parameterProduct => {
+            await this.parameterProductsRepository.remove(parameterProduct);
+          }),
+        );
       }
-
-      await this.createParameters(parameterProducts, product.id);
+      let counter = 0;
+      await this.createParameters(parameterProducts, product.id, counter);
     }
 
     let variants: ProductVariant[] = [];
@@ -412,5 +469,44 @@ export class ProductService {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
       }
     }
+  }
+
+  async getParameter(id: string): Promise<Parameter> {
+    const parameter = await this.parameterRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+    });
+
+    return parameter;
+  }
+
+  getProductVariantsImages(productVariants?: ProductVariant[]) {
+    let images: string[] = [];
+    productVariants?.forEach(variant => {
+      const variantImages = variant.images ? variant.images.split(', ') : [];
+      images = images.concat(variantImages);
+    });
+    return images;
+  }
+
+  async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<Parameter>> {
+    const { name, categories, sortBy = 'id', orderBy = 'ASC', offset = 0, limit = 500 } = queryParams;
+
+    const queryBuilder = await this.parameterRepository.createQueryBuilder('parameter');
+
+    if (name) {
+      queryBuilder.andWhere('parameter.name LIKE :name', { name: `%${name}%` });
+    }
+    if (categories) {
+      queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) });
+    }
+
+    queryBuilder.orderBy(`parameter.${sortBy}`, orderBy).skip(offset).take(limit);
+
+    return {
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
+    };
   }
 }

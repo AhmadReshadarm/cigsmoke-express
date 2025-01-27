@@ -14,7 +14,7 @@ import { SubsribeService } from '../subscribe/subsribe.service';
 export class MailingController {
   constructor(
     private mailingService: MailingService,
-    private subscribeService: SubsribeService
+    private subscribeService: SubsribeService,
   ) {}
 
   @Get()
@@ -48,7 +48,7 @@ export class MailingController {
   @Post('sendmail')
   @Middleware([verifyToken, isAdmin])
   async sendMail(req: Request, resp: Response) {
-   const result = await this.mailingService.sendMail(req.body)
+    const result = await this.mailingService.sendMail(req.body);
 
     resp.status(result!.status).json(result!.response);
   }
@@ -59,8 +59,16 @@ export class MailingController {
     const { mailingId } = req.body;
     const subscribers = await this.subscribeService.getSubscribers();
 
-    const result = await this.mailingService.sendToAllSubscribers(mailingId, subscribers)
+    const result = await this.mailingService.sendToAllSubscribers(mailingId, subscribers);
 
+    resp.status(result.status).json(result.response);
+  }
+
+  @Post('send-selected')
+  @Middleware([verifyToken, isAdmin])
+  async sendToSelectedSubscribers(req: Request, resp: Response) {
+    const { mailingId, subscribers } = req.body;
+    const result = await this.mailingService.sendToSelectedSubscribers(mailingId, subscribers);
     resp.status(result.status).json(result.response);
   }
 

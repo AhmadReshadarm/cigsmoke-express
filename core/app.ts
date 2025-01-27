@@ -26,12 +26,12 @@ export class App {
     server.use(
       env === 'production'
         ? morgan('combined', {
-          stream: {
-            write(message: string): void {
-              logger.info(message);
+            stream: {
+              write(message: string): void {
+                logger.info(message);
+              },
             },
-          },
-        })
+          })
         : morgan('dev'),
     );
     server.use(cors({ exposedHeaders: ['Content-Disposition'] }));
@@ -44,6 +44,7 @@ export class App {
       }
       next();
     });
+    server.set('trust proxy', 1);
   }
 
   close(): void {

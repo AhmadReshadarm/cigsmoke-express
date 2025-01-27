@@ -8,6 +8,7 @@ export interface UserDTO {
   firstName: string;
   lastName: string;
   role: Role;
+  email?: string;
 }
 
 export interface ProductDTO {
@@ -51,7 +52,7 @@ export interface CommentQueryDTO {
 
 export interface CommentDTO {
   id: string;
-  user: any;
+  user: UserDTO | string;
   question: Question;
   text: String;
   createdAt: Date;

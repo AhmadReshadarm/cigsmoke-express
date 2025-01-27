@@ -1,4 +1,3 @@
-import { User } from 'core/entities';
 import { HttpStatus } from '../lib/http-status';
 import { Role } from '../enums/roles.enum';
 import { NextFunction, Request, Response } from 'express';
@@ -10,7 +9,7 @@ export function isUser(req: Request, res: Response, next: NextFunction): void {
   const { ACCESS_SECRET_TOKEN } = process.env;
   const tokenInfo = jwt.verify(token!, ACCESS_SECRET_TOKEN ?? '') as any;
 
-  if (tokenInfo?.role !== Role.User && tokenInfo.role !== Role.SuperUser && tokenInfo?.role !== Role.Admin) {
+  if (tokenInfo?.role !== Role.User && tokenInfo?.role !== Role.Admin) {
     res.status(HttpStatus.FORBIDDEN).json({ message: 'You are forbidden to retrieve this data' });
 
     return;

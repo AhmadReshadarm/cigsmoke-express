@@ -11,15 +11,19 @@ import { HttpStatus } from '../../core/lib/http-status';
 import { scope } from '../../core/middlewares/access.user';
 import { OrderProductService } from '../../orders/orderProducts/orderProduct.service';
 import { CheckoutDTO, CheckoutQueryDTO, UserAuth, UserDTO } from '../order.dtos';
+import { createTransport, Transporter } from 'nodemailer';
+import { MAIL_FROM, transportConfig } from './config';
+import { MailOptionsDTO } from 'orders/mailer.dtos';
 
 @singleton()
 export class CheckoutService {
   private checkoutRepository: Repository<Checkout>;
   private subscribersRepository: Repository<Subscription>;
-
+  private smptTransporter: Transporter;
   constructor(dataSource: DataSource, private orderProductService: OrderProductService) {
     this.checkoutRepository = dataSource.getRepository(Checkout);
     this.subscribersRepository = dataSource.getRepository(Subscription);
+    this.smptTransporter = createTransport(transportConfig);
   }
 
   async getCheckouts(
@@ -27,7 +31,7 @@ export class CheckoutService {
     authToken: string,
     userId: string,
   ): Promise<PaginationDTO<CheckoutDTO>> {
-    const { addressId, basketId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const { addressId, basketId, sortBy = 'createdAt', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.checkoutRepository
       .createQueryBuilder('checkout')
@@ -44,7 +48,6 @@ export class CheckoutService {
     if (userId) {
       queryBuilder.andWhere('checkout.userId = :userId', { userId: userId });
     }
-
     queryBuilder.orderBy(`checkout.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const checkouts = await queryBuilder.getMany();
@@ -57,7 +60,7 @@ export class CheckoutService {
   }
 
   async getAllCheckouts(queryParams: CheckoutQueryDTO, authToken: string): Promise<PaginationDTO<CheckoutDTO>> {
-    const { addressId, basketId, userId, sortBy = 'basket', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const { addressId, basketId, userId, sortBy = 'createdAt', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.checkoutRepository
       .createQueryBuilder('checkout')
@@ -78,6 +81,7 @@ export class CheckoutService {
     queryBuilder.orderBy(`checkout.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const checkouts = await queryBuilder.getMany();
+
     const result = checkouts.map(async checkout => await this.mergeCheckout(checkout, authToken));
 
     return {
@@ -91,6 +95,7 @@ export class CheckoutService {
       .createQueryBuilder('checkout')
       .leftJoinAndSelect('checkout.address', 'address')
       .leftJoinAndSelect('checkout.basket', 'basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
       .where('checkout.id = :id', { id: id })
       .getOne();
 
@@ -132,7 +137,31 @@ export class CheckoutService {
       const res = await axios(options);
       return res.data;
     } catch (e: any) {
-      console.log(process.env.INNER_AUTH_CALL_SECRET_KEY, id);
+      if (e.name === 'AxiosError' && e.response.status === 403) {
+        throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
+      }
+    }
+  }
+
+  async updateUserById(payload: { id: string; firstName: string; lastName: string }): Promise<UserDTO | undefined> {
+    const { id, firstName, lastName } = payload;
+    const options = {
+      url: `${process.env.USERS_DB}/users/inner/${id}`,
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      data: {
+        secretKey: process.env.INNER_AUTH_CALL_SECRET_KEY,
+        firstName,
+        lastName,
+      },
+    };
+    try {
+      const res = await axios(options);
+      return res.data;
+    } catch (e: any) {
       if (e.name === 'AxiosError' && e.response.status === 403) {
         throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
       }
@@ -151,8 +180,37 @@ export class CheckoutService {
     });
   }
 
+  async removeSubscriber(id: string) {
+    const subscriber = await this.subscribersRepository.findOneOrFail({
+      where: {
+        id: Equal(id),
+      },
+    });
+
+    return this.subscribersRepository.remove(subscriber);
+  }
+
+  async updateSubscriber(subscriber: any, newSubscrition: Subscription) {
+    const subscribtion = await this.subscribersRepository.findOneOrFail({
+      where: {
+        subscriber: Equal(subscriber),
+      },
+    });
+
+    return this.subscribersRepository.save({
+      ...subscribtion,
+      ...newSubscrition,
+    });
+  }
+
   async createCheckout(newCheckout: Checkout): Promise<Checkout | null> {
     const created = await this.checkoutRepository.save(newCheckout);
+    const userPaload = {
+      id: newCheckout.userId,
+      firstName: newCheckout.address.receiverName.split(' ')[0] ?? newCheckout.address.receiverName,
+      lastName: newCheckout.address.receiverName.split(' ')[1] ?? '',
+    };
+    await this.updateUserById(userPaload);
 
     const checkout = await this.checkoutRepository
       .createQueryBuilder('checkout')
@@ -170,19 +228,42 @@ export class CheckoutService {
     return checkout;
   }
 
-  async updateCheckout(id: string, checkoutDTO: Checkout, user: UserAuth) {
-    const checkout = await this.checkoutRepository.findOneOrFail({
-      where: {
-        id: Equal(id),
-      },
-    });
+  async updateCheckout(id: string, checkoutDTO: Checkout, user: UserAuth): Promise<CheckoutDTO> {
+    // const checkout = await this.checkoutRepository.findOneOrFail({
+    //   where: {
+    //     id: Equal(id),
+    //   },
+    // });
 
-    await this.isUserCheckoutOwner(checkout, user);
+    // await this.isUserCheckoutOwner(checkout, user);
 
-    return this.checkoutRepository.save({
-      ...checkout,
-      ...checkoutDTO,
-    });
+    // return this.checkoutRepository.save({
+    //   ...checkout,
+    //   ...checkoutDTO,
+    // });
+
+    await this.checkoutRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        status: checkoutDTO.status,
+      })
+      .where('id = :id', { id: id })
+      .execute();
+
+    const queryBuilder = await this.checkoutRepository
+      .createQueryBuilder('checkout')
+      .leftJoinAndSelect('checkout.address', 'address')
+      .leftJoinAndSelect('checkout.basket', 'basket')
+      .leftJoinAndSelect('basket.orderProducts', 'orderProduct')
+      .where('checkout.id = :id', { id: id })
+      .getOne();
+
+    if (!queryBuilder) {
+      throw new CustomExternalError([ErrorCode.ENTITY_NOT_FOUND], HttpStatus.NOT_FOUND);
+    }
+
+    return this.mergeCheckout(queryBuilder, '_');
   }
 
   async removeCheckout(id: string, user: UserAuth) {
@@ -191,7 +272,7 @@ export class CheckoutService {
         id: Equal(id),
       },
     });
-    await this.isUserCheckoutOwner(checkout, user);
+    this.isUserCheckoutOwner(checkout, user);
 
     return this.checkoutRepository.remove(checkout);
   }
@@ -234,5 +315,52 @@ export class CheckoutService {
       comment: checkout.comment,
       status: checkout.status,
     };
+  }
+
+  async sendMail(options: MailOptionsDTO) {
+    this.validateMailOptions(options);
+
+    // const result = await this.smptTransporter.sendMail({
+    //   ...options,
+    //   from: MAIL_FROM,
+    // });
+
+    // if (result.response === '250 2.0.0 Ok: queued') {
+    //   return {
+    //     status: HttpStatus.OK,
+    //     response: {
+    //       message: `Mail was successfully sent to ${options.to}`,
+    //     },
+    //   };
+    // }
+    let result: any;
+    await this.smptTransporter.sendMail(
+      {
+        ...options,
+        from: MAIL_FROM,
+      },
+      (err, info) => {
+        if (err) {
+          result = {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            response: {
+              message: `Mail was unsuccessfull to be sent to ${options.to}, ${err}`,
+            },
+          };
+        }
+        result = {
+          status: HttpStatus.OK,
+          response: {
+            message: `Mail was successfull to be sent to ${options.to}`,
+          },
+        };
+      },
+    );
+    return result;
+  }
+  validateMailOptions(options: MailOptionsDTO) {
+    if (!options.to || !options.html || !options.subject) {
+      throw new CustomExternalError([ErrorCode.MAIL_OPTIONS], HttpStatus.BAD_REQUEST);
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "wuluxe",
-  "version": "1.1.0",
-  "description": "Wuluxe app with typescript + express.js + typeorm",
+  "name": "Mardon",
+  "version": "1.0.0",
+  "description": "Mardon app with typescript + express.js + typeorm",
   "scripts": {
     "auth:dev": "cd ./authorization && npm run dev",
     "banners:dev": "cd ./banners && npm run dev",
@@ -14,6 +14,7 @@
     "swagger:dev": "cd ./swagger && npm run start",
     "wishlists:dev": "cd ./wishlists && npm run dev",
     "mailer:dev": "cd ./mailer && npm run dev",
+    "news:dev": "cd ./news && npm run dev",
     "typecheck": "tsc --noEmit --incremental false --tsBuildInfoFile null",
     "circular": "pnpm run prestart && madge --circular dist/",
     "lint": "eslint 'core/**/*'",
@@ -27,13 +28,14 @@
     "catelog:production": "cd ./catalog && npm run build && cp ./.env ./dist/catalog && cd ./dist/catalog && pm2 start main.js --name 'catalog' -- start",
     "images:production": "cd ./images && npm run build && cp ./.env ./dist/images && cd ./dist/images && pm2 start main.js --name 'images' -- start",
     "mailer:production": "cd ./mailer && npm run build && cp ./.env ./dist/mailer && cd ./dist/mailer && pm2 start main.js --name 'mailer' -- start",
+    "news:production": "cd ./news && npm run build && cp ./.env ./dist/news && cd ./dist/news && pm2 start main.js --name 'news' -- start",
     "orders:production": "cd ./orders && npm run build && cp ./.env ./dist/orders && cd ./dist/orders && pm2 start main.js --name 'orders' -- start",
     "questions:production": "cd ./questions && npm run build && cp ./.env ./dist/questions && cd ./dist/questions && pm2 start main.js --name 'questions' -- start",
     "reviews:production": "cd ./reviews && npm run build && cp ./.env ./dist/reviews && cd ./dist/reviews && pm2 start main.js --name 'reviews' -- start",
     "swagger:production": "cd ./swagger && npm run build && cp ./.env ./dist/swagger && cd ./dist/swagger && pm2 start main.js --name 'swagger' -- start",
     "wishlists:production": "cd ./wishlists && npm run build && cp ./.env ./dist/wishlists && cd ./dist/wishlists && pm2 start main.js --name 'wishlists' -- start",
-    "dev:server": "npm-run-all --parallel auth:dev banners:dev catalog:dev gateway:start images:dev orders:dev questions:dev reviews:dev wishlists:dev mailer:dev",
-    "pm2-start": "npm-run-all --sequential gateway:production auth:production banners:production catelog:production images:production mailer:production orders:production questions:production reviews:production swagger:production wishlists:production"
+    "dev:server": "npm-run-all --parallel auth:dev banners:dev catalog:dev gateway:start images:dev orders:dev questions:dev reviews:dev wishlists:dev mailer:dev news:dev",
+    "pm2-start": "npm-run-all --sequential gateway:production auth:production banners:production catelog:production images:production mailer:production news:production orders:production questions:production reviews:production swagger:production wishlists:production"
   },
   "keywords": [],
   "author": "",

@@ -27,6 +27,9 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
+  @Column('text', { nullable: true })
+  desc: string;
+
   @Column({ default: '' })
   image: string;
 
@@ -49,15 +52,25 @@ export class Category {
   @Column({ unique: true })
   url: string;
 
-  @OneToMany(() => Product, product => product.brand)
-  products?: Product[];
+  // @OneToMany(() => Product, product => product.brand)
+  // products?: Product[];
 
-  constructor(args?: { name: string; image: string; parent?: Category; url: string; parameters: Parameter[] }) {
+  constructor(args?: {
+    name: string;
+    desc: string;
+    image: string;
+    parent?: Category;
+    children: Category[];
+    url: string;
+    parameters: Parameter[];
+  }) {
     if (args) {
       this.name = args.name;
+      this.desc = args.desc;
       this.image = args.image;
       this.url = args.url;
       this.parent = args.parent;
+      this.children = args.children;
       this.parameters = args.parameters;
     }
   }

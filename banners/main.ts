@@ -1,7 +1,7 @@
-import path from "path";
-import "reflect-metadata";
-import { bootstrap } from "../core/bootstrap";
-import { BannerApp } from "./banner.app";
+import path from 'path';
+import 'reflect-metadata';
+import { bootstrap } from '../core/bootstrap';
+import { BannerApp } from './banner.app';
 import bannerDataSource from './banner.data-source';
 
 const controllerPaths = path.resolve(__dirname, './load-controllers.js');

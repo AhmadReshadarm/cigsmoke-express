@@ -11,18 +11,32 @@ export class SubsribeService {
   }
 
   async getSubscribers() {
-    return this.subscribeRepository.find();
+    return await this.subscribeRepository.find();
   }
 
   async createSubscribe(newSubscribe: Subscribe): Promise<Subscribe> {
-    return this.subscribeRepository.save(newSubscribe)
+    return this.subscribeRepository.save(newSubscribe);
   }
+  // : Promise<Subscribe>
+  async getSubscriberByEmail(email: string) {
+    return await this.subscribeRepository.findOne({
+      where: {
+        email: Equal(email),
+      },
+    });
+  }
+
+  // user = await this.userRepository.findOne({
+  //   where: {
+  //     email: Equal(email),
+  //   },
+  // });
 
   async removeSubscribe(email: string): Promise<Subscribe> {
     const mail = await this.subscribeRepository.findOneOrFail({
       where: {
         email: Equal(email),
-      }
+      },
     });
 
     return this.subscribeRepository.remove(mail);

@@ -6,7 +6,7 @@ const sendInvoice = async (data: any, userEmail: any) => {
     port: 465,
     secure: true,
     auth: {
-      user: 'checkout@wuluxe.ru',
+      user: 'checkout@nboz.ru',
       pass: process.env.CHECKOUT_MAIL_SECRET,
     },
     tls: {
@@ -18,8 +18,8 @@ const sendInvoice = async (data: any, userEmail: any) => {
   transporter.sendMail(
     {
       to: userEmail,
-      from: 'checkout@wuluxe.ru',
-      subject: `Ваш заказ на wuluxe.ru: ${userEmail}`,
+      from: 'checkout@nbhoz.ru',
+      subject: `Ваш заказ на nboz.ru: ${userEmail}`,
       html: data,
     },
     (error, info) => {

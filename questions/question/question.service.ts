@@ -26,7 +26,7 @@ export class QuestionService {
     const {
       productId,
       userId,
-      sortBy = 'productId',
+      sortBy = 'createdAt',
       orderBy = 'DESC',
       merge = 'true',
       offset = 0,
@@ -123,10 +123,14 @@ export class QuestionService {
   async getNewQuestionId(): Promise<string> {
     const lastElement = await this.questionRepository.find({
       order: { id: 'DESC' },
-      take: 1,
+      // take: 1,
     });
 
-    return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
+    const leatestElement = lastElement.sort(function (a, b) {
+      return Number(b.id) - Number(a.id);
+    });
+
+    return lastElement[0] ? String(+leatestElement[0].id + 1) : String(1);
   }
 
   async getNewReactionId(): Promise<string> {
@@ -137,9 +141,10 @@ export class QuestionService {
 
     return lastElement[0] ? String(+lastElement[0].id + 1) : String(1);
   }
-
+  //
   async createQuestion(newQuestion: Question): Promise<QuestionDTO> {
-    if (!(await this.getProductById(newQuestion.productId))) {
+    const prodcutId = await this.getProductById(newQuestion.productId);
+    if (!prodcutId) {
       throw new CustomExternalError([ErrorCode.PRODUCT_NOT_FOUND], HttpStatus.NOT_FOUND);
     }
 
@@ -241,6 +246,8 @@ export class QuestionService {
       id: user?.id,
       firstName: user?.firstName,
       lastName: user?.lastName,
+      role: user?.role,
+      // email: user?.email,
     };
 
     return {

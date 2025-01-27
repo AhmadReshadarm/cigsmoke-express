@@ -7,20 +7,17 @@ export class User {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column()
-  @IsNotEmpty()
+  @Column({ default: '' })
   firstName: string;
 
-  @Column()
-  @IsNotEmpty()
+  @Column({ default: '' })
   lastName: string;
 
   @Column({ unique: true })
   @IsNotEmpty()
   email: string;
 
-  @Column()
-  @IsNotEmpty()
+  @Column({ default: '' })
   password: string;
 
   @Column('boolean', { default: false })
@@ -28,6 +25,9 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.User })
   role: Role;
+
+  @Column({ default: '' })
+  image: string;
 
   @CreateDateColumn()
   createdAt?: Date;
@@ -42,6 +42,7 @@ export class User {
     password: string;
     isVerified: boolean;
     role: Role;
+    image: string;
   }) {
     if (args) {
       this.firstName = args.firstName;
@@ -50,6 +51,7 @@ export class User {
       this.password = args.password;
       this.isVerified = args.isVerified;
       this.role = args.role;
+      this.image = args.image;
     }
   }
 }

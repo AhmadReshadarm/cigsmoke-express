@@ -5,12 +5,10 @@
 /**/dist
 /**/.env
 /**/.env.local
-package-lock.json
-/**/package-lock.json
-**/package-lock.json
 
 .env
 docker-compose.local.yml
+.env.lunch.file
 
 .idea
 
@@ -19,6 +17,8 @@ images/files
 test.http
 http-client.env.json
 tes.json
-
+package-lock.json
+/**/package-lock.json
+**/package-lock.json
 #cache
 /**/webprojnpm-cache
