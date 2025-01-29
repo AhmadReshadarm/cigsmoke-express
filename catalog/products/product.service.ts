@@ -171,7 +171,7 @@ export class ProductService {
       .leftJoinAndSelect('product.category', 'category')
       // .leftJoinAndSelect('product.brand', 'brand')
       .leftJoinAndSelect('product.tags', 'tag')
-      .leftJoinAndSelect('category.parameters', 'parameter')
+      // .leftJoinAndSelect('category.parameters', 'parameter')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color')
@@ -243,10 +243,10 @@ export class ProductService {
       addAllVariants(newProduct.productVariants, created);
     }
 
-    if (newProduct.parameterProducts) {
-      counter = 0;
-      await this.createParameters(newProduct.parameterProducts, created.id, counter);
-    }
+    // if (newProduct.parameterProducts) {
+    //   counter = 0;
+    //   await this.createParameters(newProduct.parameterProducts, created.id, counter);
+    // }
 
     return created;
   }
@@ -259,26 +259,30 @@ export class ProductService {
       relations: ['productVariants'],
     });
 
-    const { parameterProducts, productVariants, ...others } = productDTO;
+    const {
+      //  parameterProducts,
+      productVariants,
+      ...others
+    } = productDTO;
 
     await this.productRepository.save({
       ...product,
       ...others,
     });
 
-    if (parameterProducts) {
-      await validation(parameterProducts);
+    // if (parameterProducts) {
+    //   await validation(parameterProducts);
 
-      if (product.parameterProducts) {
-        await Promise.all(
-          product.parameterProducts.map(async parameterProduct => {
-            await this.parameterProductsRepository.remove(parameterProduct);
-          }),
-        );
-      }
-      let counter = 0;
-      await this.createParameters(parameterProducts, product.id, counter);
-    }
+    //   if (product.parameterProducts) {
+    //     await Promise.all(
+    //       product.parameterProducts.map(async parameterProduct => {
+    //         await this.parameterProductsRepository.remove(parameterProduct);
+    //       }),
+    //     );
+    //   }
+    //   let counter = 0;
+    //   await this.createParameters(parameterProducts, product.id, counter);
+    // }
 
     let variants: ProductVariant[] = [];
 

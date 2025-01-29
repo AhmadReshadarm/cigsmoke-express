@@ -5,24 +5,23 @@ import { Parameter } from './parameter.entity';
 
 @Entity()
 export class ParameterProducts {
+  @PrimaryColumn()
+  productId: string;
+
+  // @ManyToOne(() => Product, (product) => product.parameterProducts, { cascade: true, onDelete: 'CASCADE' })
+  // product: Product
 
   @PrimaryColumn()
-  productId: string
+  parameterId: string;
 
-  @ManyToOne(() => Product, (product) => product.parameterProducts, { cascade: true, onDelete: 'CASCADE' })
-  product: Product
-
-  @PrimaryColumn()
-  parameterId: string
-
-  @ManyToOne(() => Parameter, (parameter) => parameter.parameterProducts, { cascade: true, onDelete: 'CASCADE' })
-  parameter: Parameter
+  @ManyToOne(() => Parameter, parameter => parameter.parameterProducts, { cascade: true, onDelete: 'CASCADE' })
+  parameter: Parameter;
 
   @IsString()
   @Column()
   value: string = '';
 
-  constructor(args?: { productId: string, parameterId: string, value: string, }) {
+  constructor(args?: { productId: string; parameterId: string; value: string }) {
     if (args) {
       this.productId = args.productId;
       this.parameterId = args.parameterId;

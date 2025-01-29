@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 // import { Brand } from './brand.entity';
 import { Category } from './category.entity';
-import { ParameterProducts } from './parameterProducts.entity';
+// import { ParameterProducts } from './parameterProducts.entity';
 import { ProductVariant } from './productVariant.entity';
 import { Tag } from './tag.entity';
 
@@ -54,8 +54,9 @@ export class Product {
   @JoinTable()
   tags?: Tag[];
 
-  @OneToMany(() => ParameterProducts, parameterProducts => parameterProducts.product)
-  parameterProducts: ParameterProducts[];
+  // @OneToMany(() => ParameterProducts, parameterProducts => parameterProducts.product)
+  // parameterProducts: ParameterProducts[];
+  // parameterProducts: Array<{ key: string; value: string }>;
 
   @OneToMany(() => ProductVariant, productVariant => productVariant.product)
   productVariants: ProductVariant[];
@@ -69,7 +70,8 @@ export class Product {
     url: string;
     // brand: Brand;
     tags?: Tag[];
-    parameterProducts: ParameterProducts[];
+    // parameterProducts: ParameterProducts[];
+    // parameterProducts: Array<{ key: string; value: string }>;
     productVariants: ProductVariant[];
   }) {
     if (args) {
@@ -81,7 +83,7 @@ export class Product {
       this.url = args.url;
       // this.brand = args.brand;
       this.tags = args.tags;
-      this.parameterProducts = args.parameterProducts;
+      // this.parameterProducts = args.parameterProducts;
       this.productVariants = args.productVariants;
     }
   }

@@ -95,22 +95,15 @@ export class CheckoutController {
       const invoiceData: string = generateInvoiceTemplet(payload);
 
       const emailAdminPayload = {
-        to: `info@nbhoz.ru`,
-        subject: `Заказ № ${created.id} на nbhoz.ru`,
+        to: `info@wuluxe.ru`,
+        subject: `Заказ № ${created.id} на wuluxe.ru`,
         html: invoiceData,
       };
       await this.checkoutService.sendMail(emailAdminPayload);
 
-      const emailAdminPayload_2 = {
-        to: `armaan0080@yahoo.com`,
-        subject: `Заказ № ${created.id} на nbhoz.ru`,
-        html: invoiceData,
-      };
-      await this.checkoutService.sendMail(emailAdminPayload_2);
-
       const emailUserPayload = {
         to: user.role !== Role.Admin ? user.email : req.body.address.receiverEmail,
-        subject: `Заказ № ${created.id} на nbhoz.ru`,
+        subject: `Заказ № ${created.id} на wuluxe.ru`,
         html: invoiceData,
       };
       await this.checkoutService.sendMail(emailUserPayload);
@@ -131,14 +124,10 @@ export class CheckoutController {
     }
     try {
       const payload = {
-        to: 'info@nbhoz.ru',
+        to: 'info@wuluxe.ru',
         subject: req.body.subject,
         html: req.body.html,
       };
-      adminResult = await this.checkoutService.sendMail(payload);
-      payload.to = 'armaan0080@yahoo.com';
-      adminResult = await this.checkoutService.sendMail(payload);
-      payload.to = 'exelon@hoz-mardon.ru';
       adminResult = await this.checkoutService.sendMail(payload);
     } catch (error) {
       console.log(adminResult);
@@ -229,7 +218,7 @@ export class CheckoutController {
       const invoiceData: string = generateUpdateInoviceTemplet(payload);
 
       const emailAdminPayload = {
-        to: `info@nbhoz.ru`,
+        to: `info@wuluxe.ru`,
         subject: `Статус заказа № ${updated.id} был изменен`,
         html: invoiceData,
       };

@@ -13,17 +13,17 @@ export class Parameter {
   @Column()
   name: string;
 
-  @ManyToOne(
-    () => Category,
-    (category) => category.parameters,
-    { cascade: true, onDelete: 'CASCADE' },
-  )
-  category: Category
+  // @ManyToOne(
+  //   () => Category,
+  //   (category) => category.parameters,
+  //   { cascade: true, onDelete: 'CASCADE' },
+  // )
+  category: Category;
 
-  @OneToMany(() => ParameterProducts, (parameterProducts) => parameterProducts.parameter)
-  parameterProducts: ParameterProducts[]
+  @OneToMany(() => ParameterProducts, parameterProducts => parameterProducts.parameter)
+  parameterProducts: ParameterProducts[];
 
-  constructor(args?: { name: string, category: Category }) {
+  constructor(args?: { name: string; category: Category }) {
     if (args) {
       this.name = args.name;
       this.category = args.category;

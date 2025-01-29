@@ -5,16 +5,8 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { OrderProduct, Product } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import axios from 'axios';
-import {
-  OrderProductDTO,
-  OrderProductQueryDTO,
-  OrderProductResponse,
-  ProductDTO,
-  UserAuth,
-  UserDTO,
-} from '../order.dtos';
-import { scope } from '../../core/middlewares/access.user';
-import { Role } from '../../core/enums/roles.enum';
+import { OrderProductQueryDTO, OrderProductResponse, UserDTO } from '../order.dtos';
+
 import { v4 } from 'uuid';
 import { PaginationDTO } from '../../core/lib/dto';
 

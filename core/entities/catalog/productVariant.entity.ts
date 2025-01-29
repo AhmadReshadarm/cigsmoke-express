@@ -34,6 +34,9 @@ export class ProductVariant {
   @Column('text', { nullable: true })
   images: string;
 
+  @Column('array', { nullable: true })
+  parameterProduct: Array<{ key: string; value: string }>;
+
   @ManyToOne(() => Product, product => product.productVariants, { cascade: true, onDelete: 'CASCADE' })
   product: Product;
 
@@ -45,6 +48,8 @@ export class ProductVariant {
     oldPrice?: number;
     // wholeSalePrice?: number;
     images: string;
+    parameterProduct: Array<{ key: string; value: string }>;
+
     product: Product;
     orderProducts: OrderProduct[];
   }) {
@@ -57,6 +62,7 @@ export class ProductVariant {
       this.available = args.available;
       this.color = args.color;
       this.images = args.images;
+      this.parameterProduct = args.parameterProduct;
     }
   }
 }

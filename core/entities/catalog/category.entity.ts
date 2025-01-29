@@ -2,20 +2,20 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
+  // JoinTable,
+  // ManyToMany,
+  // ManyToOne,
+  // OneToMany,
+  // OneToOne,
   PrimaryGeneratedColumn,
   Tree,
   TreeChildren,
   TreeParent,
   UpdateDateColumn,
 } from 'typeorm';
-import { Parameter } from './parameter.entity';
+// import { Parameter } from './parameter.entity';
 import { IsNotEmpty } from 'class-validator';
-import { Product } from './product.entity';
+// import { Product } from './product.entity';
 
 @Tree('closure-table')
 @Entity()
@@ -45,8 +45,8 @@ export class Category {
   @TreeChildren()
   children: Category[];
 
-  @OneToMany(() => Parameter, parameter => parameter.category)
-  parameters: Parameter[];
+  // @OneToMany(() => Parameter, parameter => parameter.category)
+  // parameters: Parameter[];
 
   @IsNotEmpty()
   @Column({ unique: true })
@@ -62,7 +62,7 @@ export class Category {
     parent?: Category;
     children: Category[];
     url: string;
-    parameters: Parameter[];
+    // parameters: Parameter[];
   }) {
     if (args) {
       this.name = args.name;
@@ -71,7 +71,7 @@ export class Category {
       this.url = args.url;
       this.parent = args.parent;
       this.children = args.children;
-      this.parameters = args.parameters;
+      // this.parameters = args.parameters;
     }
   }
 }

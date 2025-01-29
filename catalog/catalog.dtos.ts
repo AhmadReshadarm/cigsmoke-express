@@ -154,7 +154,7 @@ export class CreateCategoryDTO {
   @IsString()
   parentId?: string;
 
-  parameters: Parameter[];
+  // parameters: Parameter[];
 
   @IsNotEmpty()
   @IsString()
@@ -163,14 +163,14 @@ export class CreateCategoryDTO {
   parent?: Category;
 }
 
-export class CreateParameterDTO {
-  @IsNotEmpty()
-  name: string;
+// export class CreateParameterDTO {
+//   @IsNotEmpty()
+//   name: string;
 
-  category: Category;
-}
+//   category: Category;
+// }
 
 export interface ICreateCategoryAnswer {
   categoryId: string;
-  parametersIds: string[] | null;
+  // parametersIds: string[] | null;
 }

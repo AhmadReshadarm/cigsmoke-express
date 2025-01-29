@@ -41,8 +41,9 @@ export class ProductController {
 
   @Get('google')
   async getProductsGoogle(req: Request, resp: Response) {
+    const { limit } = req.query;
     try {
-      const products: any = await this.productService.getProducts({ limit: 100000 });
+      const products: any = await this.productService.getProducts({ limit: Number(limit) });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
 
       // const getProductVariantsImages = (productVariants?: ProductVariant[]) => {
@@ -58,7 +59,7 @@ export class ProductController {
         const images = this.productService.getProductVariantsImages(product.productVariants);
         const addetinalImages = images.map(image => `https://nbhoz.ru/api/images/${image}`);
         return {
-          'g:id': `${product?.productVariants![0]?.artical}`,
+          'g:id': `${product?.id}`,
           'g:title': `${product.name}`,
           'g:description': `${product?.desc?.includes('|') ? product.desc.split('|')[1] : product.desc}`,
           'g:link': `https://nbhoz.ru/product/${product.url}`,
@@ -102,8 +103,9 @@ export class ProductController {
 
   @Get('yandex')
   async getProductsYandex(req: Request, resp: Response) {
+    const { limit } = req.query;
     try {
-      const products: any = await this.productService.getProducts({ limit: 100000 });
+      const products: any = await this.productService.getProducts({ limit: Number(limit) });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
       const categoriesTree = await this.categoryService.getCategories({ limit: 1000 });
       const filteredCategoriesTree: Category[] = [];
@@ -182,8 +184,9 @@ export class ProductController {
 
   @Get('yandex-webmaster')
   async getProductsYandexWebMaster(req: Request, resp: Response) {
+    const { limit } = req.query;
     try {
-      const products: any = await this.productService.getProducts({ limit: 100000 });
+      const products: any = await this.productService.getProducts({ limit: Number(limit) });
       const parameters = await this.productService.getParameters({ limit: 1000 });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
       const categoriesTree = await this.categoryService.getCategories({ limit: 1000 });
@@ -212,14 +215,17 @@ export class ProductController {
         images.map(image => {
           picture.push({ '#': `https://nbhoz.ru/api/images/${image}` });
         });
+
         const param: any = [];
-        product.parameterProducts.map(paramObj => {
-          const parameter: any = parameters.rows.find(parameter => parameter.id === paramObj.parameterId);
-          if (paramObj.value == '-' || paramObj.value == '_' || paramObj.value == '') {
-            console.log('empty param');
-          } else {
-            param.push({ '@name': `${parameter.name}`, '#': paramObj.value });
-          }
+        product.productVariants[0].parameterProduct.map(paramObj => {
+          param.push({ '@name': `${paramObj.key}`, '#': paramObj.value });
+
+          // const parameter: any = parameters.rows.find(parameter => parameter.id === paramObj.parameterId);
+          // if (paramObj.value == '-' || paramObj.value == '_' || paramObj.value == '') {
+          //   console.log('empty param');
+          // } else {
+          //   param.push({ '@name': `${parameter.name}`, '#': paramObj.value });
+          // }
         });
 
         return {
@@ -372,8 +378,9 @@ export class ProductController {
   @Get('vk/:fileName')
   async getProductsVK(req: Request, resp: Response) {
     const { fileName } = req.params;
+    const { limit } = req.query;
     try {
-      const products: any = await this.productService.getProducts({ limit: 100000 });
+      const products: any = await this.productService.getProducts({ limit: Number(limit) });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
       const categoriesTree = await this.categoryService.getCategories({ limit: 1000 });
       const filteredCategoriesTree: Category[] = [];

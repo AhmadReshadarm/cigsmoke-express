@@ -6,16 +6,12 @@ import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decor
 import { isAdmin, verifyToken } from '../../core/middlewares';
 import { Mailing } from '../../core/entities';
 import { validate } from 'class-validator';
-import { MailOptionsDTO } from '../mailer.dtos';
 import { SubsribeService } from '../subscribe/subsribe.service';
 
 @singleton()
 @Controller('/mailings')
 export class MailingController {
-  constructor(
-    private mailingService: MailingService,
-    private subscribeService: SubsribeService,
-  ) {}
+  constructor(private mailingService: MailingService, private subscribeService: SubsribeService) {}
 
   @Get()
   @Middleware([verifyToken, isAdmin])

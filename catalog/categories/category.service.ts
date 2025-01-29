@@ -1,21 +1,32 @@
 import { singleton } from 'tsyringe';
 import { DataSource, Equal, Repository, TreeRepository } from 'typeorm';
-import { Category, Parameter } from '../../core/entities';
-import { CategoryQueryDTO, CreateCategoryDTO, CreateParameterDTO, ICreateCategoryAnswer } from '../catalog.dtos';
+import {
+  Category,
+  //  Parameter
+} from '../../core/entities';
+import {
+  CategoryQueryDTO,
+  CreateCategoryDTO,
+  //  CreateParameterDTO,
+  ICreateCategoryAnswer,
+} from '../catalog.dtos';
 import { PaginationDTO } from '../../core/lib/dto';
-import { validation } from '../../core/lib/validator';
-import { ParameterService } from '../../catalog/parameters/parameter.service';
+// import { validation } from '../../core/lib/validator';
+// import { ParameterService } from '../../catalog/parameters/parameter.service';
 
 @singleton()
 export class CategoryService {
   private categoryRepository: Repository<Category>;
   private categoryTreeRepository: TreeRepository<Category>;
-  private parametersRepository: Repository<Parameter>;
+  // private parametersRepository: Repository<Parameter>;
 
-  constructor(dataSource: DataSource, private parameterService: ParameterService) {
+  constructor(
+    dataSource: DataSource,
+    // private parameterService: ParameterService
+  ) {
     this.categoryRepository = dataSource.getRepository(Category);
     this.categoryTreeRepository = dataSource.getTreeRepository(Category);
-    this.parametersRepository = dataSource.getRepository(Parameter);
+    // this.parametersRepository = dataSource.getRepository(Parameter);
   }
 
   async getCategories(queryParams: CategoryQueryDTO): Promise<PaginationDTO<Category>> {
@@ -23,7 +34,7 @@ export class CategoryService {
       name,
       image,
       url,
-      parameters,
+      // parameters,
       parent,
       children,
       sortBy = 'name',
@@ -34,7 +45,7 @@ export class CategoryService {
 
     const queryBuilder = this.categoryRepository
       .createQueryBuilder('category')
-      .leftJoinAndSelect('category.parameters', 'parameter')
+      // .leftJoinAndSelect('category.parameters', 'parameter')
       .leftJoinAndSelect('category.children', 'categoryChildren')
       .leftJoinAndSelect('category.parent', 'categoryParent');
 
@@ -47,9 +58,9 @@ export class CategoryService {
     if (url) {
       queryBuilder.andWhere('category.url LIKE :url', { url: `%${url}%` });
     }
-    if (parameters) {
-      queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: parameters });
-    }
+    // if (parameters) {
+    //   queryBuilder.andWhere('parameter.name IN (:...parameters)', { parameters: parameters });
+    // }
     if (parent) {
       queryBuilder.andWhere('categoryParent.url = :parent', { parent: parent });
     }
@@ -80,29 +91,29 @@ export class CategoryService {
     return await this.categoryTreeRepository.findTrees();
   }
 
-  async createParameters(parameters: CreateParameterDTO[], category: Category): Promise<string[]> {
-    const ids = parameters.map(async parameter => {
-      parameter.category = category;
-      const created = await this.parametersRepository.save(parameter);
-      return created.id;
-    });
+  // async createParameters(parameters: CreateParameterDTO[], category: Category): Promise<string[]> {
+  //   const ids = parameters.map(async parameter => {
+  //     parameter.category = category;
+  //     const created = await this.parametersRepository.save(parameter);
+  //     return created.id;
+  //   });
 
-    return Promise.all(ids);
-  }
+  //   return Promise.all(ids);
+  // }
 
   async createCategory(categoryDTO: CreateCategoryDTO): Promise<ICreateCategoryAnswer> {
-    const { parameters } = categoryDTO;
+    // const { parameters } = categoryDTO;
 
-    if (parameters) {
-      await validation(parameters);
-    }
+    // if (parameters) {
+    //   await validation(parameters);
+    // }
 
     const created = await this.categoryRepository.save(categoryDTO);
-    const parametersIds = parameters ? await this.createParameters(parameters, created) : null;
+    // const parametersIds = parameters ? await this.createParameters(parameters, created) : null;
 
     return {
       categoryId: created.id,
-      parametersIds: parametersIds,
+      // parametersIds: parametersIds,
     };
   }
 
@@ -111,43 +122,43 @@ export class CategoryService {
       where: {
         id: Equal(id),
       },
-      relations: ['parameters'],
+      // relations: ['parameters'],
     });
 
-    category.parameters.forEach(parameter => {
-      const curParameter = categoryDTO.parameters.find(({ id }) => id == parameter.id);
+    // category.parameters.forEach(parameter => {
+    //   const curParameter = categoryDTO.parameters.find(({ id }) => id == parameter.id);
 
-      if (!curParameter) {
-        this.parametersRepository.remove(parameter);
-        category.parameters = category.parameters.filter(curParameter => curParameter.id !== parameter.id);
-      }
-    });
+    //   if (!curParameter) {
+    //     this.parametersRepository.remove(parameter);
+    //     category.parameters = category.parameters.filter(curParameter => curParameter.id !== parameter.id);
+    //   }
+    // });
 
-    const parameters = category.parameters;
+    // const parameters = category.parameters;
 
-    for (const { id, name } of categoryDTO.parameters) {
-      const parameter = await this.parametersRepository.findOne({
-        where: {
-          id: Equal(id),
-        },
-      });
+    // for (const { id, name } of categoryDTO.parameters) {
+    //   const parameter = await this.parametersRepository.findOne({
+    //     where: {
+    //       id: Equal(id),
+    //     },
+    //   });
 
-      if (!parameter) {
-        const parameterData = new Parameter({ name, category });
-        const createdParameter = await this.parameterService.createParameter(parameterData);
-        parameters.push(createdParameter);
-      }
+    //   if (!parameter) {
+    //     const parameterData = new Parameter({ name, category });
+    //     const createdParameter = await this.parameterService.createParameter(parameterData);
+    //     parameters.push(createdParameter);
+    //   }
 
-      if (parameter) {
-        const updatedParameter = await this.parameterService.updateParameter(parameter.id, {
-          ...parameter,
-          category,
-          name,
-        });
-        const curParameter = parameters.find(parameter => parameter.id == updatedParameter.id)!;
-        curParameter.name = name;
-      }
-    }
+    //   if (parameter) {
+    //     const updatedParameter = await this.parameterService.updateParameter(parameter.id, {
+    //       ...parameter,
+    //       category,
+    //       name,
+    //     });
+    //     const curParameter = parameters.find(parameter => parameter.id == updatedParameter.id)!;
+    //     curParameter.name = name;
+    //   }
+    // }
 
     const updated = await this.categoryRepository.save({
       ...category,
@@ -162,7 +173,7 @@ export class CategoryService {
     return {
       // ...category,
       ...updated,
-      parameters: parameters.map(({ id, name }) => ({ id, name })),
+      // parameters: parameters.map(({ id, name }) => ({ id, name })),
     };
   }
 

@@ -34,7 +34,7 @@ const generateUpdateInoviceTemplet = (payload: any) => {
         <span>Статус вашего заказа был изменен на ${payload.status}</span>
       </div>
       <div>
-        <span>Вы также можете проверить статус вашего заказа здесь. <a href="https://nbhoz.ru/orders">NBHOZ > Мои заказы</a></span>
+        <span>Вы также можете проверить статус вашего заказа здесь. <a href="https://wuluxe.ru/orders">WULUXE > Мои заказы</a></span>
       </div>
   `;
 };
@@ -103,9 +103,9 @@ const generateInvoiceTemplet = (payload: templetDTO) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href="https://nbhoz.ru/favicon.svg" />
-    <link rel="stylesheet" href="https://nbhoz.ru/emailStyle.css" />
-    <title>Форма заказа | NBHOZ</title>
+    <link rel="shortcut icon" href="https://wuluxe.ru/favicon.svg" />
+    <link rel="stylesheet" href="https://wuluxe.ru/emailStyle.css" />
+    <title>Форма заказа | WULUXE</title>
   </head>
   <body>
     <div class="body-wrapper" style="width: 90%;  padding: 40px;">
@@ -131,7 +131,7 @@ const generateInvoiceTemplet = (payload: templetDTO) => {
         <div class="product-card">
           <img
             class="product-img"
-            src="https://nbhoz.ru/api/images/${orderproduct.productVariant?.images?.split(',')[0]}"
+            src="https://wuluxe.ru/api/images/${orderproduct.productVariant?.images?.split(',')[0]}"
             alt="${orderproduct.product?.name}"
             style="width: 100%; height: 150px; min-height: 150px; border: 1px solid gray; border-radius: 20px;"
           />
