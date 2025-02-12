@@ -19,16 +19,17 @@ import { UserService } from '../services/user.service';
 @Controller('/auth')
 export class AuthController {
   constructor(private userService: UserService) {
+    // -------------------- ⚠ dev use only 👇 ⚠ ----------------------
     (async () => {
       const admin = await this.userService.getAdmin();
       if (!admin) {
         const salt = await bcrypt.genSalt(10);
-        const hashedPass = await bcrypt.hash('arm12345', salt);
+        const hashedPass = await bcrypt.hash(process.env.INIT_ADMIN_PASS!, salt);
         await this.userService.createUser({
           firstName: 'admin',
           lastName: 'admin',
           isVerified: true,
-          email: 'admin@admin.ru',
+          email: process.env.INIT_ADMIN_EMAIL,
           password: hashedPass,
           role: Role.Admin,
         } as any);
@@ -42,13 +43,13 @@ export class AuthController {
 
     if (!admin) {
       const salt = await bcrypt.genSalt(10);
-      const hashedPass = await bcrypt.hash('arm12345', salt);
+      const hashedPass = await bcrypt.hash(process.env.INIT_ADMIN_PASS!, salt);
 
       const user = await this.userService.createUser({
         firstName: 'admin',
         lastName: 'admin',
         isVerified: true,
-        email: 'admin@admin.ru',
+        email: process.env.INIT_ADMIN_EMAIL,
         password: hashedPass,
         role: Role.Admin,
       } as any);
@@ -60,6 +61,8 @@ export class AuthController {
 
     resp.status(HttpStatus.CREATED).json({ info: 'already exists', user: admin });
   }
+
+  // -------------------- ⚠ dev use only 👆 ⚠ ----------------------
 
   @Post('signup')
   async signUp(req: Request, resp: Response) {
