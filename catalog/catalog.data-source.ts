@@ -3,8 +3,8 @@ import {
   // Brand,
   Category,
   Color,
-  Parameter,
-  ParameterProducts,
+  // Parameter,
+  // ParameterProducts,
   Product,
   ProductVariant,
   Tag,
@@ -23,9 +23,11 @@ const dataSource = new DataSource({
   synchronize: true,
   migrationsRun: false,
   charset: 'utf8mb4',
-  entities: [Product, Category, Color, Parameter, Tag, ParameterProducts, ProductVariant],
+  entities: [Product, Category, Color, Tag, ProductVariant],
 });
 // Size,
 //  Foryou,
 // Brand,
+// Parameter,
+// ParameterProducts,
 export default dataSource;

@@ -2,25 +2,28 @@ import { injectable } from 'tsyringe';
 import { DataSource, Equal, Repository } from 'typeorm';
 import { CustomExternalError } from '../../core/domain/error/custom.external.error';
 import { ErrorCode } from '../../core/domain/error/error.code';
-import { ParameterProducts, Product, ProductVariant, Review, User, Parameter } from '../../core/entities';
+import { Product, ProductVariant, Review, User } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ParameterQueryDTO, ProductDTO, ProductQueryDTO } from '../catalog.dtos';
 import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
 import axios from 'axios';
 import { validation } from '../../core/lib/validator';
-
+import { ProductParameter } from 'core/entities/catalog/productParameters.entity';
+// , Parameter ParameterProducts,
 @injectable()
 export class ProductService {
   private productRepository: Repository<Product>;
-  private parameterProductsRepository: Repository<ParameterProducts>;
+  // private parameterProductsRepository: Repository<ParameterProducts>;
   private productVariantRepository: Repository<ProductVariant>;
-  private parameterRepository: Repository<Parameter>;
+  // private parameterRepository: Repository<Parameter>;
+  private productParameterRepository: Repository<ProductParameter>;
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
-    this.parameterProductsRepository = dataSource.getRepository(ParameterProducts);
+    // this.parameterProductsRepository = dataSource.getRepository(ParameterProducts);
     this.productVariantRepository = dataSource.getRepository(ProductVariant);
-    this.parameterRepository = dataSource.getRepository(Parameter);
+    // this.parameterRepository = dataSource.getRepository(Parameter);
+    this.productParameterRepository = dataSource.getRepository(ProductParameter);
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
@@ -51,7 +54,8 @@ export class ProductService {
       .leftJoinAndSelect('product.tags', 'tag')
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
-      .leftJoinAndSelect('productVariant.color', 'color');
+      .leftJoinAndSelect('productVariant.color', 'color')
+      .leftJoinAndSelect('productVariant.parameters', 'parameters');
 
     // if (name) {
     //   queryBuilder
@@ -175,6 +179,7 @@ export class ProductService {
       .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color')
+      .leftJoinAndSelect('productVariant.parameters', 'parameters')
       .where('product.id = :id', { id: id })
       .getOne();
 
@@ -191,14 +196,14 @@ export class ProductService {
   //     return await this.parameterProductsRepository.save(parameter);
   //   });
   // }
-  createParameters = async (parameters: ParameterProducts[], id: string, counter: number) => {
-    if (parameters.length > counter) {
-      parameters[counter].productId = id;
-      await this.parameterProductsRepository.save(parameters[counter]);
-      counter = counter + 1;
-      this.createParameters(parameters, id, counter);
-    }
-  };
+  // createParameters = async (parameters: ParameterProducts[], id: string, counter: number) => {
+  //   if (parameters.length > counter) {
+  //     parameters[counter].productId = id;
+  //     await this.parameterProductsRepository.save(parameters[counter]);
+  //     counter = counter + 1;
+  //     this.createParameters(parameters, id, counter);
+  //   }
+  // };
 
   async createProductVariant(variant: ProductVariant, product: Product) {
     variant.product = product;
@@ -216,6 +221,7 @@ export class ProductService {
       .leftJoinAndSelect('parameterProducts.parameter', 'parameter')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color')
+      .leftJoinAndSelect('productVariant.parameters', 'parameters')
       .where('product.url = :url', { url: url })
       .getOne();
 
@@ -228,25 +234,22 @@ export class ProductService {
 
   async createProduct(newProduct: Product): Promise<Product> {
     const created = await this.productRepository.save(new Product(newProduct));
-    let counter = 0;
-    if (newProduct.productVariants) {
-      // });
-      counter = 0;
-
-      const addAllVariants = async (variants: ProductVariant[], product: Product) => {
-        if (variants.length > counter) {
-          await this.createProductVariant(variants[counter], product);
-          counter = counter + 1;
-          addAllVariants(variants, product);
-        }
-      };
-      addAllVariants(newProduct.productVariants, created);
-    }
-
-    // if (newProduct.parameterProducts) {
+    // let counter = 0;
+    // if (newProduct.productVariants) {
     //   counter = 0;
-    //   await this.createParameters(newProduct.parameterProducts, created.id, counter);
+    //   const addAllVariants = async (variants: ProductVariant[], product: Product) => {
+    //     if (variants.length > counter) {
+    //       await this.createProductVariant(variants[counter], product);
+    //       counter = counter + 1;
+    //       addAllVariants(variants, product);
+    //     }
+    //   };
+    //   addAllVariants(newProduct.productVariants, created);
     // }
+    // return created;
+    if (newProduct.productVariants) {
+      await Promise.all(newProduct.productVariants.map(variant => this.createProductVariant(variant, created)));
+    }
 
     return created;
   }
@@ -256,67 +259,64 @@ export class ProductService {
       where: {
         id: Equal(id),
       },
-      relations: ['productVariants'],
+      relations: ['productVariants', 'productVariants.parameters'],
     });
 
-    const {
-      //  parameterProducts,
-      productVariants,
-      ...others
-    } = productDTO;
+    const { productVariants, ...others } = productDTO;
 
     await this.productRepository.save({
       ...product,
       ...others,
     });
 
-    // if (parameterProducts) {
-    //   await validation(parameterProducts);
-
-    //   if (product.parameterProducts) {
-    //     await Promise.all(
-    //       product.parameterProducts.map(async parameterProduct => {
-    //         await this.parameterProductsRepository.remove(parameterProduct);
-    //       }),
-    //     );
-    //   }
-    //   let counter = 0;
-    //   await this.createParameters(parameterProducts, product.id, counter);
-    // }
-
     let variants: ProductVariant[] = [];
 
     if (productVariants) {
       await validation(productVariants);
 
-      product.productVariants?.forEach(variant => {
-        const curVariant = productDTO.productVariants?.find(({ id }) => variant.id == id?.toString());
+      // product.productVariants?.forEach(variant => {
+      //   const curVariant = productDTO.productVariants?.find(({ id }) => variant.id == id?.toString());
 
-        if (!curVariant) {
-          this.productVariantRepository.remove(variant);
-          product.productVariants = product.productVariants?.filter(curVariant => curVariant.id !== variant.id);
-        }
-      });
+      //   if (!curVariant) {
+      //     this.productVariantRepository.remove(variant);
+      //     product.productVariants = product.productVariants?.filter(curVariant => curVariant.id !== variant.id);
+      //   }
+      // });
+      const removedVariants = product.productVariants?.filter(
+        existingVariant => !productDTO.productVariants?.some(newVariant => newVariant.id === existingVariant.id),
+      );
+      await this.productVariantRepository.remove(removedVariants ?? []);
 
       variants = product.productVariants;
 
-      for (const variantDTO of productDTO.productVariants) {
-        const variant = await this.productVariantRepository.findOne({
-          where: {
-            id: Equal(variantDTO.id),
-          },
-        });
+      // for (const variantDTO of productDTO.productVariants) {
+      //   const variant = await this.productVariantRepository.findOne({
+      //     where: {
+      //       id: Equal(variantDTO.id),
+      //     },
+      //   });
 
-        if (!variant) {
-          const variantData = new ProductVariant({ ...(variantDTO as any) });
-          const newVariant = await this.createProductVariant(variantData, product);
-          variants.push(newVariant);
-        }
+      //   if (!variant) {
+      //     const variantData = new ProductVariant({ ...(variantDTO as any) });
+      //     const newVariant = await this.createProductVariant(variantData, product);
+      //     variants.push(newVariant);
+      //   }
 
-        if (variant) {
-          await this.productVariantRepository.update(variant.id, { ...variant, ...variantDTO });
-        }
-      }
+      //   if (variant) {
+      //     await this.productVariantRepository.update(variant.id, { ...variant, ...variantDTO });
+      //   }
+      // }
+
+      // Update or create variants
+      variants = await Promise.all(
+        productDTO.productVariants.map(async variantDTO => {
+          if (variantDTO.id) {
+            await this.productVariantRepository.update(variantDTO.id, variantDTO);
+            return this.productVariantRepository.findOneBy({ id: variantDTO.id })!;
+          }
+          return this.createProductVariant(variantDTO as ProductVariant, product);
+        }),
+      );
     }
 
     return {
@@ -475,15 +475,15 @@ export class ProductService {
     }
   }
 
-  async getParameter(id: string): Promise<Parameter> {
-    const parameter = await this.parameterRepository.findOneOrFail({
-      where: {
-        id: Equal(id),
-      },
-    });
+  // async getParameter(id: string): Promise<Parameter> {
+  //   const parameter = await this.parameterRepository.findOneOrFail({
+  //     where: {
+  //       id: Equal(id),
+  //     },
+  //   });
 
-    return parameter;
-  }
+  //   return parameter;
+  // }
 
   getProductVariantsImages(productVariants?: ProductVariant[]) {
     let images: string[] = [];
@@ -494,23 +494,9 @@ export class ProductService {
     return images;
   }
 
-  async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<Parameter>> {
-    const { name, categories, sortBy = 'id', orderBy = 'ASC', offset = 0, limit = 500 } = queryParams;
+  // TODO:  use this if you want to see if it works
 
-    const queryBuilder = await this.parameterRepository.createQueryBuilder('parameter');
-
-    if (name) {
-      queryBuilder.andWhere('parameter.name LIKE :name', { name: `%${name}%` });
-    }
-    if (categories) {
-      queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) });
-    }
-
-    queryBuilder.orderBy(`parameter.${sortBy}`, orderBy).skip(offset).take(limit);
-
-    return {
-      rows: await queryBuilder.getMany(),
-      length: await queryBuilder.getCount(),
-    };
-  }
+  // getProductVariantsImages(productVariants?: ProductVariant[]) {
+  //   return productVariants?.flatMap(variant => variant.images ?? []) ?? [];
+  // }
 }

@@ -187,7 +187,7 @@ export class ProductController {
     const { limit } = req.query;
     try {
       const products: any = await this.productService.getProducts({ limit: Number(limit) });
-      const parameters = await this.productService.getParameters({ limit: 1000 });
+      // const parameters = await this.productService.getParameters({ limit: 1000 });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
       const categoriesTree = await this.categoryService.getCategories({ limit: 1000 });
       const filteredCategoriesTree: Category[] = [];
@@ -217,7 +217,7 @@ export class ProductController {
         });
 
         const param: any = [];
-        product.productVariants[0].parameterProduct.map(paramObj => {
+        product.productVariants[0].parameters.map(paramObj => {
           param.push({ '@name': `${paramObj.key}`, '#': paramObj.value });
 
           // const parameter: any = parameters.rows.find(parameter => parameter.id === paramObj.parameterId);

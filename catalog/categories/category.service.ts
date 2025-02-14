@@ -81,7 +81,8 @@ export class CategoryService {
       where: {
         id: Equal(id),
       },
-      relations: ['parent', 'children', 'parameters'],
+      relations: ['parent', 'children'],
+      // 'parameters'
     });
 
     return category;
