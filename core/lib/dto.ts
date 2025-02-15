@@ -3,6 +3,12 @@ export interface PaginationDTO<I> {
   length: number;
 }
 
+export interface ProductPaginationDTO<I> {
+  rows: I[];
+  length: number;
+  parameterGroups?: { [key: string]: string[] };
+}
+
 export interface RatingDTO {
   '1'?: number;
   '2'?: number;

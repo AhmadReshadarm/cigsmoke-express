@@ -6,7 +6,7 @@ import { Column, CreateDateColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, 
 // Brand, Parameter, ParameterProducts,
 export interface ProductQueryDTO {
   readonly name?: string;
-  readonly artical?: string;
+  // readonly artical?: string;
   readonly minPrice?: number;
   readonly maxPrice?: number;
   readonly desc?: string;
@@ -27,6 +27,7 @@ export interface ProductQueryDTO {
   readonly offset?: number;
   readonly limit?: number;
   readonly image?: string;
+  parameters?: string[];
 }
 
 export interface TagQueryDTO {
@@ -41,13 +42,23 @@ export interface TagQueryDTO {
   readonly offset?: number;
 }
 
-export interface ParameterQueryDTO {
-  readonly name?: string;
-  readonly categories?: string;
-  readonly sortBy?: string;
-  readonly orderBy?: 'DESC' | 'ASC';
-  readonly limit?: number;
-  readonly offset?: number;
+// export interface ParameterQueryDTO {
+//   readonly name?: string;
+//   readonly categories?: string;
+//   readonly sortBy?: string;
+//   readonly orderBy?: 'DESC' | 'ASC';
+//   readonly limit?: number;
+//   readonly offset?: number;
+// }
+
+export class ParameterQueryDTO {
+  variantId?: string;
+  key?: string;
+  value?: string;
+  sortBy?: string;
+  orderBy?: 'ASC' | 'DESC';
+  offset?: number;
+  limit?: number;
 }
 
 export interface ColorQueryDTO {

@@ -10,11 +10,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-// import { Brand } from './brand.entity';
 import { Category } from './category.entity';
-// import { ParameterProducts } from './parameterProducts.entity';
 import { ProductVariant } from './productVariant.entity';
 import { Tag } from './tag.entity';
+import { ProductParameter } from './productParameters.entity';
 
 @Entity()
 export class Product {
@@ -42,10 +41,6 @@ export class Product {
   @ManyToOne(() => Category, category => category.id, { nullable: false, cascade: true, onDelete: 'CASCADE' })
   category: Category;
 
-  // @IsNotEmpty()
-  // @ManyToOne(() => Brand, brand => brand.id, { nullable: false, cascade: true, onDelete: 'CASCADE' })
-  // brand: Brand;
-
   @IsNotEmpty()
   @Column({ unique: true })
   url: string;
@@ -54,9 +49,11 @@ export class Product {
   @JoinTable()
   tags?: Tag[];
 
-  // @OneToMany(() => ParameterProducts, parameterProducts => parameterProducts.product)
-  // parameterProducts: ParameterProducts[];
-  // parameterProducts: Array<{ key: string; value: string }>;
+  @OneToMany(() => ProductParameter, param => param.variant, {
+    cascade: true,
+    nullable: true,
+  })
+  parameters: ProductParameter[];
 
   @OneToMany(() => ProductVariant, productVariant => productVariant.product)
   productVariants: ProductVariant[];
@@ -68,11 +65,9 @@ export class Product {
     keywords: string;
     category: Category;
     url: string;
-    // brand: Brand;
     tags?: Tag[];
-    // parameterProducts: ParameterProducts[];
-    // parameterProducts: Array<{ key: string; value: string }>;
     productVariants: ProductVariant[];
+    parameters: ProductParameter[];
   }) {
     if (args) {
       this.name = args.name;
@@ -81,10 +76,9 @@ export class Product {
       this.keywords = args.keywords;
       this.category = args.category;
       this.url = args.url;
-      // this.brand = args.brand;
       this.tags = args.tags;
-      // this.parameterProducts = args.parameterProducts;
       this.productVariants = args.productVariants;
+      this.parameters = args.parameters;
     }
   }
 }

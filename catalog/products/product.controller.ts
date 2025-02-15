@@ -511,12 +511,35 @@ export class ProductController {
     }
   }
 
+  // @Post()
+  // @Middleware([verifyToken, isAdmin])
+  // async createProduct(req: Request, resp: Response) {
+  //   const { tags, sizes } = req.body;
+  //   try {
+  //     const newProduct = await validation(new Product(req.body));
+
+  //     tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
+  //     const created = await this.productService.createProduct(newProduct);
+
+  //     resp.status(HttpStatus.CREATED).json({ id: created.id });
+  //   } catch (error) {
+  //     resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
+  //   }
+  // }
+
   @Post()
   @Middleware([verifyToken, isAdmin])
   async createProduct(req: Request, resp: Response) {
-    const { tags, sizes } = req.body;
+    const { tags, sizes, category, ...productData } = req.body;
     try {
-      const newProduct = await validation(new Product(req.body));
+      const newProduct = new Product(productData);
+
+      const categoryEntity = await this.categoryService.getCategory(String(category));
+
+      if (!categoryEntity) {
+        return resp.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid category ID provided.' });
+      }
+      newProduct.category = categoryEntity;
 
       tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
       const created = await this.productService.createProduct(newProduct);

@@ -1,82 +1,56 @@
-// import { singleton } from 'tsyringe';
-// import { DataSource, Equal, Repository } from 'typeorm';
-// import { Parameter, Tag } from '../../core/entities';
-// import { validation } from '../../core/lib/validator';
-// import { ParameterQueryDTO, TagQueryDTO } from '../catalog.dtos';
-// import { PaginationDTO } from '../../core/lib/dto';
+import { injectable } from 'tsyringe';
+import { DataSource, Equal, Repository } from 'typeorm';
+import { ProductParameter } from '../../core/entities';
+import { ParameterQueryDTO } from '../catalog.dtos';
+import { PaginationDTO } from '../../core/lib/dto';
 
-// @singleton()
-// export class ParameterService {
-//   private parameterRepository: Repository<Parameter>;
+@injectable()
+export class ParameterService {
+  private parameterRepository: Repository<ProductParameter>;
 
-//   constructor(dataSource: DataSource) {
-//     this.parameterRepository = dataSource.getRepository(Parameter);
-//   }
+  constructor(dataSource: DataSource) {
+    this.parameterRepository = dataSource.getRepository(ProductParameter);
+  }
 
-//   async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<Parameter>> {
-//     const { name, categories, sortBy = 'name', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+  async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<ProductParameter>> {
+    const { key, value, variantId, sortBy = 'name', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
-//     const queryBuilder = await this.parameterRepository
-//       .createQueryBuilder('parameter')
-//       .leftJoinAndSelect('parameter.categories', 'category');
+    const queryBuilder = this.parameterRepository.createQueryBuilder('parameter');
 
-//     if (name) {
-//       queryBuilder.andWhere('parameter.name LIKE :name', { name: `%${name}%` });
-//     }
-//     if (categories) {
-//       queryBuilder.andWhere('category.url IN (:...categories)', { categories: JSON.parse(categories) });
-//     }
+    if (variantId) {
+      queryBuilder.andWhere('parameter.variantId = :variantId', { variantId });
+    }
+    if (key) {
+      queryBuilder.andWhere('parameter.key = :key', { key });
+    }
+    if (value) {
+      queryBuilder.andWhere('parameter.value = :value', { value });
+    }
 
-//     queryBuilder.orderBy(`parameter.${sortBy}`, orderBy).skip(offset).take(limit);
+    queryBuilder.orderBy(`parameter.${sortBy}`, orderBy).skip(offset).take(limit);
 
-//     return {
-//       rows: await queryBuilder.getMany(),
-//       length: await queryBuilder.getCount(),
-//     };
-//   }
+    return {
+      rows: await queryBuilder.getMany(),
+      length: await queryBuilder.getCount(),
+    };
+  }
 
-//   async getParameter(id: string): Promise<Parameter> {
-//     const parameter = await this.parameterRepository.findOneOrFail({
-//       where: {
-//         id: Equal(id),
-//       },
-//     });
+  async getParameter(id: string): Promise<ProductParameter> {
+    return this.parameterRepository.findOneOrFail({
+      where: { id: Equal(id) },
+    });
+  }
 
-//     return parameter;
-//   }
+  async createParameter(parameter: ProductParameter): Promise<ProductParameter> {
+    return this.parameterRepository.save(parameter);
+  }
 
-//   async getParametersByIds(ids: string[]): Promise<Parameter[]> {
-//     const parametersPromises = ids?.map(async parameterId => {
-//       return this.getParameter(parameterId);
-//     });
+  async updateParameter(id: string, parameter: ProductParameter): Promise<ProductParameter> {
+    await this.parameterRepository.update(id, parameter);
+    return this.getParameter(id);
+  }
 
-//     return Promise.all(parametersPromises ?? []);
-//   }
-
-//   async createParameter(parameterDTO: Parameter): Promise<Parameter> {
-//     return this.parameterRepository.save(parameterDTO);
-//   }
-
-//   async updateParameter(id: string, parameterDTO: Parameter) {
-//     const parameter = await this.parameterRepository.findOneOrFail({
-//       where: {
-//         id: Equal(id),
-//       },
-//     });
-
-//     return this.parameterRepository.save({
-//       ...parameter,
-//       ...parameterDTO,
-//     });
-//   }
-
-//   async removeParameter(id: string) {
-//     const parameter = await this.parameterRepository.findOneOrFail({
-//       where: {
-//         id: Equal(id),
-//       },
-//     });
-
-//     return this.parameterRepository.remove(parameter);
-//   }
-// }
+  async removeParameter(id: string): Promise<void> {
+    await this.parameterRepository.delete(id);
+  }
+}

@@ -7,6 +7,7 @@ import {
   // ParameterProducts,
   Product,
   ProductVariant,
+  ProductParameter,
   Tag,
   // Size,
   // Foryou,
@@ -23,7 +24,7 @@ const dataSource = new DataSource({
   synchronize: true,
   migrationsRun: false,
   charset: 'utf8mb4',
-  entities: [Product, Category, Color, Tag, ProductVariant],
+  entities: [Product, Category, Color, Tag, ProductVariant, ProductParameter],
 });
 // Size,
 //  Foryou,

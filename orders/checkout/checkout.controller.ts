@@ -1,17 +1,13 @@
-// import webpush from 'web-push';
 import { Role } from '../../core/enums/roles.enum';
 import { Request, Response, NextFunction } from 'express';
 import { singleton } from 'tsyringe';
 import { Controller, Delete, Get, Middleware, Post, Put } from '../../core/decorators';
-import { Checkout, Parameter, Subscription } from '../../core/entities';
+import { Checkout, Subscription } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { validation } from '../../core/lib/validator';
 import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
 import { generateInvoiceTemplet, generateUpdateInoviceTemplet } from '../../orders/functions/createInvoice';
-// import { sendInvoice } from '../../orders/functions/send.mail';
 import { CheckoutService } from './checkout.service';
-// import { invoiceTamplate } from '../functions/invoice.tamplate';
-// import { CheckoutStatus } from 'core/enums/checkout-status.enum';
 
 @singleton()
 @Controller('/checkouts')
@@ -21,9 +17,6 @@ export class CheckoutController {
   @Get()
   @Middleware([verifyToken, isUser])
   async getCheckouts(req: Request, resp: Response) {
-    // if (resp.locals.user.role !== Role.Admin) {
-    //   req.query.userId = String(resp.locals.user.id);
-    // }
     try {
       const { jwt } = resp.locals;
 

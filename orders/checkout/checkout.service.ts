@@ -220,28 +220,10 @@ export class CheckoutService {
       .where('checkout.id = :id', { id: created.id })
       .getOne();
 
-    // if (!(await this.validation(checkout.id, authToken))) {
-    //   await this.checkoutRepository.remove(checkout);
-    //   throw new CustomExternalError([ErrorCode.FORBIDDEN], HttpStatus.FORBIDDEN);
-    // }
-
     return checkout;
   }
 
   async updateCheckout(id: string, checkoutDTO: Checkout, user: UserAuth): Promise<CheckoutDTO> {
-    // const checkout = await this.checkoutRepository.findOneOrFail({
-    //   where: {
-    //     id: Equal(id),
-    //   },
-    // });
-
-    // await this.isUserCheckoutOwner(checkout, user);
-
-    // return this.checkoutRepository.save({
-    //   ...checkout,
-    //   ...checkoutDTO,
-    // });
-
     await this.checkoutRepository
       .createQueryBuilder()
       .update()
@@ -319,20 +301,6 @@ export class CheckoutService {
 
   async sendMail(options: MailOptionsDTO) {
     this.validateMailOptions(options);
-
-    // const result = await this.smptTransporter.sendMail({
-    //   ...options,
-    //   from: MAIL_FROM,
-    // });
-
-    // if (result.response === '250 2.0.0 Ok: queued') {
-    //   return {
-    //     status: HttpStatus.OK,
-    //     response: {
-    //       message: `Mail was successfully sent to ${options.to}`,
-    //     },
-    //   };
-    // }
     let result: any;
     await this.smptTransporter.sendMail(
       {

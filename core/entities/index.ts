@@ -7,5 +7,5 @@ export { Wishlist, WishlistProduct } from './wishlists';
 export { Slide, Advertisement } from './banners';
 export { News } from './news/news';
 export { Basket, OrderProduct, Address, Checkout, Subscription } from './orders';
-export { Category, Color, Product, Parameter, Tag, ParameterProducts, Foryou, ProductVariant } from './catalog';
-// Brand,
+export { Category, Color, Product, Tag, Foryou, ProductVariant, ProductParameter } from './catalog';
+// Brand, ParameterProducts,  Parameter,
