@@ -13,13 +13,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@a2seven/yoo-checkout": "^1.1.2",
     "@types/nodemailer": "^6.4.5",
-    "axios": "^1.7.9",
+    "axios": "^1.5.0",
     "dotenv": "^16.0.1",
     "express": "^4.18.2",
     "handlebars": "^4.7.7",
     "moment": "^2.29.4",
-    "nice-invoice": "^1.0.5",
+    "nice-invoice": "^1.1.8",
     "nodemailer": "^6.9.4",
     "tsyringe": "^4.7.0",
     "web-push": "^3.6.4"

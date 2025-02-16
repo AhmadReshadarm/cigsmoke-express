@@ -1,16 +1,16 @@
 {
-  "name": "fingarden",
+  "name": "wuluxe",
   "description": "Express Gateway Instance Bootstraped from Command Line",
   "repository": {},
-  "license": "UNLICENSED",
-  "version": "1.0.0",
+  "license": "MIT",
+  "version": "1.0.1",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "dotenv": "^16.0.1",
-    "express-gateway": "^1.16.11",
+    "express-gateway": "https://github.com/AhmadReshadarm/express-gateway.git",
     "typeorm": "^0.3.7"
   }
 }
