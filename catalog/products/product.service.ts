@@ -14,11 +14,13 @@ export class ProductService {
   private productRepository: Repository<Product>;
   private productVariantRepository: Repository<ProductVariant>;
   private productColorRepository: Repository<Color>;
+  private productParamRepository: Repository<ProductParameter>;
 
   constructor(dataSource: DataSource) {
     this.productRepository = dataSource.getRepository(Product);
     this.productVariantRepository = dataSource.getRepository(ProductVariant);
     this.productColorRepository = dataSource.getRepository(Color);
+    this.productParamRepository = dataSource.getRepository(ProductParameter);
   }
 
   async getProducts(queryParams: ProductQueryDTO): Promise<ProductPaginationDTO<ProductDTO>> {
@@ -250,10 +252,10 @@ export class ProductService {
   // };
   async createProductVariant(variantData: any, product: Product) {
     let colorEntity: Color | null = null;
-    if (variantData.color && variantData.color.id) {
-      colorEntity = await this.productColorRepository.findOneBy({ id: String(variantData.color.id) }); // Fetch Color entity by ID
+    if (variantData.color) {
+      colorEntity = await this.productColorRepository.findOneBy({ id: String(variantData.color) }); // Fetch Color entity by ID
       if (!colorEntity) {
-        throw new Error(`Color with ID ${variantData.color.id} not found.`); // Handle case where color is not found
+        throw new Error(`Color with ID ${variantData.color} not found.`); // Handle case where color is not found
       }
     }
 
@@ -261,7 +263,7 @@ export class ProductService {
       ...variantData,
       price: Number(variantData.price),
       available: Boolean(variantData.available),
-      color: colorEntity || undefined,
+      color: colorEntity,
       product: product,
       parameters: [],
     });
@@ -272,6 +274,40 @@ export class ProductService {
       });
     }
     return await this.productVariantRepository.save(newVariant);
+  }
+
+  async updateProductVariant(variantDataInDB: ProductVariant, userPassedVariant: ProductVariant) {
+    const { parameters, ...others } = userPassedVariant;
+
+    const updatedParams = parameters.map(async userPassedParam => {
+      const paramInDB = await this.productParamRepository.findOneOrFail({
+        where: {
+          id: Equal(userPassedParam.id),
+        },
+      });
+      if (!paramInDB) {
+        return await this.productParamRepository.save(new ProductParameter({ ...(userPassedParam as any) }));
+      }
+      if (paramInDB) {
+        await this.productParamRepository.save({ ...paramInDB, ...userPassedParam });
+        return await this.productParamRepository.findOneOrFail({
+          where: { id: Equal(paramInDB.id) },
+        });
+      }
+    });
+
+    await this.productVariantRepository.save({
+      ...variantDataInDB,
+      ...others,
+    });
+    const updatedVariant = await this.productVariantRepository.findOneOrFail({
+      where: { id: Equal(variantDataInDB.id) },
+    });
+
+    return {
+      ...updatedVariant,
+      ...updatedParams,
+    };
   }
 
   async getProductByUrl(url: string): Promise<ProductDTO> {
@@ -314,83 +350,72 @@ export class ProductService {
       where: {
         id: Equal(id),
       },
-      relations: ['productVariants', 'productVariants.parameters'],
+      relations: ['productVariants', 'productVariants.color', 'productVariants.parameters'],
     });
 
     const { productVariants, ...others } = productDTO;
 
-    await this.productRepository.save({
+    const savedProduct = await this.productRepository.save({
       ...product,
       ...others,
     });
 
-    let variants: ProductVariant[] = [];
-
     if (productVariants) {
       await validation(productVariants);
-      //  prev method
-      // product.productVariants?.forEach(variant => {
-      //   const curVariant = productDTO.productVariants?.find(({ id }) => variant.id == id?.toString());
-
-      //   if (!curVariant) {
-      //     this.productVariantRepository.remove(variant);
-      //     product.productVariants = product.productVariants?.filter(curVariant => curVariant.id !== variant.id);
-      //   }
-      // });
-      const removedVariants = product.productVariants?.filter(
-        existingVariant => !productDTO.productVariants?.some(newVariant => newVariant.id === existingVariant.id),
-      );
-      await this.productVariantRepository.remove(removedVariants ?? []);
-
-      variants = product.productVariants;
-      //  prev method
-      // for (const variantDTO of productDTO.productVariants) {
-      //   const variant = await this.productVariantRepository.findOne({
-      //     where: {
-      //       id: Equal(variantDTO.id),
-      //     },
-      //   });
-
-      //   if (!variant) {
-      //     const variantData = new ProductVariant({ ...(variantDTO as any) });
-      //     const newVariant = await this.createProductVariant(variantData, product);
-      //     variants.push(newVariant);
-      //   }
-
-      //   if (variant) {
-      //     await this.productVariantRepository.update(variant.id, { ...variant, ...variantDTO });
-      //   }
-      // }
-
-      // Update or create variants
-      variants = await Promise.all(
-        productDTO.productVariants.map(async variantDTO => {
-          if (variantDTO.id) {
-            await this.productVariantRepository.update(variantDTO.id, variantDTO);
-
-            // SAFER: Add null check to satisfy TypeScript
-            const updatedVariant = await this.productVariantRepository.findOneBy({ id: variantDTO.id });
-            if (!updatedVariant) {
-              throw new Error(`Failed to find variant with ID ${variantDTO.id} after update`);
+      // check if parameter is deleted then delete it from db as well
+      await Promise.all(
+        product.productVariants.map(async variantInDB => {
+          const paramsInDB = variantInDB.parameters.map(param => param);
+          const userPassedParams = productVariants.map(param => param);
+          paramsInDB.map(async paramInDB => {
+            const isUserPassedParamInDB = userPassedParams.find(({ id }) => paramInDB.id == id.toString());
+            if (!isUserPassedParamInDB) {
+              await this.productParamRepository.remove(paramInDB);
             }
-            return updatedVariant;
-          }
-
-          // EXPLICIT CAST: Ensure variantDTO matches ProductVariant type
-          return this.createProductVariant(variantDTO as ProductVariant, product);
+          });
         }),
       );
+
+      // check if variant is deleted then delete it from db as well
+      await Promise.all(
+        product.productVariants.map(async variantInDB => {
+          const isUserPassedVariantInDB = productVariants.find(({ id }) => variantInDB.id == id.toString());
+          if (!isUserPassedVariantInDB) {
+            await this.productVariantRepository.remove(variantInDB);
+          }
+        }),
+      );
+
+      const updatedVariantsInDB = await Promise.all(
+        productDTO.productVariants.map(async userPassedVariant => {
+          const variantInDB = await this.productVariantRepository.findOne({
+            where: {
+              id: Equal(userPassedVariant.id),
+            },
+          });
+
+          if (!variantInDB) {
+            const variantData = new ProductVariant({ ...(userPassedVariant as any) });
+            const newVariant = await this.createProductVariant(variantData, product);
+            return newVariant;
+          }
+
+          if (variantInDB) {
+            return await this.updateProductVariant(variantInDB, userPassedVariant);
+            // return {};
+          }
+        }),
+      );
+
+      return {
+        ...savedProduct,
+        ...updatedVariantsInDB,
+      };
     }
 
     return {
-      ...productDTO,
-      id: product.id,
-      productVariants: variants.map(variant => {
-        const { product, ...others } = variant;
-        return {
-          ...others,
-        };
-      }),
+      ...savedProduct,
+      ...product.productVariants,
     };
   }
 
