@@ -17,10 +17,10 @@ export class ProductParameter {
   })
   variant: ProductVariant;
 
-  constructor(key?: string, value?: string) {
-    if (key && value) {
-      this.key = key;
-      this.value = value;
+  constructor(args?: { key: string; value: string }) {
+    if (args) {
+      this.key = args.key;
+      this.value = args.value;
     }
   }
 }

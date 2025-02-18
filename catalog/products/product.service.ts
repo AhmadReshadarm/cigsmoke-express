@@ -236,20 +236,6 @@ export class ProductService {
     return this.mergeProduct(product);
   }
 
-  // async createParameters(parameters: ParameterProducts[], id: string) {
-  //   parameters.map(async parameter => {
-  //     parameter.productId = id;
-  //     return await this.parameterProductsRepository.save(parameter);
-  //   });
-  // }
-  // createParameters = async (parameters: ParameterProducts[], id: string, counter: number) => {
-  //   if (parameters.length > counter) {
-  //     parameters[counter].productId = id;
-  //     await this.parameterProductsRepository.save(parameters[counter]);
-  //     counter = counter + 1;
-  //     this.createParameters(parameters, id, counter);
-  //   }
-  // };
   async createProductVariant(variantData: any, product: Product) {
     let colorEntity: Color | null = null;
     if (variantData.color) {
@@ -268,45 +254,25 @@ export class ProductService {
       parameters: [],
     });
 
-    if (variantData.parameterProduct && Array.isArray(variantData.parameterProduct)) {
-      newVariant.parameters = variantData.parameterProduct.map((paramData: ProductParameter) => {
-        return new ProductParameter(paramData.key, paramData.value);
+    if (variantData.parameters && Array.isArray(variantData.parameters)) {
+      newVariant.parameters = variantData.parameters.map((paramData: ProductParameter) => {
+        return new ProductParameter({ key: paramData.key, value: paramData.value });
       });
     }
     return await this.productVariantRepository.save(newVariant);
   }
 
   async updateProductVariant(variantDataInDB: ProductVariant, userPassedVariant: ProductVariant) {
-    const { parameters, ...others } = userPassedVariant;
-
-    const updatedParams = parameters.map(async userPassedParam => {
-      const paramInDB = await this.productParamRepository.findOneOrFail({
-        where: {
-          id: Equal(userPassedParam.id),
-        },
-      });
-      if (!paramInDB) {
-        return await this.productParamRepository.save(new ProductParameter({ ...(userPassedParam as any) }));
-      }
-      if (paramInDB) {
-        await this.productParamRepository.save({ ...paramInDB, ...userPassedParam });
-        return await this.productParamRepository.findOneOrFail({
-          where: { id: Equal(paramInDB.id) },
-        });
-      }
-    });
-
     await this.productVariantRepository.save({
       ...variantDataInDB,
-      ...others,
+      ...userPassedVariant,
     });
-    const updatedVariant = await this.productVariantRepository.findOneOrFail({
+    const updatedVariant = await this.productVariantRepository.findOne({
       where: { id: Equal(variantDataInDB.id) },
     });
 
     return {
       ...updatedVariant,
-      ...updatedParams,
     };
   }
 
@@ -316,8 +282,6 @@ export class ProductService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.tags', 'tag')
-      .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
-      .leftJoinAndSelect('parameterProducts.parameter', 'parameter')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
       .leftJoinAndSelect('productVariant.color', 'color')
       .leftJoinAndSelect('productVariant.parameters', 'parameters')
@@ -362,24 +326,25 @@ export class ProductService {
 
     if (productVariants) {
       await validation(productVariants);
-      // check if parameter is deleted then delete it from db as well
-      await Promise.all(
-        product.productVariants.map(async variantInDB => {
-          const paramsInDB = variantInDB.parameters.map(param => param);
-          const userPassedParams = productVariants.map(param => param);
-          paramsInDB.map(async paramInDB => {
-            const isUserPassedParamInDB = userPassedParams.find(({ id }) => paramInDB.id == id.toString());
-            if (!isUserPassedParamInDB) {
-              await this.productParamRepository.remove(paramInDB);
-            }
-          });
-        }),
-      );
 
-      // check if variant is deleted then delete it from db as well
       await Promise.all(
         product.productVariants.map(async variantInDB => {
           const isUserPassedVariantInDB = productVariants.find(({ id }) => variantInDB.id == id.toString());
+          if (isUserPassedVariantInDB) {
+            // get the existing parameters from the database variant
+            const existingParamsInDB = variantInDB.parameters;
+            // Get the parameters from the DTO
+            const userPassedParams = isUserPassedVariantInDB.parameters || [];
+
+            existingParamsInDB.forEach(async paramInDB => {
+              // Check if the existing parameter is present in the DTO parameters
+              const isParamPresent = userPassedParams.some(param => param.id === paramInDB.id);
+              if (!isParamPresent) {
+                await this.productParamRepository.remove(paramInDB);
+              }
+            });
+          }
+          //  Remove variant if not in DB
           if (!isUserPassedVariantInDB) {
             await this.productVariantRepository.remove(variantInDB);
           }
@@ -396,17 +361,14 @@ export class ProductService {
 
           if (!variantInDB) {
             const variantData = new ProductVariant({ ...(userPassedVariant as any) });
-            const newVariant = await this.createProductVariant(variantData, product);
-            return newVariant;
+            return await this.createProductVariant(variantData, product);
           }
 
           if (variantInDB) {
             return await this.updateProductVariant(variantInDB, userPassedVariant);
-            // return {};
           }
         }),
       );
-
       return {
         ...savedProduct,
         ...updatedVariantsInDB,
@@ -562,16 +524,6 @@ export class ProductService {
       }
     }
   }
-
-  // async getParameter(id: string): Promise<Parameter> {
-  //   const parameter = await this.parameterRepository.findOneOrFail({
-  //     where: {
-  //       id: Equal(id),
-  //     },
-  //   });
-
-  //   return parameter;
-  // }
 
   getProductVariantsImages(productVariants?: ProductVariant[]) {
     let images: string[] = [];

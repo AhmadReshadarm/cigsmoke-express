@@ -13,7 +13,7 @@ export class ParameterService {
   }
 
   async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<ProductParameter>> {
-    const { key, value, variantId, sortBy = 'name', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const { key, value, variantId, sortBy = 'key', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
 
     const queryBuilder = this.parameterRepository.createQueryBuilder('parameter');
 
