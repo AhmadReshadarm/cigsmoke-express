@@ -40,6 +40,7 @@ export class ProductVariant {
     nullable: true,
     eager: true, // Optional: Auto-load parameters with variant
   })
+  @JoinTable()
   parameters: ProductParameter[];
 
   @ManyToOne(() => Product, product => product.productVariants, { cascade: true, onDelete: 'CASCADE' })

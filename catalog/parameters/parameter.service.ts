@@ -13,18 +13,47 @@ export class ParameterService {
   }
 
   async getParameters(queryParams: ParameterQueryDTO): Promise<PaginationDTO<ProductParameter>> {
-    const { key, value, variantId, sortBy = 'key', orderBy = 'DESC', offset = 0, limit = 10 } = queryParams;
+    const {
+      key,
+      value,
+      variantId,
+      products,
+      parent,
+      children,
+      sortBy = 'key',
+      orderBy = 'DESC',
+      offset = 0,
+      limit = 10,
+    } = queryParams;
 
-    const queryBuilder = this.parameterRepository.createQueryBuilder('parameter');
+    const queryBuilder = this.parameterRepository
+      .createQueryBuilder('parameter')
+      .leftJoinAndSelect('parameter.variant', 'productVariant')
+      .leftJoinAndSelect('productVariant.product', 'product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('category.parent', 'categoryParent');
 
     if (variantId) {
       queryBuilder.andWhere('parameter.variantId = :variantId', { variantId });
     }
     if (key) {
-      queryBuilder.andWhere('parameter.key = :key', { key });
+      const keywords = key.toLowerCase().split(/\s+/);
+      let query = queryBuilder;
+      keywords.forEach(keyword => {
+        query = query.where(`LOWER(parameter.key) LIKE :keyword`, { keyword: `%${keyword}%` });
+      });
     }
     if (value) {
       queryBuilder.andWhere('parameter.value = :value', { value });
+    }
+    if (products) {
+      queryBuilder.andWhere('product.url IN (:...products)', { products: JSON.parse(products) });
+    }
+    if (parent) {
+      queryBuilder.andWhere('categoryParent.url = :parent', { parent: `${parent}` });
+    }
+    if (children) {
+      queryBuilder.andWhere('category.url = :children', { children: `${children}` });
     }
 
     queryBuilder.orderBy(`parameter.${sortBy}`, orderBy).skip(offset).take(limit);

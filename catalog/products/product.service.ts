@@ -113,23 +113,8 @@ export class ProductService {
     if (tag) {
       queryBuilder.andWhere('tag.url = :tag', { tag: tag });
     }
-    if (parameters?.length) {
-      parameters.forEach(param => {
-        const [key, value] = param.split('|');
-        queryBuilder
-          .andWhere(qb => {
-            const subQuery = qb
-              .subQuery()
-              .select('pv.id')
-              .from(ProductVariant, 'pv')
-              .leftJoin('pv.parameters', 'param')
-              .where('pv.productId = product.id')
-              .andWhere('param.key = :key AND param.value = :value')
-              .getQuery();
-            return `EXISTS ${subQuery}`;
-          })
-          .setParameters({ key, value });
-      });
+    if (parameters) {
+      queryBuilder.andWhere('parameters.value IN (:...values)', { values: parameters });
     }
 
     queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);

@@ -55,6 +55,9 @@ export class ParameterQueryDTO {
   variantId?: string;
   key?: string;
   value?: string;
+  products?: string;
+  parent: string;
+  children: string;
   sortBy?: string;
   orderBy?: 'ASC' | 'DESC';
   offset?: number;
