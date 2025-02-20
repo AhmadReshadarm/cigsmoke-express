@@ -23,7 +23,7 @@ export class ProductService {
     this.productParamRepository = dataSource.getRepository(ProductParameter);
   }
 
-  async getProducts(queryParams: ProductQueryDTO): Promise<ProductPaginationDTO<ProductDTO>> {
+  async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
     const {
       name,
       minPrice,
@@ -120,43 +120,14 @@ export class ProductService {
     queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
 
     const products = await queryBuilder.getMany();
-    const parameterGroups: { [key: string]: Set<string> } = {};
-
-    products.forEach(product => {
-      product.productVariants.forEach(variant => {
-        variant.parameters.forEach(param => {
-          if (!parameterGroups[param.key]) {
-            parameterGroups[param.key] = new Set();
-          }
-          parameterGroups[param.key].add(param.value);
-        });
-      });
-    });
-
-    // Convert Sets to Arrays
-    const formattedGroups: { [key: string]: string[] } = {};
-    Object.entries(parameterGroups).forEach(([key, values]) => {
-      formattedGroups[key] = Array.from(values);
-    });
 
     const results = products.map(async product => await this.mergeProduct(product));
 
     return {
       rows: await Promise.all(results),
       length: await queryBuilder.getCount(),
-      parameterGroups: formattedGroups,
     };
   }
-  // current response 👇
-  //   {
-  //   "rows": [...],
-  //   "length": 15,
-  //   "parameterGroups": {
-  //     "Size": ["S", "M", "L"],
-  //     "Material": ["Cotton", "Polyester"],
-  //     "Color": ["Red", "Blue"]
-  //   }
-  // }
 
   async getProductsPriceRange(
     queryParams: ProductQueryDTO,
