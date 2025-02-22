@@ -8,7 +8,11 @@ import { validation } from '../../core/lib/validator';
 import { isAdmin, isUser, verifyToken } from '../../core/middlewares';
 import { generateInvoiceTemplet, generateUpdateInoviceTemplet } from '../../orders/functions/createInvoice';
 import { CheckoutService } from './checkout.service';
-
+interface EmbeddedImage {
+  filename: string;
+  href: string; // Use href for URLs
+  cid: string;
+}
 @singleton()
 @Controller('/checkouts')
 export class CheckoutController {
@@ -85,12 +89,33 @@ export class CheckoutController {
         comment: req.body.comment,
         cart: req.body.basket,
       };
-      const invoiceData: string = generateInvoiceTemplet(payload);
+      const cidImageMap: Record<string, string> = {}; // Map to store CID values
+
+      const productAttachments: EmbeddedImage[] = [];
+      if (payload.cart?.orderProducts) {
+        for (const orderproduct of payload.cart.orderProducts) {
+          const imageName = orderproduct.productVariant?.images?.split(',')[0];
+          if (imageName) {
+            const imageUrl = `https://wuluxe.ru/api/images/${imageName}`; // Construct product image URL
+            const productImageCid = `productImage_${orderproduct.productVariant?.artical}`;
+
+            productAttachments.push({
+              filename: imageName,
+              href: imageUrl, // URL for product image
+              cid: productImageCid,
+            });
+          }
+        }
+      }
+
+      // const invoiceData: string = generateInvoiceTemplet(payload);
+      const invoiceData: string = generateInvoiceTemplet(payload, cidImageMap);
 
       const emailAdminPayload = {
         to: `info@wuluxe.ru`,
         subject: `Заказ № ${created.id} на wuluxe.ru`,
         html: invoiceData,
+        attachments: productAttachments,
       };
       await this.checkoutService.sendMail(emailAdminPayload);
 
@@ -98,6 +123,7 @@ export class CheckoutController {
         to: user.role !== Role.Admin ? user.email : req.body.address.receiverEmail,
         subject: `Заказ № ${created.id} на wuluxe.ru`,
         html: invoiceData,
+        attachments: productAttachments,
       };
       await this.checkoutService.sendMail(emailUserPayload);
     } catch (error) {
