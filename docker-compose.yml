@@ -19,7 +19,8 @@ services:
     ports:
       - 8080:80
     environment:
-      PMA_HOST: ${MYSQL_HOST}
+      # PMA_HOST: ${MYSQL_HOST}
+      PMA_HOST: db
       PMA_PORT: 3306
   # authorization:
   #   build:
