@@ -19,7 +19,6 @@
     "express": "^4.18.2",
     "handlebars": "^4.7.7",
     "moment": "^2.29.4",
-    "nice-invoice": "^1.0.5",
     "nodemailer": "^6.9.4",
     "tsyringe": "^4.7.0",
     "web-push": "^3.6.4"
