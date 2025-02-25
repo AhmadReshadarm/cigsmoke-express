@@ -26,6 +26,7 @@ export class ProductService {
   async getProducts(queryParams: ProductQueryDTO): Promise<PaginationDTO<ProductDTO>> {
     const {
       name,
+      userHistory,
       minPrice,
       maxPrice,
       desc,
@@ -76,7 +77,9 @@ export class ProductService {
         }
       });
     }
-
+    if (userHistory) {
+      queryBuilder.andWhere('product.id IN (:...ids)', { ids: userHistory });
+    }
     if (minPrice) {
       queryBuilder.andWhere('productVariant.price >= :minPrice', { minPrice: minPrice });
     }

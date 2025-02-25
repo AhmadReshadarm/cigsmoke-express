@@ -4,6 +4,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 export interface ProductQueryDTO {
   readonly name?: string;
+  readonly userHistory?: string[];
   readonly minPrice?: number;
   readonly maxPrice?: number;
   readonly desc?: string;
@@ -24,7 +25,7 @@ export interface ProductQueryDTO {
   readonly offset?: number;
   readonly limit?: number;
   readonly image?: string;
-  parameters?: string[];
+  readonly parameters?: string[];
 }
 
 export interface TagQueryDTO {
