@@ -5,7 +5,7 @@ import { ErrorCode } from '../../core/domain/error/error.code';
 import { Product, ProductVariant, Review, User, ProductParameter, Color } from '../../core/entities';
 import { HttpStatus } from '../../core/lib/http-status';
 import { ProductDTO, ProductQueryDTO } from '../catalog.dtos';
-import { PaginationDTO, ProductPaginationDTO, RatingDTO } from '../../core/lib/dto';
+import { PaginationDTO, RatingDTO } from '../../core/lib/dto';
 import axios from 'axios';
 import { validation } from '../../core/lib/validator';
 
@@ -43,43 +43,46 @@ export class ProductService {
       offset = 0,
       limit = 10,
       image,
-      parameters,
     } = queryParams;
     const queryBuilder = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('category.parent', 'categoryParent')
       .leftJoinAndSelect('product.tags', 'tag')
+      .leftJoinAndSelect('product.parameterProducts', 'parameterProducts')
       .leftJoinAndSelect('product.productVariants', 'productVariant')
-      .leftJoinAndSelect('productVariant.color', 'color')
-      .leftJoinAndSelect('productVariant.parameters', 'parameters');
+      .leftJoinAndSelect('productVariant.color', 'color');
 
     if (name) {
-      const keywords = name.toLowerCase().split(/\s+/);
+      const trimmedName = name.trim();
 
-      let query = queryBuilder;
+      if (trimmedName) {
+        const keywords = trimmedName.split(/\s+/).filter(k => k.length > 0);
 
-      keywords.forEach((keyword, index) => {
-        if (index === 0) {
-          query = query.where(
-            `LOWER(product.name) LIKE :keyword 
-        OR LOWER(productVariant.artical) LIKE :keyword 
-        OR LOWER(product.keywords) LIKE :keyword`,
-            { keyword: `%${keyword}%` },
+        if (keywords.length === 1) {
+          // Single keyword search
+          const keyword = keywords[0];
+          queryBuilder.andWhere(
+            `(LOWER(product.name) LIKE :keyword 
+             OR LOWER(productVariant.artical) LIKE :keyword 
+             OR LOWER(product.keywords) LIKE :keyword)`,
+            { keyword: `%${keyword.toLowerCase()}%` },
           );
         } else {
-          query = query.orWhere(
-            `LOWER(product.name) LIKE :keyword 
-        OR LOWER(productVariant.artical) LIKE :keyword 
-        OR LOWER(product.keywords) LIKE :keyword`,
-            { keyword: `%${keyword}%` },
-          );
+          // Multi-keyword search - all must match
+          keywords.forEach((keyword, index) => {
+            const paramName = `nameKeyword${index}`;
+            queryBuilder.andWhere(
+              `(LOWER(product.name) LIKE :${paramName} 
+               OR LOWER(productVariant.artical) LIKE :${paramName} 
+               OR LOWER(product.keywords) LIKE :${paramName})`,
+              { [paramName]: `%${keyword.toLowerCase()}%` },
+            );
+          });
         }
-      });
+      }
     }
-    if (userHistory) {
-      queryBuilder.andWhere('product.id IN (:...ids)', { ids: userHistory });
-    }
+
     if (minPrice) {
       queryBuilder.andWhere('productVariant.price >= :minPrice', { minPrice: minPrice });
     }
@@ -116,13 +119,35 @@ export class ProductService {
     if (tag) {
       queryBuilder.andWhere('tag.url = :tag', { tag: tag });
     }
-    if (parameters) {
-      queryBuilder.andWhere('parameters.value IN (:...values)', { values: parameters });
+    if (userHistory) {
+      queryBuilder.andWhere('product.id IN (:...ids)', { ids: userHistory });
+
+      // Add custom ordering based on userHistory array position
+      const caseStatements = userHistory
+        .map((id, index) => `WHEN product.id = :userHistoryId${index} THEN ${index}`)
+        .join(' ');
+      const elseCase = userHistory.length;
+
+      queryBuilder
+        .addSelect(`CASE ${caseStatements} ELSE ${elseCase} END`, 'custom_order')
+        .orderBy('custom_order', 'ASC');
+
+      // Add parameters for each ID in history
+      userHistory.forEach((id, index) => {
+        queryBuilder.setParameter(`userHistoryId${index}`, id);
+      });
+    } else {
+      // Default sorting when no userHistory is provided
+      queryBuilder.orderBy(`product.${sortBy}`, orderBy);
     }
 
-    queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
+    queryBuilder.skip(offset).take(limit);
 
     const products = await queryBuilder.getMany();
+
+    // queryBuilder.orderBy(`product.${sortBy}`, orderBy).skip(offset).take(limit);
+
+    // const products = await queryBuilder.getMany();
 
     const results = products.map(async product => await this.mergeProduct(product));
 

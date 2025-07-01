@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { singleton } from 'tsyringe';
 import { HttpStatus } from '../../core/lib/http-status';
-import { validation } from '../../core/lib/validator';
 import { ProductService } from './product.service';
 import { Category, Product, Tag } from '../../core/entities';
 import { TagService } from '../tags/tag.service';
@@ -30,30 +29,12 @@ export class ProductController {
     }
   }
 
-  // getProductVariantsImages(productVariants?: ProductVariant[]) {
-  //   let images: string[] = [];
-  //   productVariants?.forEach(variant => {
-  //     const variantImages = variant.images ? variant.images.split(', ') : [];
-  //     images = images.concat(variantImages);
-  //   });
-  //   return images;
-  // }
-
   @Get('google')
   async getProductsGoogle(req: Request, resp: Response) {
     const { limit } = req.query;
     try {
       const products: any = await this.productService.getProducts({ limit: Number(limit) });
       const filtered = products.rows.filter((product: any) => product?.productVariants![0]?.price !== 1);
-
-      // const getProductVariantsImages = (productVariants?: ProductVariant[]) => {
-      //   let images: string[] = [];
-      //   productVariants?.forEach(variant => {
-      //     const variantImages = variant.images ? variant.images.split(', ') : [];
-      //     images = images.concat(variantImages);
-      //   });
-      //   return images;
-      // };
 
       const item = filtered.map((product: any) => {
         const images = this.productService.getProductVariantsImages(product.productVariants);
@@ -213,19 +194,12 @@ export class ProductController {
         const images = this.productService.getProductVariantsImages(product.productVariants);
         const picture: any = [];
         images.map(image => {
-          picture.push({ '#': `https://nbhoz.ru/api/images/${image}` });
+          picture.push({ '#': `https://wuluxe.ru/api/images/${image}` });
         });
 
         const param: any = [];
         product.productVariants[0].parameters.map(paramObj => {
           param.push({ '@name': `${paramObj.key}`, '#': paramObj.value });
-
-          // const parameter: any = parameters.rows.find(parameter => parameter.id === paramObj.parameterId);
-          // if (paramObj.value == '-' || paramObj.value == '_' || paramObj.value == '') {
-          //   console.log('empty param');
-          // } else {
-          //   param.push({ '@name': `${parameter.name}`, '#': paramObj.value });
-          // }
         });
 
         return {
@@ -235,8 +209,7 @@ export class ProductController {
           'price': product.productVariants[0].price,
           'currencyId': 'RUR',
           'categoryId': product.category.id,
-          'vendor': 'NBHOZ',
-          // 'picture': `https://nbhoz.ru/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
+          'vendor': 'WULUXE',
           picture,
           'description': `<![CDATA[<p>${
             product?.desc?.includes('|')
@@ -287,9 +260,9 @@ export class ProductController {
         yml_catalog: {
           '@date': dataWithTimeZone,
           'shop': {
-            name: 'NBHOZ - интернет магазин хозтовары. по выгодным ценам',
-            company: 'NBHOZ',
-            url: 'https://nbhoz.ru',
+            name: 'WULUXE - интернет магазин хозтовары. по выгодным ценам',
+            company: 'WULUXE',
+            url: 'https://wuluxe.ru',
             currencies: {
               currency: { '@id': 'RUR', '@rate': '1' },
             },
@@ -331,13 +304,13 @@ export class ProductController {
        <h3>Артикул : </h3>
        <span>${product.productVariants[0].artical}</span>
        </div>
-       <a href="https://nbhoz.ru/product/${product.url}">
-       <figure><img src="https://nbhoz.ru/api/images/${images[0]}"></figure>
-       </a><div><a href="https://nbhoz.ru/product/${product.url}" >
+       <a href="https://wuluxe.ru/product/${product.url}">
+       <figure><img src="https://wuluxe.ru/api/images/${images[0]}"></figure>
+       </a><div><a href="https://wuluxe.ru/product/${product.url}" >
        <h2>${product.name}</h2>
        </a>
        <p>${product.desc}</p>
-       <button formaction="https://nbhoz.ru/product/${product.url}" data-background-color="#000" data-color="white" data-primary="true">Заказать сейчас</button>
+       <button formaction="https://wuluxe.ru/product/${product.url}" data-background-color="#000" data-color="white" data-primary="true">Заказать сейчас</button>
        `;
       });
 
@@ -350,8 +323,8 @@ export class ProductController {
           'channel': {
             item: {
               '@turbo': 'true',
-              'title': 'NBHOZ - Опт Товаров для Дома и Бизнеса',
-              'link': `https://nbhoz.ru`,
+              'title': 'WULUXE - Опт Товаров для Дома и Бизнеса',
+              'link': `https://wuluxe.ru`,
               'turbo:content': {
                 '#': `<![CDATA[${items.join(' ')}
                 ]]>`,
@@ -371,7 +344,7 @@ export class ProductController {
       resp.setHeader('Content-Type', 'text/xml');
       resp.send(xml);
     } catch (error) {
-      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: `somthing went wrong: ${error}` });
+      resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
     }
   }
 
@@ -408,10 +381,10 @@ export class ProductController {
           'price': product.productVariants[0].price,
           'currencyId': 'RUB',
           'categoryId': product.category.id,
-          'name': product.name,
+          'name': product.name.slice(0, 100),
           'description': product?.desc?.includes('|') ? product.desc.split('|')[1] : product.desc,
-          'picture': `https://nbhoz.ru/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
-          'url': `https://nbhoz.ru/product/${product.url}`,
+          'picture': `https://wuluxe.ru/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
+          'url': `https://wuluxe.ru/product/${product.url}`,
           'rating': product?.rating?.avg,
         };
       });
@@ -426,7 +399,7 @@ export class ProductController {
           'shop': {
             name: 'NBHOZ - интернет магазин хозтовары оптом. по выгодным ценам',
             company: 'NBHOZ',
-            url: 'https://nbhoz.ru',
+            url: 'https://wuluxe.ru',
             currencies: {
               currency: {
                 '@id': 'RUB',
@@ -510,22 +483,6 @@ export class ProductController {
       resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
     }
   }
-
-  // @Post()
-  // @Middleware([verifyToken, isAdmin])
-  // async createProduct(req: Request, resp: Response) {
-  //   const { tags, sizes } = req.body;
-  //   try {
-  //     const newProduct = await validation(new Product(req.body));
-
-  //     tags ? (newProduct.tags = await this.tagService.getTagsByIds(tags.map((tag: Tag) => String(tag)))) : null;
-  //     const created = await this.productService.createProduct(newProduct);
-
-  //     resp.status(HttpStatus.CREATED).json({ id: created.id });
-  //   } catch (error) {
-  //     resp.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
-  //   }
-  // }
 
   @Post()
   @Middleware([verifyToken, isAdmin])
