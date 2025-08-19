@@ -22,7 +22,7 @@ export class Checkout {
   // paymentId: string;
 
   @IsNotEmpty()
-  @Column()
+  @Column('decimal', { precision: 20, scale: 2 })
   totalAmount: number;
 
   @Column()

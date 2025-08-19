@@ -10,11 +10,11 @@ export class ProductVariant {
   id: string;
 
   @IsNotEmpty()
-  @Column()
+  @Column('decimal', { precision: 20, scale: 2 })
   @IsPositive()
   price: number;
 
-  @Column({ nullable: true })
+  @Column('decimal', { precision: 20, scale: 2, nullable: true })
   oldPrice?: number;
 
   @Column()
