@@ -38,13 +38,13 @@ export class ProductController {
 
       const item = filtered.map((product: any) => {
         const images = this.productService.getProductVariantsImages(product.productVariants);
-        const addetinalImages = images.map(image => `https://nbhoz.ru/api/images/${image}`);
+        const addetinalImages = images.map(image => `https://wuluxe.com/api/images/${image}`);
         return {
           'g:id': `${product?.id}`,
           'g:title': `${product.name}`,
           'g:description': `${product?.desc?.includes('|') ? product.desc.split('|')[1] : product.desc}`,
-          'g:link': `https://nbhoz.ru/product/${product.url}`,
-          'g:image_link': `https://nbhoz.ru/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
+          'g:link': `https://wuluxe.com/product/${product.url}`,
+          'g:image_link': `https://wuluxe.com/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
           'g:condition': 'new',
           'g:availability': 'in stock',
           'g:price': `${product?.productVariants![0]?.price}.00 RUB`,
@@ -59,10 +59,10 @@ export class ProductController {
           '@xmlns:g': 'http://base.google.com/ns/1.0',
           '@version': '2.0',
           'channel': {
-            title: 'NBHOZ - интернет магазин хозтовары оптом. по выгодным ценам',
-            link: 'https://nbhoz.ru',
+            title: 'WULUXE - интернет магазин хозтовары оптом. по выгодным ценам',
+            link: 'https://wuluxe.com',
             description:
-              'NBHOZ, Дешевые хозтовары оптом в интернет магазине nbhoz в Москве и все Россия, купить Кухонная утварь, Товары для сервировки стола, Уборочный инвентарь, Товары для ванной комнаты, Прихожая, Товары для ремонта, Товары для дачи и сада, Спортивные и туристические товары, Бытовая техника, Товары для животных, Декор для дома',
+              'WULUXE, Дешевые хозтовары оптом в интернет магазине wuluxe в Москве и все Россия, купить Кухонная утварь, Товары для сервировки стола, Уборочный инвентарь, Товары для ванной комнаты, Прихожая, Товары для ремонта, Товары для дачи и сада, Спортивные и туристические товары, Бытовая техника, Товары для животных, Декор для дома',
             item,
           },
         },
@@ -111,16 +111,16 @@ export class ProductController {
         const images = this.productService.getProductVariantsImages(product.productVariants);
         const picture: any = [];
         images.map(image => {
-          picture.push({ '#': `https://nbhoz.ru/api/images/${image}` });
+          picture.push({ '#': `https://wuluxe.com/api/images/${image}` });
         });
         return {
           '@id': product?.id,
           'name': product?.name,
-          'url': `https://nbhoz.ru/product/${product?.url}`,
+          'url': `https://wuluxe.com/product/${product?.url}`,
           'price': product?.productVariants[0]?.price,
           'currencyId': 'RUR',
           'categoryId': product?.category?.id,
-          // 'picture': `https://nbhoz.ru/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
+          // 'picture': `https://wuluxe.com/api/images/${product?.productVariants![0]?.images?.split(', ')[0]}`,
           picture,
           'description': product?.desc?.includes('|') ? product?.desc.split('|')[1] : product?.desc,
           'rating': product?.rating?.avg,
@@ -131,11 +131,11 @@ export class ProductController {
         yml_catalog: {
           '@date': `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()} ${currentDate.getHours()}:${currentDate.getMinutes()}`,
           'shop': {
-            name: 'NBHOZ - интернет магазин хозтовары оптом. по выгодным ценам',
-            company: 'NBHOZ',
-            url: 'https://nbhoz.ru',
+            name: 'WULUXE - интернет магазин хозтовары оптом. по выгодным ценам',
+            company: 'WULUXE',
+            url: 'https://wuluxe.com',
             version: '1.0',
-            email: 'info@nbhoz.ru',
+            email: 'info@wuluxe.com',
             currencies: {
               currency: 'RUR',
               rate: '1',
@@ -205,7 +205,7 @@ export class ProductController {
         return {
           '@id': product.id,
           'name': product.name,
-          'url': `https://nbhoz.ru/product/${product.url}`,
+          'url': `https://wuluxe.com/product/${product.url}`,
           'price': product.productVariants[0].price,
           'currencyId': 'RUR',
           'categoryId': product.category.id,
@@ -397,8 +397,8 @@ export class ProductController {
             currentDate.getDate() < 10 ? '0' + currentDate.getDate() : currentDate.getDate()
           } ${currentDate.getHours()}:${currentDate.getMinutes()}`,
           'shop': {
-            name: 'NBHOZ - интернет магазин хозтовары оптом. по выгодным ценам',
-            company: 'NBHOZ',
+            name: 'WULUXE - интернет магазин хозтовары оптом. по выгодным ценам',
+            company: 'WULUXE',
             url: 'https://wuluxe.ru',
             currencies: {
               currency: {
