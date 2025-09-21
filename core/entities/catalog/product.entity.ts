@@ -49,11 +49,11 @@ export class Product {
   @JoinTable()
   tags?: Tag[];
 
-  // @OneToMany(() => ProductParameter, param => param.variant, {
-  //   cascade: true,
-  //   nullable: true,
-  // })
-  // parameters: ProductParameter[];
+  @OneToMany(() => ProductParameter, param => param.variant, {
+    cascade: true,
+    nullable: true,
+  })
+  parameters: ProductParameter[];
 
   @OneToMany(() => ProductVariant, productVariant => productVariant.product)
   productVariants: ProductVariant[];
@@ -67,7 +67,7 @@ export class Product {
     url: string;
     tags?: Tag[];
     productVariants: ProductVariant[];
-    // parameters: ProductParameter[];
+    parameters: ProductParameter[];
   }) {
     if (args) {
       this.name = args.name;
@@ -78,7 +78,7 @@ export class Product {
       this.url = args.url;
       this.tags = args.tags;
       this.productVariants = args.productVariants;
-      // this.parameters = args.parameters;
+      this.parameters = args.parameters;
     }
   }
 }
